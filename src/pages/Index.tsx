@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import PageTransition from "@/components/PageTransition";
+import portraitBg from "@/assets/portrait.jpg";
 
 const Index = () => {
   return (
@@ -10,7 +11,7 @@ const Index = () => {
         {/* Background portrait */}
         <div className="absolute inset-0 z-0">
           <img
-            src="/src/assets/portrait.jpg"
+            src={portraitBg}
             alt=""
             className="w-full h-full object-cover opacity-[0.07] grayscale"
           />
