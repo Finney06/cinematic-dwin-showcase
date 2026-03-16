@@ -17,7 +17,7 @@ const Index = () => {
           <div className="absolute inset-0 bg-background/60" />
         </div>
         {/* Center content */}
-        <div className="flex flex-col items-center text-center px-8">
+        <div className="relative z-10 flex flex-col items-center text-center px-8">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
