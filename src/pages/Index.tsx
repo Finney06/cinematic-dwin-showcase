@@ -7,6 +7,15 @@ const Index = () => {
     <PageTransition>
       <Navbar />
       <main className="bg-background min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
+        {/* Background portrait */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/src/assets/portrait.jpg"
+            alt=""
+            className="w-full h-full object-cover opacity-[0.07] grayscale"
+          />
+          <div className="absolute inset-0 bg-background/60" />
+        </div>
         {/* Center content */}
         <div className="flex flex-col items-center text-center px-8">
           <motion.h1
