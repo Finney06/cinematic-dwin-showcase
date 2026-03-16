@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import PageTransition from "@/components/PageTransition";
+import portraitBg from "@/assets/portrait.jpg";
 
 const Index = () => {
   return (
