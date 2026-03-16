@@ -1,24 +1,42 @@
 import { motion } from "framer-motion";
+import { Link, useLocation } from "react-router-dom";
+
+const navItems = [
+  { label: "Work", path: "/work" },
+  { label: "About", path: "/about" },
+  { label: "Contact", path: "/contact" },
+];
 
 const Navbar = () => {
-  const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-  };
+  const location = useLocation();
 
   return (
     <motion.nav
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 1, delay: 0.5 }}
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 md:px-16 py-6 mix-blend-difference"
+      transition={{ duration: 1, delay: 1.2 }}
+      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 md:px-12 py-6"
     >
-      <button onClick={() => scrollTo("hero")} className="font-display text-lg font-bold tracking-wider text-foreground">
-        DWINDIK
-      </button>
-      <div className="hidden md:flex items-center gap-10 font-body text-xs tracking-[0.2em] uppercase text-foreground">
-        <button onClick={() => scrollTo("works")} className="hover:opacity-50 transition-opacity duration-300">Works</button>
-        <button onClick={() => scrollTo("about")} className="hover:opacity-50 transition-opacity duration-300">About</button>
-        <button onClick={() => scrollTo("contact")} className="hover:opacity-50 transition-opacity duration-300">Contact</button>
+      <Link
+        to="/"
+        className="font-body text-[11px] font-medium tracking-[0.35em] uppercase text-foreground hover:opacity-50 transition-opacity duration-500"
+      >
+        Dwindik
+      </Link>
+      <div className="flex items-center gap-8">
+        {navItems.map((item) => (
+          <Link
+            key={item.path}
+            to={item.path}
+            className={`font-body text-[11px] tracking-[0.2em] uppercase transition-opacity duration-500 ${
+              location.pathname === item.path
+                ? "text-foreground opacity-100"
+                : "text-foreground opacity-40 hover:opacity-100"
+            }`}
+          >
+            {item.label}
+          </Link>
+        ))}
       </div>
     </motion.nav>
   );
