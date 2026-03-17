@@ -14,7 +14,7 @@ const About = () => {
             transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
           >
             <h1 className="font-display text-5xl md:text-6xl font-light text-foreground tracking-[0.02em] mb-4">
-              About
+              About Me
             </h1>
           </motion.div>
 
@@ -31,7 +31,7 @@ const About = () => {
             transition={{ duration: 1, delay: 0.4 }}
           >
             <p className="font-display text-3xl md:text-4xl font-light text-foreground leading-snug mb-12 tracking-[0.01em]">
-              Dwindik is a filmmaker and creative director working at the intersection of cinema, commercial storytelling, and visual art.
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
             </p>
           </motion.div>
 
@@ -42,13 +42,13 @@ const About = () => {
             className="space-y-6 font-body text-sm md:text-base leading-relaxed text-secondary-foreground"
           >
             <p>
-              With over a decade of experience directing films, commercials, and music videos, Dwindik brings a distinctive visual language rooted in atmosphere, restraint, and emotional precision.
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
             </p>
             <p>
-              His work has been recognized at international film festivals and has been commissioned by brands seeking cinematic authenticity over conventional advertising.
+              Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.
             </p>
             <p>
-              Through his production company CREATE, Dwindik collaborates with artists, agencies, and studios to craft visual narratives that feel both intimate and monumental.
+              Sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.
             </p>
           </motion.div>
 
@@ -59,13 +59,13 @@ const About = () => {
             className="mt-20 border-t border-divider pt-10"
           >
             <span className="font-body text-[10px] tracking-[0.3em] uppercase text-muted-foreground block mb-8">
-              Select Recognition
+             Recognitions
             </span>
             <div className="space-y-4 font-body text-sm text-secondary-foreground">
-              <p>Berlin International Film Festival — Official Selection</p>
-              <p>Cannes Court Métrage — Selected</p>
-              <p>D&AD — Pencil Award</p>
-              <p>AICP — Best Direction</p>
+              <p>Lorem ipsum dolor sit amet — 2026</p>
+              <p>Consectetur adipiscing elit — 2025</p>
+              <p>Sed do eiusmod tempor — 2024</p>
+              <p>Ut labore et dolore magna — 2023</p>
             </div>
           </motion.div>
 
@@ -79,7 +79,7 @@ const About = () => {
               Production Company
             </span>
             <p className="font-display text-2xl font-light text-foreground tracking-[0.05em]">
-              CREATE
+              Lorem Ipsum Studio
             </p>
           </motion.div>
         </div>

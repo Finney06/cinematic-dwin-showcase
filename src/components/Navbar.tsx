@@ -28,13 +28,20 @@ const Navbar = () => {
           <Link
             key={item.path}
             to={item.path}
-            className={`font-body text-[11px] tracking-[0.2em] uppercase transition-opacity duration-500 ${
+            className={`relative pb-1 font-body text-[11px] tracking-[0.2em] uppercase transition-opacity duration-500 ${
               location.pathname === item.path
                 ? "text-foreground opacity-100"
                 : "text-foreground opacity-40 hover:opacity-100"
             }`}
           >
             {item.label}
+            {location.pathname === item.path && (
+              <motion.span
+                layoutId="nav-active-indicator"
+                className="absolute left-0 right-0 -bottom-0.5 h-px bg-foreground/70"
+                transition={{ type: "spring", stiffness: 420, damping: 36 }}
+              />
+            )}
           </Link>
         ))}
       </div>

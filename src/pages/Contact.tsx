@@ -57,12 +57,26 @@ const Contact = () => {
                 Instagram
               </span>
               <a
-                href="https://instagram.com/dwindik"
+                href="https://www.instagram.com/dwin_dik/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-body text-sm text-foreground hover:opacity-50 transition-opacity duration-500"
               >
-                @dwindik
+                @dwin_dik
+              </a>
+            </div>
+
+            <div>
+              <span className="font-body text-[10px] tracking-[0.3em] uppercase text-muted-foreground block mb-3">
+                YouTube
+              </span>
+              <a
+                href="https://www.youtube.com/@Dwin_dik"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-body text-sm text-foreground hover:opacity-50 transition-opacity duration-500"
+              >
+                @Dwin_dik
               </a>
             </div>
 
@@ -74,7 +88,7 @@ const Contact = () => {
                 href="mailto:produce@create.studio"
                 className="font-body text-sm text-foreground hover:opacity-50 transition-opacity duration-500"
               >
-                produce@create.studio
+                produce@lorem.studio
               </a>
             </div>
           </motion.div>

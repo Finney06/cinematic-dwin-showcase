@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="DWINDIK favicon">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f5f5f5"/>
+      <stop offset="100%" stop-color="#d4d4d4"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="10" fill="#0a0a0a"/>
+  <path d="M18 14h16c8.3 0 14 5.2 14 18s-5.7 18-14 18H18zM28 22v20h5.4c4.7 0 7.8-3 7.8-10s-3.1-10-7.8-10z" fill="url(#g)"/>
+  <path d="M45 13l6 6-32 32-6-6z" fill="#fafafa" opacity="0.16"/>
+</svg>

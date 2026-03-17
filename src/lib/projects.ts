@@ -12,6 +12,15 @@ export interface Project {
   stills?: string[];
 }
 
+const placeholderDescriptions: Record<ProjectCategory, string> = {
+  films:
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+  commercials:
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+  "music-videos":
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi.",
+};
+
 export const projects: Project[] = [
   {
     id: "echoes-of-light",
@@ -20,7 +29,7 @@ export const projects: Project[] = [
     categoryLabel: "Film",
     year: "2025",
     role: "Director / Cinematographer",
-    description: "A contemplative short film exploring memory and loss through the interplay of light and shadow. Shot on 35mm across remote coastal landscapes.",
+    description: placeholderDescriptions.films,
     thumbnail: "/placeholder.svg",
   },
   {
@@ -30,7 +39,7 @@ export const projects: Project[] = [
     categoryLabel: "Film",
     year: "2024",
     role: "Director",
-    description: "An intimate portrait of solitude in the modern city. Premiered at the Berlin International Film Festival.",
+    description: placeholderDescriptions.films,
     thumbnail: "/placeholder.svg",
   },
   {
@@ -40,7 +49,7 @@ export const projects: Project[] = [
     categoryLabel: "Film",
     year: "2023",
     role: "Director / Writer",
-    description: "A psychological drama set in the Scottish Highlands. Selected for Cannes Court Métrage.",
+    description: placeholderDescriptions.films,
     thumbnail: "/placeholder.svg",
   },
   {
@@ -50,7 +59,7 @@ export const projects: Project[] = [
     categoryLabel: "Commercial",
     year: "2025",
     role: "Director",
-    description: "A luxury fragrance campaign for Meridian. Cinematic storytelling meets high fashion in monochrome.",
+    description: placeholderDescriptions.commercials,
     thumbnail: "/placeholder.svg",
   },
   {
@@ -60,7 +69,7 @@ export const projects: Project[] = [
     categoryLabel: "Commercial",
     year: "2024",
     role: "Director / Creative Director",
-    description: "Global launch campaign for Atlas Motors' electric flagship. Shot across three continents.",
+    description: placeholderDescriptions.commercials,
     thumbnail: "/placeholder.svg",
   },
   {
@@ -70,7 +79,7 @@ export const projects: Project[] = [
     categoryLabel: "Music Video",
     year: "2025",
     role: "Director",
-    description: "Official music video for KAEL. A single-take descent into abstraction and rhythm.",
+    description: placeholderDescriptions["music-videos"],
     thumbnail: "/placeholder.svg",
   },
   {
@@ -80,7 +89,7 @@ export const projects: Project[] = [
     categoryLabel: "Music Video",
     year: "2024",
     role: "Director / VFX",
-    description: "A visual experiment blending practical effects with digital compositing for artist Sova.",
+    description: placeholderDescriptions["music-videos"],
     thumbnail: "/placeholder.svg",
   },
   {
@@ -90,7 +99,7 @@ export const projects: Project[] = [
     categoryLabel: "Music Video",
     year: "2023",
     role: "Director",
-    description: "Nocturnal Tokyo through the lens of movement and neon. For electronic duo Onyx.",
+    description: placeholderDescriptions["music-videos"],
     thumbnail: "/placeholder.svg",
   },
 ];
