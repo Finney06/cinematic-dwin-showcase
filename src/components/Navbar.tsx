@@ -19,9 +19,12 @@ const Navbar = () => {
     >
       <Link
         to="/"
-        className="font-body text-[11px] font-medium tracking-[0.35em] uppercase text-foreground hover:opacity-50 transition-opacity duration-500"
+        className="group flex items-center gap-1 hover:opacity-70 transition-opacity duration-500"
       >
-        Dwindik
+        <span className="font-display text-xl md:text-2xl font-light tracking-[0.15em] uppercase text-foreground leading-none">
+          Dwindik
+        </span>
+        <span className="block w-1.5 h-1.5 bg-foreground/40 rounded-full group-hover:bg-foreground transition-colors duration-500" />
       </Link>
       <div className="flex items-center gap-8">
         {navItems.map((item) => (
