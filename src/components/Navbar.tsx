@@ -19,7 +19,7 @@ const Navbar = () => {
     >
       <Link
         to="/"
-        className="font-display text-xl font-light tracking-[0.15em] uppercase text-foreground hover:opacity-50 transition-opacity duration-500"
+        className="font-body text-[11px] font-medium tracking-[0.35em] uppercase text-foreground hover:opacity-50 transition-opacity duration-500"
       >
         Dwindik
       </Link>
