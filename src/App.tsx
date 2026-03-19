@@ -10,6 +10,9 @@ import ProjectDetail from "./pages/ProjectDetail";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
+import AdminLogin from "./pages/AdminLogin";
+import AdminPortal from "./pages/AdminPortal";
+import ProtectedAdminRoute from "./components/admin/ProtectedAdminRoute";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +29,15 @@ const App = () => (
             <Route path="/work/:id" element={<ProjectDetail />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route
+              path="/admin"
+              element={(
+                <ProtectedAdminRoute>
+                  <AdminPortal />
+                </ProtectedAdminRoute>
+              )}
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AnimatePresence>

@@ -59,6 +59,20 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- Supabase (Auth + Database for admin portal)
+
+## Admin portal (new)
+
+This project now includes a basic admin portal for managing projects.
+
+- Login page: /admin/login
+- Admin dashboard: /admin
+- Public work pages now load projects from Supabase (with local fallback if Supabase is not configured).
+
+Setup guide:
+
+- [docs/ADMIN_PORTAL_SETUP.md](docs/ADMIN_PORTAL_SETUP.md)
+- [docs/supabase-admin-setup.sql](docs/supabase-admin-setup.sql)
 
 ## How can I deploy this project?
 

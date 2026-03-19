@@ -2,11 +2,22 @@ import { motion } from "framer-motion";
 import { useParams, Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import PageTransition from "@/components/PageTransition";
-import { getProjectById } from "@/lib/projects";
+import { useProjectData } from "@/hooks/use-projects-data";
 
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const project = getProjectById(id || "");
+  const { data: project, isLoading } = useProjectData(id);
+
+  if (isLoading) {
+    return (
+      <PageTransition>
+        <Navbar />
+        <main className="bg-background min-h-screen flex items-center justify-center">
+          <p className="font-body text-sm tracking-[0.2em] uppercase text-muted-foreground">Loading project...</p>
+        </main>
+      </PageTransition>
+    );
+  }
 
   if (!project) {
     return (
