@@ -1,41 +1,207 @@
 import { Link, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
 
-const navItems = [
-  { label: "Work", path: "/work" },
+const menuItems = [
+  { label: "Film", path: "/film" },
+  { label: "Television", path: "/television" },
+  { label: "Nonfiction", path: "/nonfiction" },
+  { label: "Audio", path: "/audio" },
+  { label: "Music", path: "/music" },
+  { label: "News", path: "/news" },
+  { label: "Internship", path: "/internship" },
   { label: "About", path: "/about" },
-  { label: "Contact", path: "/contact" },
 ];
 
-const Navbar = () => {
+const menuContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.2 } },
+  exit: { transition: { staggerChildren: 0.03, staggerDirection: -1 } },
+};
+
+const menuItemVariant = {
+  hidden: { y: 40, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
+  },
+  exit: {
+    y: -20,
+    opacity: 0,
+    transition: { duration: 0.3, ease: "easeIn" as const },
+  },
+};
+
+interface NavbarProps {
+  /** Delay the navbar entrance (used on Index hero) */
+  enterDelay?: number;
+}
+
+const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
+  const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
 
+  // Close menu on route change
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 md:px-12 py-8">
-      <Link
-        to="/"
-        className="group flex items-center gap-1.5 hover:opacity-60 transition-opacity duration-700"
+    <>
+      <motion.nav
+        initial={{ opacity: 0, y: "-2rem" }}
+        animate={{ opacity: 1, y: "0rem" }}
+        transition={{
+          duration: 1.2,
+          delay: enterDelay,
+          ease: [0.22, 1, 0.36, 1],
+        }}
+        className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-8 md:px-12 py-8"
       >
-        <span className="font-display text-lg md:text-xl font-light tracking-[0.2em] uppercase text-foreground leading-none">
-          Dwindik
-        </span>
-        <span className="block w-1 h-1 bg-foreground/30 rounded-full group-hover:bg-foreground/70 transition-colors duration-700" />
-      </Link>
-      <div className="flex items-center gap-10">
-        {navItems.map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={`font-body text-[10px] tracking-[0.25em] uppercase transition-all duration-700 ${
-              location.pathname === item.path
-                ? "text-foreground opacity-80"
-                : "text-foreground opacity-25 hover:opacity-70"
-            }`}
+        <Link
+          to="/"
+          className="group flex items-center gap-2 hover:opacity-60 transition-opacity duration-700"
+        >
+          <span className="font-body text-[13px] md:text-[15px] font-medium tracking-[0.22em] uppercase text-foreground leading-none">
+            Dwindik
+          </span>
+          <span className="block w-[5px] h-[5px] bg-foreground/40 rounded-full group-hover:bg-foreground/70 transition-colors duration-700" />
+        </Link>
+
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="group flex items-center gap-3 cursor-pointer"
+        >
+          <span className="font-body text-[10px] tracking-[0.25em] uppercase text-foreground/25 group-hover:text-foreground/70 transition-colors duration-500">
+            {menuOpen ? "Close" : "Menu"}
+          </span>
+          <div className="flex flex-col items-center gap-[5px] w-5">
+            <motion.span
+              animate={
+                menuOpen
+                  ? { rotate: 45, y: 6, width: 20 }
+                  : { rotate: 0, y: 0, width: 20 }
+              }
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="block h-px bg-foreground origin-center"
+            />
+            <motion.span
+              animate={
+                menuOpen
+                  ? { opacity: 0, x: 10 }
+                  : { opacity: 1, x: 0 }
+              }
+              transition={{ duration: 0.3 }}
+              className="block h-px bg-foreground/60 w-4"
+            />
+            <motion.span
+              animate={
+                menuOpen
+                  ? { rotate: -45, y: -6, width: 20 }
+                  : { rotate: 0, y: 0, width: 20 }
+              }
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="block h-px bg-foreground origin-center"
+            />
+          </div>
+        </button>
+      </motion.nav>
+
+      {/* ═══ FULLSCREEN MENU OVERLAY ═══ */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            key="menu"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="fixed inset-0 z-[90]"
           >
-            {item.label}
-          </Link>
-        ))}
-      </div>
-    </nav>
+            <motion.div
+              className="absolute inset-0 bg-background/95 backdrop-blur-xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            />
+            <div className="relative z-10 w-full h-full flex flex-col md:flex-row items-start md:items-center px-10 md:px-20 pt-28 md:pt-0">
+              <motion.div
+                className="flex-1 flex flex-col gap-1 md:gap-2"
+                variants={menuContainer}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+              >
+                {menuItems.map((item, i) => {
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <motion.div key={i} variants={menuItemVariant}>
+                      <Link
+                        to={item.path}
+                        onClick={() => setMenuOpen(false)}
+                        className="group flex items-center gap-4"
+                      >
+                        <span className="font-body text-[10px] tracking-[0.2em] text-foreground/20 tabular-nums">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <span
+                          className={`font-display text-3xl md:text-5xl lg:text-6xl font-light tracking-[0.08em] uppercase transition-colors duration-500 leading-tight ${
+                            isActive
+                              ? "text-foreground"
+                              : "text-foreground/70 group-hover:text-foreground"
+                          }`}
+                        >
+                          {item.label}
+                        </span>
+                        {isActive && (
+                          <span className="block w-1.5 h-1.5 rounded-full bg-foreground/50" />
+                        )}
+                      </Link>
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
+
+              <motion.div
+                className="mt-12 md:mt-0 md:w-[280px] flex flex-col gap-6"
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 30 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                <div>
+                  <p className="font-body text-[10px] tracking-[0.3em] uppercase text-foreground/30 mb-3">
+                    Get in touch
+                  </p>
+                  <a
+                    href="mailto:hello@dwindik.com"
+                    className="font-body text-sm text-foreground/50 hover:text-foreground/80 transition-colors duration-500"
+                  >
+                    hello@dwindik.com
+                  </a>
+                </div>
+                <div>
+                  <p className="font-body text-[10px] tracking-[0.3em] uppercase text-foreground/30 mb-3">
+                    Follow
+                  </p>
+                  <div className="flex gap-4">
+                    {["Instagram", "Twitter", "Youtube"].map((s) => (
+                      <span
+                        key={s}
+                        className="font-body text-[11px] tracking-[0.15em] uppercase text-foreground/30 hover:text-foreground/70 cursor-pointer transition-colors duration-500"
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 
