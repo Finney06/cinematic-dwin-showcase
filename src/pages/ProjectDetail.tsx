@@ -1,22 +1,37 @@
 import { motion } from "framer-motion";
 import { useParams, Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
-import { getProjectById } from "@/lib/projects";
+import { getProjectById, getProjectsByCategory } from "@/lib/projects";
 
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
   const project = getProjectById(id || "");
 
+  // Find next project in the same category
+  const categoryProjects = project
+    ? getProjectsByCategory(project.category)
+    : [];
+  const currentCategoryIndex = categoryProjects.findIndex((p) => p.id === id);
+  const nextProject =
+    categoryProjects[(currentCategoryIndex + 1) % categoryProjects.length];
+  const hasNext = nextProject && nextProject.id !== project?.id;
+
   if (!project) {
     return (
       <PageTransition>
         <Navbar />
-        <main className="bg-background min-h-screen flex items-center justify-center">
+        <main className="bg-background min-h-screen flex items-center justify-center px-5">
           <div className="text-center">
-            <p className="font-body text-sm text-muted-foreground tracking-[0.2em] uppercase">Project not found</p>
-            <Link to="/work" className="font-body text-[11px] tracking-[0.2em] uppercase text-foreground mt-6 inline-block border-b border-foreground/20 pb-1 hover:border-foreground/60 transition-colors duration-500">
-              Back to Work
+            <p className="font-body text-sm text-foreground/30 tracking-[0.2em] uppercase">
+              Project not found
+            </p>
+            <Link
+              to="/film"
+              className="font-body text-[11px] tracking-[0.2em] uppercase text-foreground/50 mt-6 inline-block border-b border-foreground/10 pb-1 hover:text-foreground/70 transition-colors duration-500"
+            >
+              Browse Projects
             </Link>
           </div>
         </main>
@@ -27,77 +42,166 @@ const ProjectDetail = () => {
   return (
     <PageTransition>
       <Navbar />
-      <main className="bg-background min-h-screen pt-28 pb-24 px-8 md:px-12">
-        {/* Back link */}
+      <main className="bg-background min-h-screen">
+        {/* ═══ HERO ═══ */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 1.2 }}
+          className="relative w-full h-[40vh] sm:h-[55vh] md:h-[70vh] overflow-hidden"
         >
-          <Link
-            to="/work"
-            className="font-body text-[10px] tracking-[0.25em] uppercase text-muted-foreground hover:text-foreground transition-colors duration-500"
-          >
-            ← Back
-          </Link>
-        </motion.div>
+          <img
+            src={project.thumbnail}
+            alt={project.title}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-background/10" />
 
-        {/* Hero area */}
-        <div className="mt-16 mb-20">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-          >
-            <span className="font-body text-[10px] tracking-[0.3em] uppercase text-muted-foreground">
-              {project.categoryLabel} — {project.year}
-            </span>
-            <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-light text-foreground mt-4 tracking-[0.02em]">
-              {project.title}
-            </h1>
-          </motion.div>
-        </div>
-
-        {/* Video placeholder */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
-          className="aspect-video bg-secondary mb-20 flex items-center justify-center"
-        >
-          <div className="w-16 h-16 border border-foreground/20 rounded-full flex items-center justify-center cursor-pointer hover:border-foreground/50 transition-colors duration-500">
-            <div className="w-0 h-0 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent border-l-[14px] border-l-foreground/40 ml-1" />
+          {/* Title overlay */}
+          <div className="absolute bottom-0 left-0 right-0 px-5 sm:px-8 md:px-12 pb-6 sm:pb-10 md:pb-14">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+            >
+              <span className="font-body text-[8px] sm:text-[9px] tracking-[0.3em] uppercase text-foreground/40 block mb-2 sm:mb-3">
+                {project.categoryLabel} — {project.year}
+              </span>
+              <h1 className="font-display text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-light text-foreground tracking-[0.02em] leading-[0.9]">
+                {project.title}
+              </h1>
+              {project.status && (
+                <span className="inline-block mt-3 sm:mt-4 font-body text-[9px] sm:text-[10px] tracking-[0.25em] uppercase text-foreground/35">
+                  {project.status}
+                </span>
+              )}
+            </motion.div>
           </div>
         </motion.div>
 
-        {/* Details */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="max-w-2xl"
-        >
-          <div className="border-t border-divider pt-10">
-            <div className="grid grid-cols-2 gap-8 mb-10">
+        {/* ═══ CONTENT ═══ */}
+        <div className="px-5 sm:px-8 md:px-12">
+          {/* Description / Synopsis */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+            className="max-w-3xl pt-10 sm:pt-14 pb-12 sm:pb-16"
+          >
+            <p className="font-body text-sm sm:text-base md:text-lg leading-[1.8] text-foreground/55">
+              {project.synopsis || project.description}
+            </p>
+          </motion.div>
+
+          {/* ═══ YOUTUBE EMBED ═══ */}
+          {project.youtubeId && (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="mb-14 sm:mb-20"
+            >
+              <div className="relative aspect-video w-full max-w-5xl overflow-hidden bg-secondary">
+                <iframe
+                  src={`https://www.youtube.com/embed/${project.youtubeId}?rel=0&modestbranding=1&color=white`}
+                  title={`${project.title} — Video`}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="absolute inset-0 w-full h-full border-0"
+                />
+              </div>
+            </motion.div>
+          )}
+
+          {/* ═══ CREDITS ═══ */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.8 }}
+            className="border-t border-foreground/[0.06] pt-10 sm:pt-12 max-w-3xl"
+          >
+            <span className="font-body text-[9px] tracking-[0.3em] uppercase text-foreground/25 block mb-6 sm:mb-8">
+              Credits
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-5 sm:gap-y-6">
+              {project.director && (
+                <div>
+                  <span className="font-body text-[10px] tracking-[0.2em] uppercase text-foreground/20 block mb-1.5">
+                    Director
+                  </span>
+                  <span className="font-body text-sm text-foreground/65">
+                    {project.director}
+                  </span>
+                </div>
+              )}
               <div>
-                <span className="font-body text-[10px] tracking-[0.25em] uppercase text-muted-foreground block mb-2">
+                <span className="font-body text-[10px] tracking-[0.2em] uppercase text-foreground/20 block mb-1.5">
                   Role
                 </span>
-                <span className="font-body text-sm text-foreground">{project.role}</span>
+                <span className="font-body text-sm text-foreground/65">
+                  {project.role}
+                </span>
               </div>
+              {project.producers && (
+                <div>
+                  <span className="font-body text-[10px] tracking-[0.2em] uppercase text-foreground/20 block mb-1.5">
+                    Producers
+                  </span>
+                  <span className="font-body text-sm text-foreground/65">
+                    {project.producers}
+                  </span>
+                </div>
+              )}
               <div>
-                <span className="font-body text-[10px] tracking-[0.25em] uppercase text-muted-foreground block mb-2">
+                <span className="font-body text-[10px] tracking-[0.2em] uppercase text-foreground/20 block mb-1.5">
                   Year
                 </span>
-                <span className="font-body text-sm text-foreground">{project.year}</span>
+                <span className="font-body text-sm text-foreground/65">
+                  {project.year}
+                </span>
               </div>
+              {project.cast && (
+                <div className="sm:col-span-2">
+                  <span className="font-body text-[10px] tracking-[0.2em] uppercase text-foreground/20 block mb-1.5">
+                    Cast
+                  </span>
+                  <span className="font-body text-sm text-foreground/65">
+                    {project.cast}
+                  </span>
+                </div>
+              )}
             </div>
-            <p className="font-body text-sm md:text-base leading-relaxed text-secondary-foreground">
-              {project.description}
-            </p>
-          </div>
-        </motion.div>
+          </motion.div>
+
+          {/* ═══ NAVIGATION ═══ */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="border-t border-foreground/[0.06] pt-8 sm:pt-10 mt-14 sm:mt-20 pb-6 sm:pb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6"
+          >
+            <Link
+              to={`/${project.category}`}
+              className="font-body text-[10px] tracking-[0.25em] uppercase text-foreground/25 hover:text-foreground/60 transition-colors duration-500"
+            >
+              ← All {project.categoryLabel}
+            </Link>
+            {hasNext && (
+              <Link to={`/work/${nextProject.id}`} className="group sm:text-right">
+                <span className="font-body text-[9px] tracking-[0.25em] uppercase text-foreground/20 block mb-1">
+                  Next
+                </span>
+                <span className="font-display text-lg sm:text-xl md:text-2xl font-light text-foreground/40 group-hover:text-foreground/80 transition-colors duration-500 tracking-[0.02em]">
+                  {nextProject.title}
+                </span>
+              </Link>
+            )}
+          </motion.div>
+        </div>
       </main>
+      <Footer />
     </PageTransition>
   );
 };
