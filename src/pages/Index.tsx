@@ -16,7 +16,7 @@ const menuItems = [
 ];
 
 const VIDEO_START_DELAY = 2600;
-const VIDEO_DURATION = 10; // 10s of video then switch to image
+
 
 const letterContainer = {
   hidden: {},
@@ -59,17 +59,18 @@ const Index = () => {
     return () => clearTimeout(t);
   }, []);
 
-  // Play video at normal speed from 3s
+  // Play video from start, switch to image when it ends naturally
   useEffect(() => {
     if (phase !== "video") return;
     const vid = videoRef.current;
     if (!vid) return;
-    vid.currentTime = 3;
+    vid.currentTime = 0;
     vid.playbackRate = 1;
     vid.play().catch(() => { });
 
-    const t = setTimeout(() => setPhase("image"), VIDEO_DURATION);
-    return () => clearTimeout(t);
+    const onEnded = () => setPhase("image");
+    vid.addEventListener("ended", onEnded);
+    return () => vid.removeEventListener("ended", onEnded);
   }, [phase]);
 
   return (
@@ -197,7 +198,7 @@ const Index = () => {
               >
                 <img
                   className="w-full h-full object-cover"
-                  src="/dwindik/4.jpeg"
+                  src="/dwindik/5.jpeg"
                   alt="Dwindik"
                 />
                 {/* Subtle dark overlay on image */}
