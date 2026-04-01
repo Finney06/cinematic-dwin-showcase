@@ -219,19 +219,21 @@ export const projects: Project[] = [
   },
 
   // ═══════════════════════════════════════
-  //  MUSIC  (placeholder — awaiting content)
+  //  MUSIC
   // ═══════════════════════════════════════
   {
-    id: "echoes-soundtrack",
-    title: "Echoes of Light: Original Score",
+    id: "story-of-my-life",
+    title: "Story of My Life",
     category: "music",
     categoryLabel: "Music",
     year: "2025",
-    role: "Executive Music Producer",
+    role: "Artist / Director / Music Video ",
     description:
-      "Original soundtrack and score.",
-    thumbnail: "/dwindik/2.jpeg",
-    status: "Coming Soon",
+      "Official music video and soundtrack single from Prophet Suddenly 3. A collaboration between The Winlos and Dwindik.",
+    thumbnail: ytThumb("cGXFnDloUCg"),
+    youtubeId: "cGXFnDloUCg",
+    producers: "The Winlos x Dwindik",
+    status: "Out Now",
   },
 ];
 

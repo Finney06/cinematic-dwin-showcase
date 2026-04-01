@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 
 const menuItems = [
   { label: "Film", path: "/film" },
-  { label: "Television", path: "/television" },
   { label: "Music", path: "/music" },
+  { label: "Television", path: "/television" },
   { label: "Commercials", path: "/commercials" },
   { label: "About", path: "/about" },
   { label: "Nonfiction", path: "/nonfiction" },
