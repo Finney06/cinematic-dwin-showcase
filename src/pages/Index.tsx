@@ -15,7 +15,7 @@ const menuItems = [
   { label: "About", path: "/about" },
 ];
 
-const VIDEO_START_DELAY = 2600;
+const VIDEO_START_DELAY = 1800;
 
 
 const letterContainer = {
@@ -91,23 +91,23 @@ const Index = () => {
 
         <button onClick={() => setMenuOpen(!menuOpen)} className="group flex items-center gap-3 cursor-pointer">
           <span className="font-body text-[10px] tracking-[0.25em] uppercase text-foreground/25 group-hover:text-foreground/70 transition-colors duration-500">
-            Menu
+            {menuOpen ? "Close" : "Menu"}
           </span>
-          <div className="flex flex-col gap-[5px] w-5">
+          <div className="flex flex-col items-center gap-[5px] w-5">
             <motion.span
-              animate={menuOpen ? { rotate: 45, y: 7, width: 20 } : { rotate: 0, y: 0, width: 20 }}
+              animate={menuOpen ? { rotate: 45, y: 6, width: 20 } : { rotate: 0, y: 0, width: 20 }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
               className="block h-px bg-foreground origin-center"
             />
             <motion.span
               animate={menuOpen ? { opacity: 0, x: 10 } : { opacity: 1, x: 0 }}
               transition={{ duration: 0.3 }}
-              className="block h-px bg-foreground/60 w-3 ml-auto"
+              className="block h-px bg-foreground/60 w-4"
             />
             <motion.span
-              animate={menuOpen ? { rotate: -45, y: -7, width: 20 } : { rotate: 0, y: 0, width: 14 }}
+              animate={menuOpen ? { rotate: -45, y: -6, width: 20 } : { rotate: 0, y: 0, width: 20 }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="block h-px bg-foreground origin-center ml-auto"
+              className="block h-px bg-foreground origin-center"
             />
           </div>
         </button>
@@ -123,7 +123,7 @@ const Index = () => {
                 {menuItems.map((item, i) => (
                   <motion.div key={i} variants={menuItemVariant}>
                     <Link to={item.path} onClick={() => setMenuOpen(false)} className="group flex items-center gap-4">
-                      <span className="font-body text-[8px] tracking-[0.2em] text-foreground/20 tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+                      <span className="font-body text-[10px] tracking-[0.2em] text-foreground/20 tabular-nums">{String(i + 1).padStart(2, "0")}</span>
                       <span className="font-display text-3xl md:text-5xl lg:text-6xl font-light tracking-[0.08em] uppercase text-foreground/70 group-hover:text-foreground transition-colors duration-500 leading-tight">{item.label}</span>
                     </Link>
                   </motion.div>
@@ -131,14 +131,14 @@ const Index = () => {
               </motion.div>
               <motion.div className="mt-12 md:mt-0 md:w-[280px] flex flex-col gap-6" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 30 }} transition={{ duration: 0.6, delay: 0.4 }}>
                 <div>
-                  <p className="font-body text-[8px] tracking-[0.3em] uppercase text-foreground/30 mb-3">Get in touch</p>
-                  <a href="mailto:hello@dwindik.com" className="font-body text-xs text-foreground/50 hover:text-foreground/80 transition-colors duration-500">hello@dwindik.com</a>
+                  <p className="font-body text-[10px] tracking-[0.3em] uppercase text-foreground/30 mb-3">Get in touch</p>
+                  <a href="mailto:hello@dwindik.com" className="font-body text-sm text-foreground/50 hover:text-foreground/80 transition-colors duration-500">hello@dwindik.com</a>
                 </div>
                 <div>
-                  <p className="font-body text-[8px] tracking-[0.3em] uppercase text-foreground/30 mb-3">Follow</p>
+                  <p className="font-body text-[10px] tracking-[0.3em] uppercase text-foreground/30 mb-3">Follow</p>
                   <div className="flex gap-4">
                     {["Instagram", "Twitter", "Youtube"].map((s) => (
-                      <span key={s} className="font-body text-[9px] tracking-[0.15em] uppercase text-foreground/30 hover:text-foreground/70 cursor-pointer transition-colors duration-500">{s}</span>
+                      <span key={s} className="font-body text-[11px] tracking-[0.15em] uppercase text-foreground/30 hover:text-foreground/70 cursor-pointer transition-colors duration-500">{s}</span>
                     ))}
                   </div>
                 </div>
@@ -165,7 +165,7 @@ const Index = () => {
             className="block rounded-full cursor-pointer"
           >
             <motion.div
-              className="circle-media w-[18rem] h-[18rem] md:w-[24rem] md:h-[24rem] lg:w-[28rem] lg:h-[28rem] rounded-full relative"
+              className="circle-media w-[75vw] h-[75vw] md:w-[55vw] md:h-[55vw] lg:w-[45vw] lg:h-[45vw] rounded-full relative"
               animate={{ rotateX: [0, 1.5, -1, 0], rotateY: [0, -2, 1.5, 0] }}
               transition={{ duration: 10, ease: "easeInOut", repeat: Infinity, repeatType: "mirror" }}
               style={{
@@ -178,7 +178,7 @@ const Index = () => {
               <video
                 ref={videoRef}
                 className="absolute inset-0 w-full h-full rounded-full"
-                src="/dwindik/video.mp4"
+                src="/dwindik/video1.mp4"
                 muted
                 playsInline
                 style={{
@@ -188,22 +188,62 @@ const Index = () => {
                 }}
               />
 
-              {/* Image — snaps in when video ends */}
-              <div
-                className="absolute inset-0 rounded-full overflow-hidden"
-                style={{
-                  opacity: phase === "image" ? 1 : 0,
-                  transition: "opacity 0.3s linear",
-                }}
-              >
-                <img
-                  className="w-full h-full object-cover"
-                  src="/dwindik/5.jpeg"
-                  alt="Dwindik"
-                />
-                {/* Subtle dark overlay on image */}
-                <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.2)" }} />
-              </div>
+              {/* Image — revealed by light-wipe sweep */}
+              {phase === "image" && (
+                <div className="absolute inset-0 rounded-full overflow-hidden">
+                  {/* Image revealed via concave clip-path for 3D feel */}
+                  <motion.div
+                    className="absolute inset-0"
+                    initial={{
+                      clipPath: "polygon(0% 0%, 0% 0%, -4% 15%, -8% 30%, -10% 50%, -8% 70%, -4% 85%, 0% 100%, 0% 100%)",
+                    }}
+                    animate={{
+                      clipPath: "polygon(0% 0%, 115% 0%, 111% 15%, 107% 30%, 105% 50%, 107% 70%, 111% 85%, 115% 100%, 0% 100%)",
+                    }}
+                    transition={{ duration: 1.4, delay: 0.15, ease: [0.25, 0.9, 0.3, 1] }}
+                  >
+                    <img
+                      className="w-full h-full object-cover"
+                      src="/dwindik/5.jpeg"
+                      alt="Dwindik"
+                    />
+                    {/* Subtle dark overlay on image */}
+                    <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.15)" }} />
+                  </motion.div>
+
+                  {/* Leading-edge shine bar — concave-curved to match the wipe */}
+                  <motion.div
+                    className="absolute pointer-events-none z-20"
+                    initial={{ left: "-10%" }}
+                    animate={{ left: "105%" }}
+                    transition={{ duration: 1.4, delay: 0.15, ease: [0.25, 0.9, 0.3, 1] }}
+                    style={{
+                      top: "-5%",
+                      width: "14%",
+                      height: "110%",
+                      background: "radial-gradient(ellipse 50% 45% at 50% 50%, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.12) 50%, transparent 100%)",
+                      filter: "blur(8px)",
+                      borderRadius: "50%",
+                    }}
+                  />
+
+                  {/* Secondary softer glow trailing the edge */}
+                  <motion.div
+                    className="absolute pointer-events-none z-20"
+                    initial={{ left: "-22%" }}
+                    animate={{ left: "100%" }}
+                    transition={{ duration: 1.6, delay: 0.15, ease: [0.25, 0.9, 0.3, 1] }}
+                    style={{
+                      top: "-10%",
+                      width: "28%",
+                      height: "120%",
+                      background: "radial-gradient(ellipse 45% 40% at 50% 50%, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.04) 50%, transparent 100%)",
+                      filter: "blur(18px)",
+                      borderRadius: "50%",
+                    }}
+                  />
+                </div>
+              )}
 
               {/* Permanent subtle specular on the circle */}
               <div
@@ -238,14 +278,23 @@ const Index = () => {
           ))}
         </motion.h1>
 
-        {/* Rotating arc */}
+        {/* Rotating arc — single spin, then collapses into the "I" */}
         <motion.div
           className="absolute z-5 pointer-events-none"
-          initial={{ opacity: 0, rotate: 0 }}
-          animate={{ opacity: [0, 0.2, 0.2, 0], rotate: [0, 360, 720] }}
-          transition={{ duration: 2.8, delay: 0.2, ease: "linear", times: [0, 0.1, 0.85, 1] }}
+          initial={{ opacity: 0, rotate: 0, scale: 1 }}
+          animate={{
+            opacity: [0, 0.3, 0.3, 0],
+            rotate: [0, 360],
+            scale: [1, 1, 0.15],
+          }}
+          transition={{
+            duration: 2.2,
+            delay: 0.2,
+            ease: [0.22, 1, 0.36, 1],
+            times: [0, 0.08, 0.65, 1],
+          }}
         >
-          <svg width="320" height="320" viewBox="0 0 320 320" className="w-[16rem] h-[16rem] md:w-[22rem] md:h-[22rem] lg:w-[26rem] lg:h-[26rem]">
+          <svg width="320" height="320" viewBox="0 0 320 320" className="w-[70vw] h-[70vw] md:w-[50vw] md:h-[50vw] lg:w-[42vw] lg:h-[42vw]">
             <circle cx="160" cy="160" r="155" fill="none" stroke="hsl(0 0% 92%)" strokeWidth="0.5" strokeDasharray="50 900" strokeLinecap="round" />
           </svg>
         </motion.div>
@@ -255,9 +304,9 @@ const Index = () => {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 0.2, y: 0 }}
           transition={{ duration: 1.2, delay: 2.6 }}
-          className="absolute bottom-14 left-1/2 -translate-x-1/2 font-body text-[8px] tracking-[0.6em] uppercase text-foreground"
+          className="absolute bottom-14 left-1/2 -translate-x-1/2 font-body text-[12px] tracking-[0.6em] uppercase text-foreground"
         >
-          Create
+          Cre8te
         </motion.p>
       </main>
     </div>
