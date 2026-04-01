@@ -5,12 +5,13 @@ import { useState, useEffect } from "react";
 const menuItems = [
   { label: "Film", path: "/film" },
   { label: "Television", path: "/television" },
+  { label: "Music", path: "/music" },
+  { label: "Commercials", path: "/commercials" },
+  { label: "About", path: "/about" },
   { label: "Nonfiction", path: "/nonfiction" },
   { label: "Audio", path: "/audio" },
-  { label: "Music", path: "/music" },
   { label: "News", path: "/news" },
   { label: "Internship", path: "/internship" },
-  { label: "About", path: "/about" },
 ];
 
 const menuContainer = {
@@ -34,7 +35,6 @@ const menuItemVariant = {
 };
 
 interface NavbarProps {
-  /** Delay the navbar entrance (used on Index hero) */
   enterDelay?: number;
 }
 
@@ -47,6 +47,18 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
     setMenuOpen(false);
   }, [location.pathname]);
 
+  // Lock body scroll when menu is open
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
+
   return (
     <>
       <motion.nav
@@ -57,13 +69,13 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
           delay: enterDelay,
           ease: [0.22, 1, 0.36, 1],
         }}
-        className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-8 md:px-12 py-8"
+        className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-5 sm:px-8 md:px-12 py-6 sm:py-8"
       >
         <Link
           to="/"
           className="group flex items-center gap-2 hover:opacity-60 transition-opacity duration-700"
         >
-          <span className="font-body text-[13px] md:text-[15px] font-medium tracking-[0.22em] uppercase text-foreground leading-none">
+          <span className="font-body text-[12px] sm:text-[13px] md:text-[15px] font-medium tracking-[0.22em] uppercase text-foreground leading-none">
             Dwindik
           </span>
           <span className="block w-[5px] h-[5px] bg-foreground/40 rounded-full group-hover:bg-foreground/70 transition-colors duration-700" />
@@ -125,9 +137,9 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             />
-            <div className="relative z-10 w-full h-full flex flex-col md:flex-row items-start md:items-center px-10 md:px-20 pt-28 md:pt-0">
+            <div className="relative z-10 w-full h-full overflow-y-auto flex flex-col md:flex-row items-start md:items-center px-5 sm:px-10 md:px-20 pt-24 sm:pt-28 pb-8 md:pt-0 md:pb-0">
               <motion.div
-                className="flex-1 flex flex-col gap-1 md:gap-2"
+                className="flex-1 flex flex-col gap-0.5 sm:gap-1 md:gap-2"
                 variants={menuContainer}
                 initial="hidden"
                 animate="visible"
@@ -140,13 +152,13 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
                       <Link
                         to={item.path}
                         onClick={() => setMenuOpen(false)}
-                        className="group flex items-center gap-4"
+                        className="group flex items-center gap-3 sm:gap-4"
                       >
-                        <span className="font-body text-[10px] tracking-[0.2em] text-foreground/20 tabular-nums">
+                        <span className="font-body text-[9px] sm:text-[10px] tracking-[0.2em] text-foreground/20 tabular-nums">
                           {String(i + 1).padStart(2, "0")}
                         </span>
                         <span
-                          className={`font-display text-3xl md:text-5xl lg:text-6xl font-light tracking-[0.08em] uppercase transition-colors duration-500 leading-tight ${
+                          className={`font-display text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-light tracking-[0.08em] uppercase transition-colors duration-500 leading-tight ${
                             isActive
                               ? "text-foreground"
                               : "text-foreground/70 group-hover:text-foreground"
@@ -164,7 +176,7 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
               </motion.div>
 
               <motion.div
-                className="mt-12 md:mt-0 md:w-[280px] flex flex-col gap-6"
+                className="mt-8 sm:mt-12 md:mt-0 md:w-[280px] flex flex-col gap-5 sm:gap-6"
                 initial={{ opacity: 0, x: 30 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 30 }}
@@ -186,14 +198,22 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
                     Follow
                   </p>
                   <div className="flex gap-4">
-                    {["Instagram", "Twitter", "Youtube"].map((s) => (
-                      <span
-                        key={s}
-                        className="font-body text-[11px] tracking-[0.15em] uppercase text-foreground/30 hover:text-foreground/70 cursor-pointer transition-colors duration-500"
-                      >
-                        {s}
-                      </span>
-                    ))}
+                    <a
+                      href="https://www.instagram.com/dwin_dik/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-body text-sm tracking-[0.15em] uppercase text-foreground/30 hover:text-foreground/70 transition-colors duration-500"
+                    >
+                      Instagram
+                    </a>
+                    <a
+                      href="https://www.youtube.com/@Dwin_dik"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-body text-sm tracking-[0.15em] uppercase text-foreground/30 hover:text-foreground/70 transition-colors duration-500"
+                    >
+                      YouTube
+                    </a>
                   </div>
                 </div>
               </motion.div>

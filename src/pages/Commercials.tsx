@@ -3,7 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
 
-const Nonfiction = () => {
+const Commercials = () => {
   return (
     <PageTransition>
       <Navbar />
@@ -15,7 +15,7 @@ const Nonfiction = () => {
           className="max-w-5xl"
         >
           <h1 className="font-display text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-light text-foreground tracking-[0.04em] uppercase leading-[0.85]">
-            Nonfiction
+            Commercials
           </h1>
           <p className="mt-8 font-body text-sm md:text-base tracking-[0.2em] uppercase text-foreground/40">
             Coming Soon
@@ -27,4 +27,4 @@ const Nonfiction = () => {
   );
 };
 
-export default Nonfiction;
+export default Commercials;

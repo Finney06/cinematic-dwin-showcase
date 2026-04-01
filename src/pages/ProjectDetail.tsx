@@ -3,21 +3,26 @@ import { useParams, Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
-import { getProjectById, projects } from "@/lib/projects";
+import { getProjectById, getProjectsByCategory } from "@/lib/projects";
 
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
   const project = getProjectById(id || "");
 
-  // Find next project for navigation
-  const currentIndex = projects.findIndex((p) => p.id === id);
-  const nextProject = projects[(currentIndex + 1) % projects.length];
+  // Find next project in the same category
+  const categoryProjects = project
+    ? getProjectsByCategory(project.category)
+    : [];
+  const currentCategoryIndex = categoryProjects.findIndex((p) => p.id === id);
+  const nextProject =
+    categoryProjects[(currentCategoryIndex + 1) % categoryProjects.length];
+  const hasNext = nextProject && nextProject.id !== project?.id;
 
   if (!project) {
     return (
       <PageTransition>
         <Navbar />
-        <main className="bg-background min-h-screen flex items-center justify-center">
+        <main className="bg-background min-h-screen flex items-center justify-center px-5">
           <div className="text-center">
             <p className="font-body text-sm text-foreground/30 tracking-[0.2em] uppercase">
               Project not found
@@ -26,7 +31,7 @@ const ProjectDetail = () => {
               to="/film"
               className="font-body text-[11px] tracking-[0.2em] uppercase text-foreground/50 mt-6 inline-block border-b border-foreground/10 pb-1 hover:text-foreground/70 transition-colors duration-500"
             >
-              Back to Film
+              Browse Projects
             </Link>
           </div>
         </main>
@@ -38,124 +43,130 @@ const ProjectDetail = () => {
     <PageTransition>
       <Navbar />
       <main className="bg-background min-h-screen">
-        {/* Full-bleed hero image */}
+        {/* ═══ HERO ═══ */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-          className="relative w-full h-[60vh] md:h-[75vh] overflow-hidden"
+          transition={{ duration: 1.2 }}
+          className="relative w-full h-[40vh] sm:h-[55vh] md:h-[70vh] overflow-hidden"
         >
           <img
             src={project.thumbnail}
             alt={project.title}
             className="w-full h-full object-cover"
           />
-          {/* Dark gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-background/10" />
 
-          {/* Title overlay at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 px-8 md:px-12 pb-12">
-            <motion.span
-              initial={{ opacity: 0, y: 10 }}
+          {/* Title overlay */}
+          <div className="absolute bottom-0 left-0 right-0 px-5 sm:px-8 md:px-12 pb-6 sm:pb-10 md:pb-14">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="font-body text-[10px] tracking-[0.3em] uppercase text-foreground/40 block mb-3"
+              transition={{ duration: 0.8, delay: 0.3 }}
             >
-              {project.categoryLabel} — {project.year}
-            </motion.span>
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="font-display text-5xl md:text-7xl lg:text-8xl font-light text-foreground tracking-[0.02em] leading-[0.9]"
-            >
-              {project.title}
-            </motion.h1>
+              <span className="font-body text-[8px] sm:text-[9px] tracking-[0.3em] uppercase text-foreground/40 block mb-2 sm:mb-3">
+                {project.categoryLabel} — {project.year}
+              </span>
+              <h1 className="font-display text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-light text-foreground tracking-[0.02em] leading-[0.9]">
+                {project.title}
+              </h1>
+              {project.status && (
+                <span className="inline-block mt-3 sm:mt-4 font-body text-[9px] sm:text-[10px] tracking-[0.25em] uppercase text-foreground/35">
+                  {project.status}
+                </span>
+              )}
+            </motion.div>
           </div>
         </motion.div>
 
-        {/* Content */}
-        <div className="px-8 md:px-12 pt-16 pb-12">
-          {/* Description */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="font-body text-base md:text-lg leading-relaxed text-foreground/60 max-w-2xl mb-16"
-          >
-            {project.description}
-          </motion.p>
-
-          {/* Watch CTA */}
-          {project.watchUrl && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.7 }}
-              className="mb-16"
-            >
-              <a
-                href={project.watchUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 font-body text-[11px] tracking-[0.2em] uppercase text-foreground/60 hover:text-foreground/90 border border-foreground/15 hover:border-foreground/30 px-6 py-3 transition-all duration-500"
-              >
-                <div className="w-0 h-0 border-t-[5px] border-t-transparent border-b-[5px] border-b-transparent border-l-[8px] border-l-current" />
-                Watch Now
-              </a>
-            </motion.div>
-          )}
-
-          {/* Credits grid */}
+        {/* ═══ CONTENT ═══ */}
+        <div className="px-5 sm:px-8 md:px-12">
+          {/* Description / Synopsis */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-            className="border-t border-foreground/[0.06] pt-10 max-w-2xl"
+            transition={{ duration: 0.8, delay: 0.5 }}
+            className="max-w-3xl pt-10 sm:pt-14 pb-12 sm:pb-16"
           >
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-8 mb-10">
-              <div>
-                <span className="font-body text-[10px] tracking-[0.25em] uppercase text-foreground/25 block mb-2">
-                  Role
-                </span>
-                <span className="font-body text-sm text-foreground/70">
-                  {project.role}
-                </span>
+            <p className="font-body text-sm sm:text-base md:text-lg leading-[1.8] text-foreground/55">
+              {project.synopsis || project.description}
+            </p>
+          </motion.div>
+
+          {/* ═══ YOUTUBE EMBED ═══ */}
+          {project.youtubeId && (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="mb-14 sm:mb-20"
+            >
+              <div className="relative aspect-video w-full max-w-5xl overflow-hidden bg-secondary">
+                <iframe
+                  src={`https://www.youtube.com/embed/${project.youtubeId}?rel=0&modestbranding=1&color=white`}
+                  title={`${project.title} — Video`}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="absolute inset-0 w-full h-full border-0"
+                />
               </div>
+            </motion.div>
+          )}
+
+          {/* ═══ CREDITS ═══ */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.8 }}
+            className="border-t border-foreground/[0.06] pt-10 sm:pt-12 max-w-3xl"
+          >
+            <span className="font-body text-[9px] tracking-[0.3em] uppercase text-foreground/25 block mb-6 sm:mb-8">
+              Credits
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-5 sm:gap-y-6">
               {project.director && (
                 <div>
-                  <span className="font-body text-[10px] tracking-[0.25em] uppercase text-foreground/25 block mb-2">
+                  <span className="font-body text-[10px] tracking-[0.2em] uppercase text-foreground/20 block mb-1.5">
                     Director
                   </span>
-                  <span className="font-body text-sm text-foreground/70">
+                  <span className="font-body text-sm text-foreground/65">
                     {project.director}
                   </span>
                 </div>
               )}
               <div>
-                <span className="font-body text-[10px] tracking-[0.25em] uppercase text-foreground/25 block mb-2">
-                  Year
+                <span className="font-body text-[10px] tracking-[0.2em] uppercase text-foreground/20 block mb-1.5">
+                  Role
                 </span>
-                <span className="font-body text-sm text-foreground/70">
-                  {project.year}
+                <span className="font-body text-sm text-foreground/65">
+                  {project.role}
                 </span>
               </div>
               {project.producers && (
                 <div>
-                  <span className="font-body text-[10px] tracking-[0.25em] uppercase text-foreground/25 block mb-2">
+                  <span className="font-body text-[10px] tracking-[0.2em] uppercase text-foreground/20 block mb-1.5">
                     Producers
                   </span>
-                  <span className="font-body text-sm text-foreground/70">
+                  <span className="font-body text-sm text-foreground/65">
                     {project.producers}
                   </span>
                 </div>
               )}
+              <div>
+                <span className="font-body text-[10px] tracking-[0.2em] uppercase text-foreground/20 block mb-1.5">
+                  Year
+                </span>
+                <span className="font-body text-sm text-foreground/65">
+                  {project.year}
+                </span>
+              </div>
               {project.cast && (
-                <div className="col-span-2">
-                  <span className="font-body text-[10px] tracking-[0.25em] uppercase text-foreground/25 block mb-2">
+                <div className="sm:col-span-2">
+                  <span className="font-body text-[10px] tracking-[0.2em] uppercase text-foreground/20 block mb-1.5">
                     Cast
                   </span>
-                  <span className="font-body text-sm text-foreground/70">
+                  <span className="font-body text-sm text-foreground/65">
                     {project.cast}
                   </span>
                 </div>
@@ -163,29 +174,26 @@ const ProjectDetail = () => {
             </div>
           </motion.div>
 
-          {/* Back + Next navigation */}
+          {/* ═══ NAVIGATION ═══ */}
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="border-t border-foreground/[0.06] pt-10 mt-16 flex items-center justify-between"
+            className="border-t border-foreground/[0.06] pt-8 sm:pt-10 mt-14 sm:mt-20 pb-6 sm:pb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6"
           >
             <Link
               to={`/${project.category}`}
-              className="font-body text-[10px] tracking-[0.25em] uppercase text-foreground/30 hover:text-foreground/60 transition-colors duration-500"
+              className="font-body text-[10px] tracking-[0.25em] uppercase text-foreground/25 hover:text-foreground/60 transition-colors duration-500"
             >
-              ← Back to {project.categoryLabel}
+              ← All {project.categoryLabel}
             </Link>
-            {nextProject && (
-              <Link
-                to={`/work/${nextProject.id}`}
-                className="group text-right"
-              >
-                <span className="font-body text-[10px] tracking-[0.25em] uppercase text-foreground/25 block mb-1">
+            {hasNext && (
+              <Link to={`/work/${nextProject.id}`} className="group sm:text-right">
+                <span className="font-body text-[9px] tracking-[0.25em] uppercase text-foreground/20 block mb-1">
                   Next
                 </span>
-                <span className="font-display text-lg md:text-xl font-light text-foreground/50 group-hover:text-foreground/80 transition-colors duration-500">
+                <span className="font-display text-lg sm:text-xl md:text-2xl font-light text-foreground/40 group-hover:text-foreground/80 transition-colors duration-500 tracking-[0.02em]">
                   {nextProject.title}
                 </span>
               </Link>

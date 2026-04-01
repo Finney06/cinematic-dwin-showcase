@@ -25,7 +25,7 @@ const Footer = () => {
       whileInView={{ opacity: 1 }}
       viewport={{ once: true }}
       transition={{ duration: 1 }}
-      className="border-t border-foreground/[0.06] px-8 md:px-12 py-12 mt-20"
+      className="border-t border-foreground/[0.06] px-5 sm:px-8 md:px-12 py-10 sm:py-12 mt-14 sm:mt-20"
     >
       {/* Nav links row */}
       <div className="flex flex-wrap gap-x-6 gap-y-2 mb-8">

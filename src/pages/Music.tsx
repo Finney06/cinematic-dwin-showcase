@@ -10,7 +10,7 @@ const MusicPage = () => {
   return (
     <PageTransition>
       <Navbar />
-      <main className="bg-background min-h-screen pt-28 pb-12 px-8 md:px-12">
+      <main className="bg-background min-h-screen pt-24 sm:pt-28 pb-12 px-5 sm:px-8 md:px-12">
         <CategoryPageLayout title="Music" projects={projects} />
       </main>
       <Footer />

@@ -10,6 +10,7 @@ import Television from "./pages/Television";
 import Nonfiction from "./pages/Nonfiction";
 import Audio from "./pages/Audio";
 import MusicPage from "./pages/Music";
+import Commercials from "./pages/Commercials";
 import News from "./pages/News";
 import Internship from "./pages/Internship";
 import About from "./pages/About";
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/nonfiction" element={<Nonfiction />} />
             <Route path="/audio" element={<Audio />} />
             <Route path="/music" element={<MusicPage />} />
+            <Route path="/commercials" element={<Commercials />} />
             <Route path="/news" element={<News />} />
             <Route path="/internship" element={<Internship />} />
             <Route path="/about" element={<About />} />
