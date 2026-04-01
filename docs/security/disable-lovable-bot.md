@@ -7,8 +7,10 @@ from making automatic changes to this repository without your explicit permissio
 
 ## Background
 
-The Lovable platform uses the **`lovable-dev` GitHub App** (App ID 818760,
-bot account `gpt-engineer-app[bot]`) to commit directly to the `main` branch.
+The Lovable platform uses the **`lovable-dev` GitHub App** (App ID 818760) to
+commit directly to the `main` branch. The app's bot account appears in GitHub's
+UI as `lovable-dev[bot]` and in git commit author fields as `gpt-engineer-app[bot]`
+— both names refer to the same Lovable bot.
 Every edit made in the Lovable editor produces one or two commits authored by
 that bot (with `X-Lovable-Edit-ID` tags in commit messages).
 
