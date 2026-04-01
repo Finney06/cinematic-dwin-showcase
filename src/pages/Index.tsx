@@ -152,7 +152,7 @@ const Index = () => {
       <main className="h-screen flex items-center justify-center relative">
         {/* Circle */}
         <motion.div
-          className="absolute z-0"
+          className="absolute z-0 translate-x-6 md:translate-x-10 lg:translate-x-14"
           initial={{ opacity: 0, scale: 0.3 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
