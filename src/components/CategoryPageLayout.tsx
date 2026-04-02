@@ -1,13 +1,14 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import type { Project } from "@/lib/projects";
+import type { ProjectData } from "@/lib/api";
 
 interface CategoryPageLayoutProps {
   title: string;
-  projects: Project[];
+  projects: ProjectData[];
+  isLoading?: boolean;
 }
 
-const CategoryPageLayout = ({ title, projects }: CategoryPageLayoutProps) => {
+const CategoryPageLayout = ({ title, projects, isLoading }: CategoryPageLayoutProps) => {
   const featured = projects[0];
   const rest = projects.slice(1);
 
@@ -24,6 +25,17 @@ const CategoryPageLayout = ({ title, projects }: CategoryPageLayoutProps) => {
           {title}
         </h1>
       </motion.div>
+
+      {/* Loading state */}
+      {isLoading && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex justify-center py-20"
+        >
+          <div className="w-6 h-6 border-2 border-foreground/10 border-t-foreground/40 rounded-full animate-spin" />
+        </motion.div>
+      )}
 
       {/* Featured / hero project — full width */}
       {featured && (
@@ -44,7 +56,7 @@ const CategoryPageLayout = ({ title, projects }: CategoryPageLayoutProps) => {
               <div className="absolute inset-0 bg-gradient-to-r from-background/50 to-transparent" />
 
               {/* Play icon if has video */}
-              {featured.youtubeId && (
+              {featured.youtube_id && (
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-60 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                   <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full border border-white/30 flex items-center justify-center backdrop-blur-sm bg-white/5">
                     <div className="w-0 h-0 border-t-[6px] sm:border-t-[8px] border-t-transparent border-b-[6px] sm:border-b-[8px] border-b-transparent border-l-[10px] sm:border-l-[14px] border-l-white/70 ml-0.5 sm:ml-1" />
@@ -95,7 +107,7 @@ const CategoryPageLayout = ({ title, projects }: CategoryPageLayoutProps) => {
                   <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
 
                   {/* Play icon */}
-                  {project.youtubeId && (
+                  {project.youtube_id && (
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-50 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                       <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/25 flex items-center justify-center backdrop-blur-sm bg-white/5">
                         <div className="w-0 h-0 border-t-[5px] sm:border-t-[6px] border-t-transparent border-b-[5px] sm:border-b-[6px] border-b-transparent border-l-[8px] sm:border-l-[10px] border-l-white/60 ml-0.5" />
@@ -122,7 +134,7 @@ const CategoryPageLayout = ({ title, projects }: CategoryPageLayoutProps) => {
       )}
 
       {/* Empty state */}
-      {projects.length === 0 && (
+      {!isLoading && projects.length === 0 && (
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

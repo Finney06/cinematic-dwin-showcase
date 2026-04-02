@@ -3,20 +3,29 @@ import { useParams, Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
-import { getProjectById, getProjectsByCategory } from "@/lib/projects";
+import { useProject, useProjects } from "@/hooks/useContent";
 
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const project = getProjectById(id || "");
+  const { data: project, isLoading } = useProject(id || "");
+  const { data: categoryProjects = [] } = useProjects(project?.category);
 
   // Find next project in the same category
-  const categoryProjects = project
-    ? getProjectsByCategory(project.category)
-    : [];
   const currentCategoryIndex = categoryProjects.findIndex((p) => p.id === id);
   const nextProject =
     categoryProjects[(currentCategoryIndex + 1) % categoryProjects.length];
   const hasNext = nextProject && nextProject.id !== project?.id;
+
+  if (isLoading) {
+    return (
+      <PageTransition>
+        <Navbar />
+        <main className="bg-background min-h-screen flex items-center justify-center px-5">
+          <div className="w-6 h-6 border-2 border-foreground/10 border-t-foreground/40 rounded-full animate-spin" />
+        </main>
+      </PageTransition>
+    );
+  }
 
   if (!project) {
     return (
@@ -65,7 +74,7 @@ const ProjectDetail = () => {
               transition={{ duration: 0.8, delay: 0.3 }}
             >
               <span className="font-body text-[8px] sm:text-[9px] tracking-[0.3em] uppercase text-foreground/40 block mb-2 sm:mb-3">
-                {project.categoryLabel} — {project.year}
+                {project.category_label} — {project.year}
               </span>
               <h1 className="font-display text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-light text-foreground tracking-[0.02em] leading-[0.9]">
                 {project.title}
@@ -94,7 +103,7 @@ const ProjectDetail = () => {
           </motion.div>
 
           {/* ═══ YOUTUBE EMBED ═══ */}
-          {project.youtubeId && (
+          {project.youtube_id && (
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -103,7 +112,7 @@ const ProjectDetail = () => {
             >
               <div className="relative aspect-video w-full max-w-5xl overflow-hidden bg-secondary">
                 <iframe
-                  src={`https://www.youtube.com/embed/${project.youtubeId}?rel=0&modestbranding=1&color=white`}
+                  src={`https://www.youtube.com/embed/${project.youtube_id}?rel=0&modestbranding=1&color=white`}
                   title={`${project.title} — Video`}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
@@ -161,13 +170,13 @@ const ProjectDetail = () => {
                   {project.year}
                 </span>
               </div>
-              {project.cast && (
+              {project.cast_info && (
                 <div className="sm:col-span-2">
                   <span className="font-body text-[10px] tracking-[0.2em] uppercase text-foreground/20 block mb-1.5">
                     Cast
                   </span>
                   <span className="font-body text-sm text-foreground/65">
-                    {project.cast}
+                    {project.cast_info}
                   </span>
                 </div>
               )}
@@ -186,7 +195,7 @@ const ProjectDetail = () => {
               to={`/${project.category}`}
               className="font-body text-[10px] tracking-[0.25em] uppercase text-foreground/25 hover:text-foreground/60 transition-colors duration-500"
             >
-              ← All {project.categoryLabel}
+              ← All {project.category_label}
             </Link>
             {hasNext && (
               <Link to={`/work/${nextProject.id}`} className="group sm:text-right">

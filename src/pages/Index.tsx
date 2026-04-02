@@ -3,9 +3,8 @@ import { Link } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { getLatestProjects } from "@/lib/projects";
+import { useHeroContent, useLatestProjects } from "@/hooks/useContent";
 
-const BRAND = "DWINDIK";
 const VIDEO_START_DELAY = 1800;
 
 const letterContainer = {
@@ -29,7 +28,15 @@ type Phase = "idle" | "video" | "image";
 const Index = () => {
   const [phase, setPhase] = useState<Phase>("idle");
   const videoRef = useRef<HTMLVideoElement>(null);
-  const latestProjects = getLatestProjects(5);
+  
+  const { data: heroData } = useHeroContent();
+  const { data: latestProjects } = useLatestProjects(5);
+
+  const brandText = heroData?.brand_text || "DWINDIK";
+  const tagline = heroData?.tagline || "Cre8te";
+  const videoUrl = heroData?.video_url || "/dwindik/video1.mp4";
+  const heroImage = heroData?.hero_image || "/dwindik/5.jpeg";
+  const heroLink = heroData?.hero_link || "https://youtu.be/mPAZSvF5usk?si=IxaXZFE0nJZw0ypt";
 
   useEffect(() => {
     const t = setTimeout(() => setPhase("video"), VIDEO_START_DELAY);
@@ -63,7 +70,7 @@ const Index = () => {
           style={{ perspective: "800px" }}
         >
           <a
-            href="https://youtu.be/mPAZSvF5usk?si=IxaXZFE0nJZw0ypt"
+            href={heroLink}
             target="_blank"
             rel="noopener noreferrer"
             className="block rounded-full cursor-pointer"
@@ -81,7 +88,7 @@ const Index = () => {
               <video
                 ref={videoRef}
                 className="absolute inset-0 w-full h-full rounded-full"
-                src="/dwindik/video1.mp4"
+                src={videoUrl}
                 muted
                 playsInline
                 style={{
@@ -102,7 +109,7 @@ const Index = () => {
                     }}
                     transition={{ duration: 1.4, delay: 0.15, ease: [0.25, 0.9, 0.3, 1] }}
                   >
-                    <img className="w-full h-full object-cover" src="/dwindik/5.jpeg" alt="Dwindik" />
+                    <img className="w-full h-full object-cover" src={heroImage} alt={brandText} />
                     <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.15)" }} />
                   </motion.div>
                   <motion.div
@@ -148,7 +155,7 @@ const Index = () => {
           initial="hidden"
           animate="visible"
         >
-          {BRAND.split("").map((letter, i) => (
+          {brandText.split("").map((letter, i) => (
             <span key={i} className="inline-block overflow-hidden">
               <motion.span
                 variants={letterVariant}
@@ -186,7 +193,7 @@ const Index = () => {
           transition={{ duration: 1.2, delay: 2.6 }}
           className="absolute bottom-10 sm:bottom-14 left-0 right-0 text-center px-4 font-body text-[11px] sm:text-[12px] tracking-[0.35em] sm:tracking-[0.6em] uppercase text-foreground"
         >
-          Cre8te
+          {tagline}
         </motion.p>
       </main>
     </div>

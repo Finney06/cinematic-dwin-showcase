@@ -16,6 +16,17 @@ import Internship from "./pages/Internship";
 import About from "./pages/About";
 import ProjectDetail from "./pages/ProjectDetail";
 import NotFound from "./pages/NotFound";
+// Admin
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminProjects from "./pages/admin/AdminProjects";
+import AdminProjectForm from "./pages/admin/AdminProjectForm";
+import AdminAbout from "./pages/admin/AdminAbout";
+import AdminHero from "./pages/admin/AdminHero";
+import AdminSettings from "./pages/admin/AdminSettings";
+import AdminMenu from "./pages/admin/AdminMenu";
+import ProtectedRoute from "./components/admin/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +38,7 @@ const App = () => (
       <BrowserRouter>
         <AnimatePresence mode="wait">
           <Routes>
+            {/* ─── Public ─── */}
             <Route path="/" element={<Index />} />
             <Route path="/film" element={<Film />} />
             <Route path="/television" element={<Television />} />
@@ -38,6 +50,27 @@ const App = () => (
             <Route path="/internship" element={<Internship />} />
             <Route path="/about" element={<About />} />
             <Route path="/work/:id" element={<ProjectDetail />} />
+
+            {/* ─── Admin ─── */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<AdminDashboard />} />
+              <Route path="projects" element={<AdminProjects />} />
+              <Route path="projects/new" element={<AdminProjectForm />} />
+              <Route path="projects/:id/edit" element={<AdminProjectForm />} />
+              <Route path="about" element={<AdminAbout />} />
+              <Route path="hero" element={<AdminHero />} />
+              <Route path="settings" element={<AdminSettings />} />
+              <Route path="menu" element={<AdminMenu />} />
+            </Route>
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AnimatePresence>

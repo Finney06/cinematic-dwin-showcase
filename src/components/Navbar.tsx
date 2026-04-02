@@ -1,18 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-
-const menuItems = [
-  { label: "Film", path: "/film" },
-  { label: "Music", path: "/music" },
-  { label: "Television", path: "/television" },
-  { label: "Commercials", path: "/commercials" },
-  { label: "About", path: "/about" },
-  { label: "Nonfiction", path: "/nonfiction" },
-  { label: "Audio", path: "/audio" },
-  { label: "News", path: "/news" },
-  { label: "Internship", path: "/internship" },
-];
+import { useMenuItems, useSiteSettings } from "@/hooks/useContent";
 
 const menuContainer = {
   hidden: {},
@@ -41,6 +30,8 @@ interface NavbarProps {
 const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
+  const { data: menuItems = [] } = useMenuItems();
+  const { data: settings } = useSiteSettings();
 
   // Close menu on route change
   useEffect(() => {
@@ -145,10 +136,10 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
                 animate="visible"
                 exit="exit"
               >
-                {menuItems.map((item, i) => {
+                {menuItems.filter(item => item.visible).map((item, i) => {
                   const isActive = location.pathname === item.path;
                   return (
-                    <motion.div key={i} variants={menuItemVariant}>
+                    <motion.div key={item.id} variants={menuItemVariant}>
                       <Link
                         to={item.path}
                         onClick={() => setMenuOpen(false)}
@@ -187,33 +178,47 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
                     Get in touch
                   </p>
                   <a
-                    href="mailto:hello@dwindik.com"
+                    href={`mailto:${settings?.contact_email || "hello@dwindik.com"}`}
                     className="font-body text-sm text-foreground/50 hover:text-foreground/80 transition-colors duration-500"
                   >
-                    hello@dwindik.com
+                    {settings?.contact_email || "hello@dwindik.com"}
                   </a>
                 </div>
                 <div>
                   <p className="font-body text-[10px] tracking-[0.3em] uppercase text-foreground/30 mb-3">
                     Follow
                   </p>
-                  <div className="flex gap-4">
-                    <a
-                      href="https://www.instagram.com/dwin_dik/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-body text-sm tracking-[0.15em] uppercase text-foreground/30 hover:text-foreground/70 transition-colors duration-500"
-                    >
-                      Instagram
-                    </a>
-                    <a
-                      href="https://www.youtube.com/@Dwin_dik"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-body text-sm tracking-[0.15em] uppercase text-foreground/30 hover:text-foreground/70 transition-colors duration-500"
-                    >
-                      YouTube
-                    </a>
+                  <div className="flex flex-wrap gap-4">
+                    {settings?.social_instagram && (
+                      <a
+                        href={settings.social_instagram}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-body text-sm tracking-[0.15em] uppercase text-foreground/30 hover:text-foreground/70 transition-colors duration-500"
+                      >
+                        Instagram
+                      </a>
+                    )}
+                    {settings?.social_youtube && (
+                      <a
+                        href={settings.social_youtube}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-body text-sm tracking-[0.15em] uppercase text-foreground/30 hover:text-foreground/70 transition-colors duration-500"
+                      >
+                        YouTube
+                      </a>
+                    )}
+                    {settings?.social_twitter && (
+                      <a
+                        href={settings.social_twitter}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-body text-sm tracking-[0.15em] uppercase text-foreground/30 hover:text-foreground/70 transition-colors duration-500"
+                      >
+                        Twitter
+                      </a>
+                    )}
                   </div>
                 </div>
               </motion.div>
