@@ -6,6 +6,22 @@ const Footer = () => {
   const { data: menuItems = [] } = useMenuItems();
   const { data: settings } = useSiteSettings();
 
+  const socialLinks = (() => {
+    if (settings?.social_links) {
+      try {
+        const parsed = JSON.parse(settings.social_links);
+        if (Array.isArray(parsed)) return parsed.filter((l) => l?.label && l?.url);
+      } catch {
+        return [];
+      }
+    }
+    return [
+      settings?.social_instagram ? { label: "Instagram", url: settings.social_instagram } : null,
+      settings?.social_youtube ? { label: "YouTube", url: settings.social_youtube } : null,
+      settings?.social_twitter ? { label: "Twitter", url: settings.social_twitter } : null,
+    ].filter(Boolean);
+  })();
+
   return (
     <motion.footer
       initial={{ opacity: 0 }}
@@ -30,36 +46,17 @@ const Footer = () => {
       {/* Social + copyright row */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex gap-4">
-          {settings?.social_instagram && (
+          {socialLinks.map((link) => (
             <a
-              href={settings.social_instagram}
+              key={link.label}
+              href={link.url}
               target="_blank"
               rel="noopener noreferrer"
               className="font-body text-[10px] tracking-[0.2em] uppercase text-foreground/20 hover:text-foreground/50 transition-colors duration-500"
             >
-              Instagram
+              {link.label}
             </a>
-          )}
-          {settings?.social_youtube && (
-            <a
-              href={settings.social_youtube}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-body text-[10px] tracking-[0.2em] uppercase text-foreground/20 hover:text-foreground/50 transition-colors duration-500"
-            >
-              YouTube
-            </a>
-          )}
-          {settings?.social_twitter && (
-            <a
-              href={settings.social_twitter}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-body text-[10px] tracking-[0.2em] uppercase text-foreground/20 hover:text-foreground/50 transition-colors duration-500"
-            >
-              Twitter
-            </a>
-          )}
+          ))}
         </div>
         <p className="font-body text-[10px] tracking-[0.15em] uppercase text-foreground/15">
           {settings?.copyright_text || "©2026 Dwindik. All rights reserved."}

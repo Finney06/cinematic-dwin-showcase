@@ -33,6 +33,22 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
   const { data: menuItems = [] } = useMenuItems();
   const { data: settings } = useSiteSettings();
 
+  const socialLinks = (() => {
+    if (settings?.social_links) {
+      try {
+        const parsed = JSON.parse(settings.social_links);
+        if (Array.isArray(parsed)) return parsed.filter((l) => l?.label && l?.url);
+      } catch {
+        return [];
+      }
+    }
+    return [
+      settings?.social_instagram ? { label: "Instagram", url: settings.social_instagram } : null,
+      settings?.social_youtube ? { label: "YouTube", url: settings.social_youtube } : null,
+      settings?.social_twitter ? { label: "Twitter", url: settings.social_twitter } : null,
+    ].filter(Boolean);
+  })();
+
   // Close menu on route change
   useEffect(() => {
     setMenuOpen(false);
@@ -189,36 +205,17 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
                     Follow
                   </p>
                   <div className="flex flex-wrap gap-4">
-                    {settings?.social_instagram && (
+                    {socialLinks.map((link) => (
                       <a
-                        href={settings.social_instagram}
+                        key={link.label}
+                        href={link.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="font-body text-sm tracking-[0.15em] uppercase text-foreground/30 hover:text-foreground/70 transition-colors duration-500"
                       >
-                        Instagram
+                        {link.label}
                       </a>
-                    )}
-                    {settings?.social_youtube && (
-                      <a
-                        href={settings.social_youtube}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-body text-sm tracking-[0.15em] uppercase text-foreground/30 hover:text-foreground/70 transition-colors duration-500"
-                      >
-                        YouTube
-                      </a>
-                    )}
-                    {settings?.social_twitter && (
-                      <a
-                        href={settings.social_twitter}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-body text-sm tracking-[0.15em] uppercase text-foreground/30 hover:text-foreground/70 transition-colors duration-500"
-                      >
-                        Twitter
-                      </a>
-                    )}
+                    ))}
                   </div>
                 </div>
               </motion.div>

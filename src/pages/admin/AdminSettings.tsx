@@ -4,6 +4,31 @@ import { fetchSiteSettings } from "@/lib/api";
 import { updateSettings, changePassword } from "@/lib/adminApi";
 import { toast } from "sonner";
 
+type SocialLink = { label: string; url: string };
+
+const parseSocialLinks = (raw?: string): SocialLink[] => {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed.filter((item) => item?.label && item?.url);
+    }
+  } catch {
+    return [];
+  }
+  return [];
+};
+
+const buildLegacySocials = (links: SocialLink[]) => {
+  const byLabel = (label: string) =>
+    links.find((l) => l.label.toLowerCase() === label)?.url || "";
+  return {
+    social_instagram: byLabel("instagram"),
+    social_youtube: byLabel("youtube"),
+    social_twitter: byLabel("twitter") || byLabel("x"),
+  };
+};
+
 const AdminSettings = () => {
   const queryClient = useQueryClient();
   const [form, setForm] = useState({
@@ -14,6 +39,7 @@ const AdminSettings = () => {
     copyright_text: "",
     site_title: "",
   });
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
 
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -36,11 +62,31 @@ const AdminSettings = () => {
         copyright_text: data.copyright_text || "",
         site_title: data.site_title || "",
       });
+
+      const parsedLinks = parseSocialLinks(data.social_links);
+      if (parsedLinks.length) {
+        setSocialLinks(parsedLinks);
+      } else {
+        const legacyLinks = [
+          { label: "Instagram", url: data.social_instagram || "" },
+          { label: "YouTube", url: data.social_youtube || "" },
+          { label: "Twitter", url: data.social_twitter || "" },
+        ].filter((link) => link.url);
+        setSocialLinks(legacyLinks.length ? legacyLinks : [{ label: "", url: "" }]);
+      }
     }
   }, [data]);
 
   const saveMutation = useMutation({
-    mutationFn: () => updateSettings(form),
+    mutationFn: () => {
+      const normalizedLinks = socialLinks.filter((link) => link.label && link.url);
+      const legacy = buildLegacySocials(normalizedLinks);
+      return updateSettings({
+        ...form,
+        ...legacy,
+        social_links: JSON.stringify(normalizedLinks),
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["siteSettings"] });
       toast.success("Settings saved!");
@@ -156,43 +202,50 @@ const AdminSettings = () => {
                 {saveMutation.isPending ? "Saving..." : "Save"}
               </button>
             </div>
-            <div className="space-y-5">
-              <div>
-                <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
-                  Instagram URL
-                </label>
-                <input
-                  type="url"
-                  value={form.social_instagram}
-                  onChange={(e) => setForm((p) => ({ ...p, social_instagram: e.target.value }))}
-                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
-                  placeholder="https://instagram.com/..."
-                />
-              </div>
-              <div>
-                <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
-                  YouTube URL
-                </label>
-                <input
-                  type="url"
-                  value={form.social_youtube}
-                  onChange={(e) => setForm((p) => ({ ...p, social_youtube: e.target.value }))}
-                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
-                  placeholder="https://youtube.com/..."
-                />
-              </div>
-              <div>
-                <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
-                  Twitter / X URL
-                </label>
-                <input
-                  type="url"
-                  value={form.social_twitter}
-                  onChange={(e) => setForm((p) => ({ ...p, social_twitter: e.target.value }))}
-                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
-                  placeholder="https://twitter.com/..."
-                />
-              </div>
+            <div className="space-y-4">
+              {socialLinks.map((link, index) => (
+                <div key={`${link.label}-${index}`} className="grid grid-cols-1 sm:grid-cols-[140px_1fr_auto] gap-3 items-center">
+                  <input
+                    type="text"
+                    value={link.label}
+                    onChange={(e) => {
+                      const updated = [...socialLinks];
+                      updated[index] = { ...updated[index], label: e.target.value };
+                      setSocialLinks(updated);
+                    }}
+                    className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2.5 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
+                    placeholder="Label (e.g. TikTok)"
+                  />
+                  <input
+                    type="url"
+                    value={link.url}
+                    onChange={(e) => {
+                      const updated = [...socialLinks];
+                      updated[index] = { ...updated[index], url: e.target.value };
+                      setSocialLinks(updated);
+                    }}
+                    className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2.5 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
+                    placeholder="https://..."
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = socialLinks.filter((_, i) => i !== index);
+                      setSocialLinks(updated.length ? updated : [{ label: "", url: "" }]);
+                    }}
+                    className="text-xs text-white/20 hover:text-red-400/70 transition-colors cursor-pointer"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setSocialLinks((prev) => [...prev, { label: "", url: "" }])}
+                className="text-xs text-white/30 hover:text-white/50 transition-colors cursor-pointer"
+              >
+                + Add social link
+              </button>
             </div>
           </section>
         </form>

@@ -81,6 +81,7 @@ export interface SiteSettings {
   social_instagram: string;
   social_youtube: string;
   social_twitter: string;
+  social_links?: string;
   copyright_text: string;
   site_title: string;
   [key: string]: string;

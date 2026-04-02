@@ -284,6 +284,11 @@ const defaultSettings = {
   social_instagram: "https://www.instagram.com/dwin_dik/",
   social_youtube: "https://www.youtube.com/@Dwin_dik",
   social_twitter: "https://twitter.com/dwindik",
+  social_links: JSON.stringify([
+    { label: "Instagram", url: "https://www.instagram.com/dwin_dik/" },
+    { label: "YouTube", url: "https://www.youtube.com/@Dwin_dik" },
+    { label: "Twitter", url: "https://twitter.com/dwindik" },
+  ]),
   copyright_text: "©2025 Dwindik. All rights reserved.",
   site_title: "Dwindik",
 };
