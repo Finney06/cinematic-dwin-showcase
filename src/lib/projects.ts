@@ -145,7 +145,7 @@ export const projects: Project[] = [
     description:
       "Inare's life is plagued by repeated failures caused by ancestral spiritual influences — until she confronts the past and finds freedom.",
     synopsis:
-      "Spirituals 3 follows Inare, a young woman whose life is plagued by repeated failures caused by ancestral spiritual influences. Through faith, prayer, and revelation, she confronts the past and finds freedom from the forces holding her back.",
+      "Spirituals 3 follows Enare, a young woman whose life is plagued by repeated failures caused by ancestral spiritual influences. Through faith, prayer, and revelation, she confronts the past and finds freedom from the forces holding her back.",
     thumbnail: ytThumb("pRPFMJXefv0"),
     youtubeId: "pRPFMJXefv0",
     producers: "The Winlos Studio",
