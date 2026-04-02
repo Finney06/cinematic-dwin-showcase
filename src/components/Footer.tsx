@@ -56,7 +56,7 @@ const Footer = () => {
           ))}
         </div>
         <p className="font-body text-[10px] tracking-[0.15em] uppercase text-foreground/15">
-          ©2025 Dwindik. All rights reserved.
+          ©2026 Dwindik. All rights reserved.
         </p>
       </div>
     </motion.footer>
