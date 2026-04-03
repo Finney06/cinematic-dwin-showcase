@@ -100,6 +100,17 @@ export interface MenuItem {
   visible: number;
 }
 
+export interface AuditLog {
+  id: number;
+  username: string;
+  action: string;
+  entity_type: string;
+  entity_id: string;
+  details: Record<string, unknown>;
+  ip: string;
+  created_at: string;
+}
+
 export function fetchHeroContent(): Promise<HeroContent> {
   return request("/content/hero");
 }
@@ -118,4 +129,14 @@ export function fetchMenuItems(all = false): Promise<MenuItem[]> {
 
 export function fetchPageContent(slug: string): Promise<{ page_slug: string; title: string; content: Record<string, unknown> }> {
   return request(`/content/page/${slug}`);
+}
+
+export function fetchAuditLogs(limit = 20): Promise<AuditLog[]> {
+  const token = localStorage.getItem("admin_token");
+  return request(`/admin/audit?limit=${limit}`, {
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
 }

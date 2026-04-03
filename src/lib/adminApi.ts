@@ -31,7 +31,7 @@ async function adminRequest<T>(endpoint: string, options?: RequestInit): Promise
 
   if (res.status === 401) {
     clearToken();
-    window.location.href = "/admin/login";
+    window.location.href = "/admin/login?reason=session-expired";
     throw new Error("Session expired");
   }
 

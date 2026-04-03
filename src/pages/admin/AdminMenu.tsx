@@ -268,15 +268,24 @@ const AdminMenu = () => {
         </div>
       ) : (
         <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl overflow-hidden max-w-2xl">
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
-              <div className="divide-y divide-white/[0.04]">
-                {orderedItems.map((item, index) => (
-                  <SortableRow key={item.id} item={item} index={index} />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
+          {orderedItems.length === 0 ? (
+            <div className="px-6 py-12 text-center">
+              <p className="text-sm text-white/30">No menu items yet</p>
+              <p className="text-[11px] text-white/20 mt-2">
+                Add your first item to build navigation.
+              </p>
+            </div>
+          ) : (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
+                <div className="divide-y divide-white/[0.04]">
+                  {orderedItems.map((item, index) => (
+                    <SortableRow key={item.id} item={item} index={index} />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          )}
         </div>
       )}
 

@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchSiteSettings } from "@/lib/api";
 import { updateSettings, changePassword } from "@/lib/adminApi";
 import { toast } from "sonner";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 
 type SocialLink = { label: string; url: string };
 
@@ -52,6 +53,7 @@ const buildLegacySocials = (links: SocialLink[]) => {
 
 const AdminSettings = () => {
   const queryClient = useQueryClient();
+  const initialSettingsRef = useRef("");
   const [form, setForm] = useState({
     contact_email: "",
     social_instagram: "",
@@ -77,7 +79,7 @@ const AdminSettings = () => {
 
   useEffect(() => {
     if (data) {
-      setForm({
+      const nextForm = {
         contact_email: data.contact_email || "",
         social_instagram: data.social_instagram || "",
         social_youtube: data.social_youtube || "",
@@ -86,21 +88,29 @@ const AdminSettings = () => {
         font_body: data.font_body || '"Inter", sans-serif',
         copyright_text: data.copyright_text || "",
         site_title: data.site_title || "",
-      });
+      };
+      setForm(nextForm);
 
       const parsedLinks = parseSocialLinks(data.social_links);
       if (parsedLinks.length) {
         setSocialLinks(parsedLinks);
+        initialSettingsRef.current = JSON.stringify({ form: nextForm, socialLinks: parsedLinks });
       } else {
         const legacyLinks = [
           { label: "Instagram", url: data.social_instagram || "" },
           { label: "YouTube", url: data.social_youtube || "" },
           { label: "Twitter", url: data.social_twitter || "" },
         ].filter((link) => link.url);
-        setSocialLinks(legacyLinks.length ? legacyLinks : [{ label: "", url: "" }]);
+        const fallbackLinks = legacyLinks.length ? legacyLinks : [{ label: "", url: "" }];
+        setSocialLinks(fallbackLinks);
+        initialSettingsRef.current = JSON.stringify({ form: nextForm, socialLinks: fallbackLinks });
       }
     }
   }, [data]);
+
+  const isDirty =
+    initialSettingsRef.current !== JSON.stringify({ form, socialLinks });
+  useUnsavedChanges(isDirty);
 
   const saveMutation = useMutation({
     mutationFn: () => {
@@ -114,6 +124,7 @@ const AdminSettings = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["siteSettings"] });
+      initialSettingsRef.current = JSON.stringify({ form, socialLinks });
       toast.success("Settings saved!");
     },
     onError: (err: Error) => toast.error(err.message),

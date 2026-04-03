@@ -10,6 +10,7 @@ import projectRoutes from "./routes/projects.js";
 import contentRoutes from "./routes/content.js";
 import menuRoutes from "./routes/menu.js";
 import uploadRoutes from "./routes/upload.js";
+import auditRoutes from "./routes/audit.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -38,6 +39,7 @@ app.use("/api/admin/content", contentRoutes);
 app.use("/api/menu", menuRoutes);
 app.use("/api/admin/menu", menuRoutes);
 app.use("/api/admin/upload", uploadRoutes);
+app.use("/api/admin/audit", auditRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {

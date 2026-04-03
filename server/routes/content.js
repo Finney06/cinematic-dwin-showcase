@@ -1,6 +1,7 @@
 import { Router } from "express";
 import db from "../db.js";
 import { authMiddleware } from "../middleware/auth.js";
+import { logAudit } from "../utils/audit.js";
 
 const router = Router();
 
@@ -67,6 +68,8 @@ router.put("/about", authMiddleware, (req, res) => {
     ).run(contentStr);
   }
 
+  logAudit(req, "content.about.update", "content", "about");
+
   res.json({ message: "About page updated" });
 });
 
@@ -96,6 +99,8 @@ router.put("/hero", authMiddleware, (req, res) => {
     `).run(brand_text || "DWINDIK", tagline || "Cre8te", video_url || "", hero_image || "", hero_link || "");
   }
 
+  logAudit(req, "content.hero.update", "content", "hero");
+
   res.json({ message: "Hero content updated" });
 });
 
@@ -116,6 +121,9 @@ router.put("/settings", authMiddleware, (req, res) => {
   });
 
   updateMany(Object.entries(settings));
+  logAudit(req, "content.settings.update", "content", "settings", {
+    keys: Object.keys(settings),
+  });
   res.json({ message: "Settings updated" });
 });
 
@@ -137,6 +145,8 @@ router.put("/page/:slug", authMiddleware, (req, res) => {
       "INSERT INTO page_content (page_slug, title, content) VALUES (?, ?, ?)"
     ).run(req.params.slug, title || req.params.slug, contentStr);
   }
+
+  logAudit(req, "content.page.update", "page", req.params.slug);
 
   res.json({ message: "Page updated" });
 });

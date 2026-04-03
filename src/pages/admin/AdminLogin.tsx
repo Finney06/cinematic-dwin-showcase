@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { login, setToken } from "@/lib/adminApi";
 
 const AdminLogin = () => {
@@ -8,6 +8,8 @@ const AdminLogin = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const reason = searchParams.get("reason");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,6 +65,13 @@ const AdminLogin = () => {
               <p className="text-xs text-red-400/80">{error}</p>
             </div>
           )}
+          {!error && reason === "session-expired" && (
+            <div className="mb-6 px-3 py-2.5 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+              <p className="text-xs text-amber-300/80">
+                Your session expired. Please sign in again to continue.
+              </p>
+            </div>
+          )}
 
           <div className="space-y-5">
             <div>
@@ -112,7 +121,7 @@ const AdminLogin = () => {
         </form>
 
         <p className="text-center mt-6 text-[10px] text-white/10 tracking-wide">
-          ©2025 Dwindik CMS
+          ©2026 Dwindik CMS
         </p>
       </div>
     </div>

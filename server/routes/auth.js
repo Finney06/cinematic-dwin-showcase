@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import db from "../db.js";
 import { authMiddleware } from "../middleware/auth.js";
+import { logAudit } from "../utils/audit.js";
 
 const router = Router();
 
@@ -56,6 +57,7 @@ router.put("/change-password", authMiddleware, (req, res) => {
 
   const hash = bcrypt.hashSync(newPassword, 10);
   db.prepare("UPDATE admin_users SET password_hash = ? WHERE id = ?").run(hash, req.user.id);
+  logAudit(req, "auth.password.change", "user", String(req.user.id));
   res.json({ message: "Password changed successfully" });
 });
 

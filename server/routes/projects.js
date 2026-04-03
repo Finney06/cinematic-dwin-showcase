@@ -2,6 +2,7 @@ import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import db from "../db.js";
 import { authMiddleware } from "../middleware/auth.js";
+import { logAudit } from "../utils/audit.js";
 
 const router = Router();
 
@@ -65,6 +66,10 @@ router.post("/", authMiddleware, (req, res) => {
   `).run(id, title, category, category_label || category, year, role || "", description || "", synopsis || "", thumbnail || "", youtube_id || "", director || "", producers || "", cast_info || "", status || "", sort_order);
 
   const project = db.prepare("SELECT * FROM projects WHERE id = ?").get(id);
+  logAudit(req, "project.create", "project", id, {
+    title: project.title,
+    category: project.category,
+  });
   res.status(201).json(project);
 });
 
@@ -103,6 +108,10 @@ router.put("/:id", authMiddleware, (req, res) => {
   );
 
   const updated = db.prepare("SELECT * FROM projects WHERE id = ?").get(req.params.id);
+  logAudit(req, "project.update", "project", req.params.id, {
+    title: updated.title,
+    category: updated.category,
+  });
   res.json(updated);
 });
 
@@ -112,6 +121,9 @@ router.delete("/:id", authMiddleware, (req, res) => {
   if (!existing) return res.status(404).json({ error: "Project not found" });
 
   db.prepare("DELETE FROM projects WHERE id = ?").run(req.params.id);
+  logAudit(req, "project.delete", "project", req.params.id, {
+    title: existing.title,
+  });
   res.json({ message: "Project deleted" });
 });
 
@@ -129,6 +141,7 @@ router.put("/reorder", authMiddleware, (req, res) => {
     }
   });
   updateMany(items);
+  logAudit(req, "project.reorder", "project", "bulk", { count: items.length });
   res.json({ message: "Reordered successfully" });
 });
 

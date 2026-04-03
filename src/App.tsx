@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { useEffect } from "react";
 import { useSiteSettings } from "@/hooks/useContent";
@@ -32,6 +32,54 @@ import AdminPages from "./pages/admin/AdminPages";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 
 const queryClient = new QueryClient();
+
+const RouteSeo = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    const path = location.pathname;
+    const map: Record<string, { title: string; description: string }> = {
+      "/": { title: "Dwindik | Cinematic Portfolio", description: "Director of Photography and visual storytelling portfolio." },
+      "/film": { title: "Film | Dwindik", description: "Film projects and cinematography work by Dwindik." },
+      "/television": { title: "Television | Dwindik", description: "Television projects and production work." },
+      "/nonfiction": { title: "Nonfiction | Dwindik", description: "Nonfiction visual storytelling projects." },
+      "/audio": { title: "Audio | Dwindik", description: "Audio and sound-driven creative projects." },
+      "/music": { title: "Music | Dwindik", description: "Music visuals and creative direction work." },
+      "/commercials": { title: "Commercials | Dwindik", description: "Commercial productions and branded storytelling." },
+      "/news": { title: "News | Dwindik", description: "Latest updates and announcements." },
+      "/internship": { title: "Internship | Dwindik", description: "Internship opportunities and information." },
+      "/about": { title: "About | Dwindik", description: "About Dwindik, his craft, production company, and work." },
+      "/admin/login": { title: "Admin Login | Dwindik", description: "Sign in to the Dwindik admin portal." },
+      "/admin": { title: "Admin Dashboard | Dwindik", description: "Manage projects, pages, and settings." },
+      "/admin/projects": { title: "Admin Projects | Dwindik", description: "Manage portfolio projects." },
+      "/admin/pages": { title: "Admin Pages | Dwindik", description: "Edit custom page content." },
+      "/admin/about": { title: "Admin About | Dwindik", description: "Edit About page content." },
+      "/admin/hero": { title: "Admin Hero | Dwindik", description: "Edit homepage hero section." },
+      "/admin/settings": { title: "Admin Settings | Dwindik", description: "Update site settings and account options." },
+      "/admin/menu": { title: "Admin Menu | Dwindik", description: "Manage navigation structure." },
+    };
+
+    const meta =
+      map[path] ||
+      (path.startsWith("/work/")
+        ? { title: "Project | Dwindik", description: "Project details and credits." }
+        : path.startsWith("/admin/projects/")
+        ? { title: "Admin Project Editor | Dwindik", description: "Create and edit project entries." }
+        : { title: "Page Not Found | Dwindik", description: "The requested page could not be found." });
+
+    document.title = meta.title;
+
+    let descriptionEl = document.querySelector('meta[name="description"]');
+    if (!descriptionEl) {
+      descriptionEl = document.createElement("meta");
+      descriptionEl.setAttribute("name", "description");
+      document.head.appendChild(descriptionEl);
+    }
+    descriptionEl.setAttribute("content", meta.description);
+  }, [location.pathname]);
+
+  return null;
+};
 
 const FontSettings = () => {
   const { data: settings } = useSiteSettings();
@@ -76,6 +124,7 @@ const App = () => (
       <Sonner />
       <FontSettings />
       <BrowserRouter>
+        <RouteSeo />
         <AnimatePresence mode="wait">
           <Routes>
             {/* ─── Public ─── */}

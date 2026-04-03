@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchMenuItems, fetchPageContent } from "@/lib/api";
 import { createMenuItem, deleteMenuItem, updatePageContent } from "@/lib/adminApi";
 import { toast } from "sonner";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 
 const AdminPages = () => {
   const queryClient = useQueryClient();
+  const initialPageRef = useRef("");
   const [selectedSlug, setSelectedSlug] = useState<string>("");
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
@@ -18,7 +20,7 @@ const AdminPages = () => {
   const [newSlug, setNewSlug] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState(false);
 
-  const { data: menuItems = [] } = useQuery({
+  const { data: menuItems = [], isLoading: menuLoading } = useQuery({
     queryKey: ["adminMenuItems"],
     queryFn: () => fetchMenuItems(true),
   });
@@ -49,7 +51,7 @@ const AdminPages = () => {
     }
   }, [pageItems, selectedSlug]);
 
-  const { data: pageData } = useQuery({
+  const { data: pageData, isLoading: pageLoading } = useQuery({
     queryKey: ["pageContent", selectedSlug],
     queryFn: () => fetchPageContent(selectedSlug),
     enabled: !!selectedSlug,
@@ -71,7 +73,29 @@ const AdminPages = () => {
     setSections(content.sections || []);
     setCtaLabel(content.cta?.label || "");
     setCtaUrl(content.cta?.url || "");
+    initialPageRef.current = JSON.stringify({
+      title: pageData.title || "",
+      subtitle: content.subtitle || "",
+      intro: content.intro || "",
+      body: content.body || "",
+      sections: content.sections || [],
+      ctaLabel: content.cta?.label || "",
+      ctaUrl: content.cta?.url || "",
+    });
   }, [pageData]);
+
+  const isDirty =
+    initialPageRef.current !==
+    JSON.stringify({
+      title,
+      subtitle,
+      intro,
+      body,
+      sections,
+      ctaLabel,
+      ctaUrl,
+    });
+  useUnsavedChanges(isDirty);
 
   const saveMutation = useMutation({
     mutationFn: () =>
@@ -90,6 +114,15 @@ const AdminPages = () => {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pageContent", selectedSlug] });
+      initialPageRef.current = JSON.stringify({
+        title,
+        subtitle,
+        intro,
+        body,
+        sections,
+        ctaLabel,
+        ctaUrl,
+      });
       toast.success("Page saved!");
     },
     onError: (err: Error) => toast.error(err.message),
@@ -174,6 +207,14 @@ const AdminPages = () => {
       </div>
 
       <div className="space-y-6 max-w-2xl">
+        {menuLoading && (
+          <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6 animate-pulse">
+            <div className="h-4 w-32 bg-white/[0.08] rounded mb-4" />
+            <div className="h-10 bg-white/[0.06] rounded mb-3" />
+            <div className="h-10 bg-white/[0.06] rounded" />
+          </div>
+        )}
+
         <section className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -233,6 +274,7 @@ const AdminPages = () => {
             value={selectedSlug}
             onChange={(e) => setSelectedSlug(e.target.value)}
             className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 focus:outline-none focus:border-white/20 transition-colors"
+            disabled={menuLoading || !pageItems.length}
           >
             {!pageItems.length && (
               <option value="" className="bg-[#141414]">
@@ -262,7 +304,23 @@ const AdminPages = () => {
           )}
         </div>
 
+        {!menuLoading && !pageItems.length && (
+          <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6 text-center">
+            <p className="text-sm text-white/35">No visible custom pages.</p>
+            <p className="text-[11px] text-white/20 mt-2">
+              Create one above or make a page visible in Menu.
+            </p>
+          </div>
+        )}
+
         <section className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6">
+          {pageLoading && selectedSlug ? (
+            <div className="space-y-3 animate-pulse">
+              <div className="h-10 bg-white/[0.06] rounded" />
+              <div className="h-20 bg-white/[0.06] rounded" />
+              <div className="h-28 bg-white/[0.06] rounded" />
+            </div>
+          ) : (
           <div className="space-y-5">
             <div>
               <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
@@ -403,6 +461,7 @@ const AdminPages = () => {
               </div>
             </div>
           </div>
+          )}
         </section>
         {deleteConfirm && selectedItem && (
           <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">

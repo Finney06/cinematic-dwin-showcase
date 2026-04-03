@@ -291,7 +291,7 @@ const defaultSettings = {
   ]),
   font_display: '"Cormorant Garamond", serif',
   font_body: '"Inter", sans-serif',
-  copyright_text: "©2025 Dwindik. All rights reserved.",
+  copyright_text: "©2026 Dwindik. All rights reserved.",
   site_title: "Dwindik",
 };
 

@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchMenuItems, fetchProject } from "@/lib/api";
 import { createProject, updateProject } from "@/lib/adminApi";
 import ImageUpload from "@/components/admin/ImageUpload";
 import { toast } from "sonner";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 
 const getCategoryKeyFromPath = (path: string) =>
   path.replace(/^\//, "").split("/")[0] || path;
@@ -72,6 +73,7 @@ const AdminProjectForm = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isEditing = !!id;
+  const initialFormRef = useRef(JSON.stringify(emptyForm));
 
   const [form, setForm] = useState<FormData>(emptyForm);
 
@@ -97,7 +99,7 @@ const AdminProjectForm = () => {
 
   useEffect(() => {
     if (existingProject) {
-      setForm({
+      const next = {
         title: existingProject.title,
         category: existingProject.category,
         category_label: existingProject.category_label,
@@ -111,7 +113,9 @@ const AdminProjectForm = () => {
         producers: existingProject.producers,
         cast_info: existingProject.cast_info,
         status: existingProject.status,
-      });
+      };
+      setForm(next);
+      initialFormRef.current = JSON.stringify(next);
     }
   }, [existingProject]);
 
@@ -134,6 +138,7 @@ const AdminProjectForm = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-projects"] });
       queryClient.invalidateQueries({ queryKey: ["projects"] });
+      initialFormRef.current = JSON.stringify(form);
       toast.success("Project created!");
       navigate("/admin/projects");
     },
@@ -146,6 +151,7 @@ const AdminProjectForm = () => {
       queryClient.invalidateQueries({ queryKey: ["admin-projects"] });
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       queryClient.invalidateQueries({ queryKey: ["project", id] });
+      initialFormRef.current = JSON.stringify(form);
       toast.success("Project updated!");
       navigate("/admin/projects");
     },
@@ -181,6 +187,8 @@ const AdminProjectForm = () => {
     : "";
 
   const isPending = createMutation.isPending || updateMutation.isPending;
+  const isDirty = initialFormRef.current !== JSON.stringify(form);
+  useUnsavedChanges(isDirty);
 
   return (
     <div>

@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchAboutContent } from "@/lib/api";
 import { updateAboutContent } from "@/lib/adminApi";
 import ImageUpload from "@/components/admin/ImageUpload";
 import { toast } from "sonner";
 import type { AboutContent } from "@/lib/api";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 
 const defaultAbout: AboutContent = {
   heroImage: "",
@@ -24,6 +25,7 @@ const defaultAbout: AboutContent = {
 
 const AdminAbout = () => {
   const queryClient = useQueryClient();
+  const initialFormRef = useRef("");
   const [form, setForm] = useState<AboutContent>(defaultAbout);
 
   const { data } = useQuery({
@@ -33,14 +35,20 @@ const AdminAbout = () => {
 
   useEffect(() => {
     if (data?.content) {
-      setForm({ ...defaultAbout, ...data.content });
+      const next = { ...defaultAbout, ...data.content };
+      setForm(next);
+      initialFormRef.current = JSON.stringify(next);
     }
   }, [data]);
+
+  const isDirty = initialFormRef.current !== JSON.stringify(form);
+  useUnsavedChanges(isDirty);
 
   const saveMutation = useMutation({
     mutationFn: () => updateAboutContent(form),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["aboutContent"] });
+      initialFormRef.current = JSON.stringify(form);
       toast.success("About page saved!");
     },
     onError: (err: Error) => toast.error(err.message),

@@ -1,12 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchHeroContent } from "@/lib/api";
 import { updateHeroContent } from "@/lib/adminApi";
 import ImageUpload from "@/components/admin/ImageUpload";
 import { toast } from "sonner";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 
 const AdminHero = () => {
   const queryClient = useQueryClient();
+  const initialFormRef = useRef("");
   const [form, setForm] = useState({
     brand_text: "DWINDIK",
     tagline: "Cre8te",
@@ -22,20 +24,26 @@ const AdminHero = () => {
 
   useEffect(() => {
     if (data) {
-      setForm({
+      const next = {
         brand_text: data.brand_text || "DWINDIK",
         tagline: data.tagline || "Cre8te",
         video_url: data.video_url || "",
         hero_image: data.hero_image || "",
         hero_link: data.hero_link || "",
-      });
+      };
+      setForm(next);
+      initialFormRef.current = JSON.stringify(next);
     }
   }, [data]);
+
+  const isDirty = initialFormRef.current !== JSON.stringify(form);
+  useUnsavedChanges(isDirty);
 
   const saveMutation = useMutation({
     mutationFn: () => updateHeroContent(form),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["heroContent"] });
+      initialFormRef.current = JSON.stringify(form);
       toast.success("Hero section saved!");
     },
     onError: (err: Error) => toast.error(err.message),

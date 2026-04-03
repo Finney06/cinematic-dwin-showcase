@@ -1,6 +1,7 @@
 import { Router } from "express";
 import db from "../db.js";
 import { authMiddleware } from "../middleware/auth.js";
+import { logAudit } from "../utils/audit.js";
 
 const router = Router();
 
@@ -41,6 +42,10 @@ router.post("/", authMiddleware, (req, res) => {
     .run(label, path, page_type || "category", sort_order, visible !== undefined ? (visible ? 1 : 0) : 1);
 
   const item = db.prepare("SELECT * FROM menu_items WHERE id = ?").get(result.lastInsertRowid);
+  logAudit(req, "menu.create", "menu", String(item.id), {
+    label: item.label,
+    path: item.path,
+  });
   res.status(201).json(item);
 });
 
@@ -58,6 +63,7 @@ router.put("/reorder", authMiddleware, (req, res) => {
     }
   });
   updateMany(items);
+  logAudit(req, "menu.reorder", "menu", "bulk", { count: items.length });
   res.json({ message: "Reordered successfully" });
 });
 
@@ -78,6 +84,11 @@ router.put("/:id", authMiddleware, (req, res) => {
   );
 
   const updated = db.prepare("SELECT * FROM menu_items WHERE id = ?").get(req.params.id);
+  logAudit(req, "menu.update", "menu", req.params.id, {
+    label: updated.label,
+    path: updated.path,
+    visible: updated.visible,
+  });
   res.json(updated);
 });
 
@@ -87,6 +98,10 @@ router.delete("/:id", authMiddleware, (req, res) => {
   if (!existing) return res.status(404).json({ error: "Menu item not found" });
 
   db.prepare("DELETE FROM menu_items WHERE id = ?").run(req.params.id);
+  logAudit(req, "menu.delete", "menu", req.params.id, {
+    label: existing.label,
+    path: existing.path,
+  });
   res.json({ message: "Menu item deleted" });
 });
 
