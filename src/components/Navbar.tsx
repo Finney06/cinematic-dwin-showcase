@@ -1,18 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-
-const menuItems = [
-  { label: "Film", path: "/film" },
-  { label: "Music", path: "/music" },
-  { label: "Television", path: "/television" },
-  { label: "Commercials", path: "/commercials" },
-  { label: "About", path: "/about" },
-  { label: "Nonfiction", path: "/nonfiction" },
-  { label: "Audio", path: "/audio" },
-  { label: "News", path: "/news" },
-  { label: "Internship", path: "/internship" },
-];
+import { useMenuItems, useSiteSettings } from "@/hooks/useContent";
 
 const menuContainer = {
   hidden: {},
@@ -41,6 +30,24 @@ interface NavbarProps {
 const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
+  const { data: menuItems = [] } = useMenuItems();
+  const { data: settings } = useSiteSettings();
+
+  const socialLinks = (() => {
+    if (settings?.social_links) {
+      try {
+        const parsed = JSON.parse(settings.social_links);
+        if (Array.isArray(parsed)) return parsed.filter((l) => l?.label && l?.url);
+      } catch {
+        return [];
+      }
+    }
+    return [
+      settings?.social_instagram ? { label: "Instagram", url: settings.social_instagram } : null,
+      settings?.social_youtube ? { label: "YouTube", url: settings.social_youtube } : null,
+      settings?.social_twitter ? { label: "Twitter", url: settings.social_twitter } : null,
+    ].filter(Boolean);
+  })();
 
   // Close menu on route change
   useEffect(() => {
@@ -145,10 +152,10 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
                 animate="visible"
                 exit="exit"
               >
-                {menuItems.map((item, i) => {
+                {menuItems.filter(item => item.visible).map((item, i) => {
                   const isActive = location.pathname === item.path;
                   return (
-                    <motion.div key={i} variants={menuItemVariant}>
+                    <motion.div key={item.id} variants={menuItemVariant}>
                       <Link
                         to={item.path}
                         onClick={() => setMenuOpen(false)}
@@ -187,33 +194,28 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
                     Get in touch
                   </p>
                   <a
-                    href="mailto:hello@dwindik.com"
+                    href={`mailto:${settings?.contact_email || "hello@dwindik.com"}`}
                     className="font-body text-sm text-foreground/50 hover:text-foreground/80 transition-colors duration-500"
                   >
-                    hello@dwindik.com
+                    {settings?.contact_email || "hello@dwindik.com"}
                   </a>
                 </div>
                 <div>
                   <p className="font-body text-[10px] tracking-[0.3em] uppercase text-foreground/30 mb-3">
                     Follow
                   </p>
-                  <div className="flex gap-4">
-                    <a
-                      href="https://www.instagram.com/dwin_dik/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-body text-sm tracking-[0.15em] uppercase text-foreground/30 hover:text-foreground/70 transition-colors duration-500"
-                    >
-                      Instagram
-                    </a>
-                    <a
-                      href="https://www.youtube.com/@Dwin_dik"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-body text-sm tracking-[0.15em] uppercase text-foreground/30 hover:text-foreground/70 transition-colors duration-500"
-                    >
-                      YouTube
-                    </a>
+                  <div className="flex flex-wrap gap-4">
+                    {socialLinks.map((link) => (
+                      <a
+                        key={link.label}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-body text-sm tracking-[0.15em] uppercase text-foreground/30 hover:text-foreground/70 transition-colors duration-500"
+                      >
+                        {link.label}
+                      </a>
+                    ))}
                   </div>
                 </div>
               </motion.div>

@@ -1,24 +1,27 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-
-const navLinks = [
-  { label: "Film", path: "/film" },
-  { label: "Television", path: "/television" },
-  { label: "Nonfiction", path: "/nonfiction" },
-  { label: "Audio", path: "/audio" },
-  { label: "Music", path: "/music" },
-  { label: "About", path: "/about" },
-  { label: "News", path: "/news" },
-  { label: "Internship", path: "/internship" },
-];
-
-const socialLinks = [
-  { label: "Instagram", href: "https://instagram.com/dwindik" },
-  { label: "YouTube", href: "https://youtube.com/@dwindik" },
-  { label: "Twitter", href: "https://twitter.com/dwindik" },
-];
+import { useMenuItems, useSiteSettings } from "@/hooks/useContent";
 
 const Footer = () => {
+  const { data: menuItems = [] } = useMenuItems();
+  const { data: settings } = useSiteSettings();
+
+  const socialLinks = (() => {
+    if (settings?.social_links) {
+      try {
+        const parsed = JSON.parse(settings.social_links);
+        if (Array.isArray(parsed)) return parsed.filter((l) => l?.label && l?.url);
+      } catch {
+        return [];
+      }
+    }
+    return [
+      settings?.social_instagram ? { label: "Instagram", url: settings.social_instagram } : null,
+      settings?.social_youtube ? { label: "YouTube", url: settings.social_youtube } : null,
+      settings?.social_twitter ? { label: "Twitter", url: settings.social_twitter } : null,
+    ].filter(Boolean);
+  })();
+
   return (
     <motion.footer
       initial={{ opacity: 0 }}
@@ -29,9 +32,9 @@ const Footer = () => {
     >
       {/* Nav links row */}
       <div className="flex flex-wrap gap-x-6 gap-y-2 mb-8">
-        {navLinks.map((link) => (
+        {menuItems.filter(item => item.visible).map((link) => (
           <Link
-            key={link.path}
+            key={link.id}
             to={link.path}
             className="font-body text-[10px] tracking-[0.25em] uppercase text-foreground/25 hover:text-foreground/60 transition-colors duration-500"
           >
@@ -46,7 +49,7 @@ const Footer = () => {
           {socialLinks.map((link) => (
             <a
               key={link.label}
-              href={link.href}
+              href={link.url}
               target="_blank"
               rel="noopener noreferrer"
               className="font-body text-[10px] tracking-[0.2em] uppercase text-foreground/20 hover:text-foreground/50 transition-colors duration-500"
@@ -56,7 +59,7 @@ const Footer = () => {
           ))}
         </div>
         <p className="font-body text-[10px] tracking-[0.15em] uppercase text-foreground/15">
-          ©2026 Dwindik. All rights reserved.
+          {settings?.copyright_text || "©2026 Dwindik. All rights reserved."}
         </p>
       </div>
     </motion.footer>
