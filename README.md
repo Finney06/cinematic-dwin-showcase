@@ -35,7 +35,7 @@ Deploy [server](server) as a Node service (Render, Railway, Fly.io, etc.) and se
 
 ### 2) Configure uploads storage
 
-For production, use object storage (S3/R2/Spaces) instead of local disk:
+For production, use object storage (S3/R2/Spaces or Cloudinary) instead of local disk:
 
 - `STORAGE_DRIVER=s3`
 - `S3_ENDPOINT`
@@ -44,6 +44,14 @@ For production, use object storage (S3/R2/Spaces) instead of local disk:
 - `S3_SECRET_ACCESS_KEY`
 - `S3_REGION` (or `auto` for R2)
 - `S3_PUBLIC_BASE_URL` (public URL base to serve assets)
+
+Cloudinary option:
+
+- `STORAGE_DRIVER=cloudinary`
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
+- `CLOUDINARY_FOLDER`
 
 If `STORAGE_DRIVER=local`, files are stored in [server/uploads](server/uploads) and are not durable on most hosting platforms.
 

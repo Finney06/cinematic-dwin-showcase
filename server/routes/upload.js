@@ -7,7 +7,7 @@ import fs from "fs/promises";
 import sharp from "sharp";
 import { authMiddleware } from "../middleware/auth.js";
 import { logAudit } from "../utils/audit.js";
-import { isS3Enabled, uploadBuffer } from "../utils/storage.js";
+import { getStorageDriver, uploadBuffer } from "../utils/storage.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -31,6 +31,7 @@ const router = Router();
 const isCompressibleImage = (ext) => /\.(jpg|jpeg|png|webp)$/i.test(ext);
 
 const writeSingleUpload = async (file) => {
+  const storageDriver = getStorageDriver();
   const ext = path.extname(file.originalname).toLowerCase();
   const shouldCompress = isCompressibleImage(ext);
   const filename = `${uuidv4()}${shouldCompress ? ".webp" : ext}`;
@@ -48,7 +49,7 @@ const writeSingleUpload = async (file) => {
     contentType = "image/webp";
   }
 
-  if (isS3Enabled()) {
+  if (storageDriver !== "local") {
     const publicUrl = await uploadBuffer({
       key,
       body: outputBuffer,
@@ -59,7 +60,7 @@ const writeSingleUpload = async (file) => {
       url: publicUrl,
       filename,
       originalName: file.originalname,
-      storage: "s3",
+      storage: storageDriver,
     };
   }
 
