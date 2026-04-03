@@ -53,10 +53,10 @@ const AdminProjects = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-xl tracking-[0.06em] text-white/80 font-light">
+          <h1 className="text-2xl tracking-[0.05em] text-white/85 font-light">
             Projects
           </h1>
-          <p className="text-xs text-white/25 tracking-wide mt-1">
+          <p className="text-[13px] text-white/30 tracking-wide mt-1">
             {projects.length} projects total
           </p>
         </div>
@@ -75,7 +75,7 @@ const AdminProjects = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search projects..."
-          className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-2.5 text-sm text-white/70 placeholder:text-white/20 focus:outline-none focus:border-white/20 transition-colors"
+          className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-2.5 text-[14px] text-white/75 placeholder:text-white/20 focus:outline-none focus:border-white/20 transition-colors"
         />
         <Link
           to="/admin/projects"
@@ -108,11 +108,11 @@ const AdminProjects = () => {
           <div className="w-6 h-6 border-2 border-white/10 border-t-white/40 rounded-full animate-spin mx-auto" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-20 bg-white/[0.02] border border-white/[0.06] rounded-xl">
-          <p className="text-sm text-white/20">No projects found</p>
+          <div className="text-center py-20 bg-white/[0.02] border border-white/[0.06] rounded-xl">
+          <p className="text-[14px] text-white/25">No projects found</p>
           <Link
             to="/admin/projects/new"
-            className="inline-block mt-4 text-xs text-white/40 hover:text-white/60 transition-colors"
+            className="inline-block mt-4 text-[12px] text-white/45 hover:text-white/60 transition-colors"
           >
             Create your first project →
           </Link>
@@ -124,16 +124,16 @@ const AdminProjects = () => {
               key={category}
               className="bg-white/[0.02] border border-white/[0.06] rounded-xl overflow-hidden"
             >
-              <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.06]">
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.06]">
                 <div className="flex items-center gap-3">
-                  <h3 className="text-xs tracking-[0.2em] uppercase text-white/40">
+                  <h3 className="text-[12px] tracking-[0.18em] uppercase text-white/45">
                     {category}
                   </h3>
-                  <span className="text-[10px] text-white/20">{items.length} items</span>
+                  <span className="text-[11px] text-white/25">{items.length} items</span>
                 </div>
                 <Link
                   to={`/admin/projects?category=${items[0]?.category}`}
-                  className="text-[10px] tracking-[0.15em] uppercase text-white/20 hover:text-white/50 transition-colors"
+                  className="text-[11px] tracking-[0.15em] uppercase text-white/25 hover:text-white/55 transition-colors"
                 >
                   Filter →
                 </Link>
@@ -150,19 +150,19 @@ const AdminProjects = () => {
                       className="w-20 h-14 rounded-lg object-cover bg-white/5 flex-shrink-0"
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white/60 font-medium group-hover:text-white/80 transition-colors">
+                      <p className="text-[15px] text-white/70 font-medium group-hover:text-white/85 transition-colors">
                         {project.title}
                       </p>
                       <div className="flex items-center gap-3 mt-1">
-                        <span className="text-[10px] tracking-wider uppercase text-white/20">
+                        <span className="text-[11px] tracking-wider uppercase text-white/25">
                           {project.category_label}
                         </span>
                         <span className="text-white/10">·</span>
-                        <span className="text-[10px] text-white/20">{project.year}</span>
+                        <span className="text-[11px] text-white/25">{project.year}</span>
                         {project.status && (
                           <>
                             <span className="text-white/10">·</span>
-                            <span className="text-[10px] text-white/15">{project.status}</span>
+                            <span className="text-[11px] text-white/20">{project.status}</span>
                           </>
                         )}
                       </div>

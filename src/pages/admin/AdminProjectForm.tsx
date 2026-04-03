@@ -98,7 +98,7 @@ const AdminProjectForm = () => {
   });
 
   const dynamicCategories = menuItems
-    .filter((item) => item.page_type === "category")
+    .filter((item) => item.page_type === "category" && item.visible === 1)
     .map((item) => ({
       key: getCategoryKeyFromPath(item.path),
       label: item.label,
@@ -125,6 +125,20 @@ const AdminProjectForm = () => {
       });
     }
   }, [existingProject]);
+
+  useEffect(() => {
+    if (isEditing) return;
+    if (!categoryOptions.length) return;
+    const exists = categoryOptions.some((cat) => cat.key === form.category);
+    if (!exists) {
+      const first = categoryOptions[0];
+      setForm((prev) => ({
+        ...prev,
+        category: first.key,
+        category_label: first.label,
+      }));
+    }
+  }, [categoryOptions, form.category, isEditing]);
 
   const createMutation = useMutation({
     mutationFn: (data: FormData) => createProject(data),

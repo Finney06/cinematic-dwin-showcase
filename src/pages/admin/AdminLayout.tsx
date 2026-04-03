@@ -30,7 +30,7 @@ const AdminLayout = () => {
               Dwindik
             </h1>
             <p className="text-[9px] tracking-[0.2em] uppercase text-white/15 mt-1">
-              CMS Admin
+              Admin Portal
             </p>
           </Link>
         </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchMenuItems } from "@/lib/api";
 import {
@@ -8,17 +8,43 @@ import {
   reorderMenuItems,
 } from "@/lib/adminApi";
 import { toast } from "sonner";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  sortableKeyboardCoordinates,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const AdminMenu = () => {
   const queryClient = useQueryClient();
   const [showAddForm, setShowAddForm] = useState(false);
   const [newItem, setNewItem] = useState({ label: "", path: "/", page_type: "category" });
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+  const [orderedItems, setOrderedItems] = useState<typeof menuItems>([] as never);
 
   const { data: menuItems = [], isLoading } = useQuery({
     queryKey: ["adminMenuItems"],
     queryFn: () => fetchMenuItems(true),
   });
+
+  useEffect(() => {
+    setOrderedItems(menuItems);
+  }, [menuItems]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   const toggleMutation = useMutation({
     mutationFn: ({ id, visible }: { id: number; visible: boolean }) =>
@@ -61,13 +87,24 @@ const AdminMenu = () => {
     onError: (err: Error) => toast.error(err.message),
   });
 
-  const moveItem = (index: number, direction: "up" | "down") => {
-    const newIndex = direction === "up" ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= menuItems.length) return;
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState({ label: "", path: "" });
 
-    const items = menuItems.map((item, i) => ({
+  const itemIds = useMemo(() => orderedItems.map((item) => item.id), [orderedItems]);
+
+  const handleDragEnd = (event: { active: { id: number }; over: { id: number } | null }) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = orderedItems.findIndex((item) => item.id === active.id);
+    const newIndex = orderedItems.findIndex((item) => item.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+
+    const next = arrayMove(orderedItems, oldIndex, newIndex);
+    setOrderedItems(next);
+
+    const items = next.map((item, index) => ({
       id: item.id,
-      sort_order: i === index ? newIndex + 1 : i === newIndex ? index + 1 : i + 1,
+      sort_order: index + 1,
     }));
 
     reorderMenuItems(items)
@@ -78,8 +115,133 @@ const AdminMenu = () => {
       .catch((err) => toast.error(err.message));
   };
 
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState({ label: "", path: "" });
+  const SortableRow = ({ item, index }: { item: (typeof orderedItems)[number]; index: number }) => {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({ id: item.id });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+    } as React.CSSProperties;
+
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={`flex items-center gap-4 px-5 py-4 group transition-colors ${
+          !item.visible ? "opacity-40" : ""
+        } ${isDragging ? "bg-white/[0.04]" : ""}`}
+      >
+        {/* Drag handle */}
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          className="text-white/25 hover:text-white/70 cursor-grab active:cursor-grabbing select-none text-base"
+          aria-label="Drag to reorder"
+        >
+          ≡
+        </button>
+
+        {/* Order number */}
+        <span className="text-[11px] text-white/20 tabular-nums w-5 text-center">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+
+        {/* Content */}
+        {editingId === item.id ? (
+          <div className="flex-1 flex gap-3">
+            <input
+              type="text"
+              value={editForm.label}
+              onChange={(e) => setEditForm((p) => ({ ...p, label: e.target.value }))}
+              className="flex-1 bg-white/[0.06] border border-white/[0.1] rounded-md px-3 py-1.5 text-sm text-white/80 focus:outline-none focus:border-white/20"
+              placeholder="Label"
+            />
+            <input
+              type="text"
+              value={editForm.path}
+              onChange={(e) => setEditForm((p) => ({ ...p, path: e.target.value }))}
+              className="w-32 bg-white/[0.06] border border-white/[0.1] rounded-md px-3 py-1.5 text-sm text-white/80 focus:outline-none focus:border-white/20"
+              placeholder="/path"
+            />
+            <button
+              onClick={() => {
+                updateLabelMutation.mutate({
+                  id: item.id,
+                  label: editForm.label,
+                  path: editForm.path,
+                });
+                setEditingId(null);
+              }}
+              className="text-xs text-white/40 hover:text-white/70 transition-colors cursor-pointer"
+            >
+              Save
+            </button>
+            <button
+              onClick={() => setEditingId(null)}
+              className="text-xs text-white/20 hover:text-white/40 transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <div className="flex-1 min-w-0">
+            <p className="text-[15px] text-white/70">{item.label}</p>
+            <p className="text-[11px] text-white/25 mt-0.5">
+              {item.path} · {item.page_type}
+            </p>
+          </div>
+        )}
+
+        {/* Actions */}
+        {editingId !== item.id && (
+          <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={() => {
+                setEditingId(item.id);
+                setEditForm({ label: item.label, path: item.path });
+              }}
+              className="text-[10px] tracking-wider uppercase text-white/30 hover:text-white/60 transition-colors cursor-pointer"
+            >
+              Edit
+            </button>
+            <button
+              onClick={() => setDeleteConfirm(item.id)}
+              className="text-[10px] tracking-wider uppercase text-red-400/30 hover:text-red-400/60 transition-colors cursor-pointer"
+            >
+              Delete
+            </button>
+          </div>
+        )}
+
+        {/* Visibility Toggle */}
+        <button
+          onClick={() =>
+            toggleMutation.mutate({
+              id: item.id,
+              visible: !item.visible,
+            })
+          }
+          className={`w-10 h-5 rounded-full relative transition-colors cursor-pointer ${
+            item.visible ? "bg-white/20" : "bg-white/[0.06]"
+          }`}
+        >
+          <span
+            className={`absolute top-0.5 w-4 h-4 rounded-full transition-all ${
+              item.visible ? "left-[22px] bg-white/70" : "left-0.5 bg-white/20"
+            }`}
+          />
+        </button>
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -106,127 +268,15 @@ const AdminMenu = () => {
         </div>
       ) : (
         <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl overflow-hidden max-w-2xl">
-          <div className="divide-y divide-white/[0.04]">
-            {menuItems.map((item, index) => (
-              <div
-                key={item.id}
-                className={`flex items-center gap-4 px-5 py-4 group transition-colors ${
-                  !item.visible ? "opacity-40" : ""
-                }`}
-              >
-                {/* Reorder buttons */}
-                <div className="flex flex-col gap-0.5">
-                  <button
-                    onClick={() => moveItem(index, "up")}
-                    disabled={index === 0}
-                    className="text-white/15 hover:text-white/50 disabled:opacity-20 text-xs cursor-pointer"
-                  >
-                    ▲
-                  </button>
-                  <button
-                    onClick={() => moveItem(index, "down")}
-                    disabled={index === menuItems.length - 1}
-                    className="text-white/15 hover:text-white/50 disabled:opacity-20 text-xs cursor-pointer"
-                  >
-                    ▼
-                  </button>
-                </div>
-
-                {/* Order number */}
-                <span className="text-[10px] text-white/15 tabular-nums w-5 text-center">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-
-                {/* Content */}
-                {editingId === item.id ? (
-                  <div className="flex-1 flex gap-3">
-                    <input
-                      type="text"
-                      value={editForm.label}
-                      onChange={(e) => setEditForm((p) => ({ ...p, label: e.target.value }))}
-                      className="flex-1 bg-white/[0.06] border border-white/[0.1] rounded-md px-3 py-1.5 text-sm text-white/80 focus:outline-none focus:border-white/20"
-                      placeholder="Label"
-                    />
-                    <input
-                      type="text"
-                      value={editForm.path}
-                      onChange={(e) => setEditForm((p) => ({ ...p, path: e.target.value }))}
-                      className="w-32 bg-white/[0.06] border border-white/[0.1] rounded-md px-3 py-1.5 text-sm text-white/80 focus:outline-none focus:border-white/20"
-                      placeholder="/path"
-                    />
-                    <button
-                      onClick={() => {
-                        updateLabelMutation.mutate({
-                          id: item.id,
-                          label: editForm.label,
-                          path: editForm.path,
-                        });
-                        setEditingId(null);
-                      }}
-                      className="text-xs text-white/40 hover:text-white/70 transition-colors cursor-pointer"
-                    >
-                      Save
-                    </button>
-                    <button
-                      onClick={() => setEditingId(null)}
-                      className="text-xs text-white/20 hover:text-white/40 transition-colors cursor-pointer"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white/60">{item.label}</p>
-                    <p className="text-[10px] text-white/20 mt-0.5">
-                      {item.path} · {item.page_type}
-                    </p>
-                  </div>
-                )}
-
-                {/* Actions */}
-                {editingId !== item.id && (
-                  <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => {
-                        setEditingId(item.id);
-                        setEditForm({ label: item.label, path: item.path });
-                      }}
-                      className="text-[10px] tracking-wider uppercase text-white/30 hover:text-white/60 transition-colors cursor-pointer"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => setDeleteConfirm(item.id)}
-                      className="text-[10px] tracking-wider uppercase text-red-400/30 hover:text-red-400/60 transition-colors cursor-pointer"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                )}
-
-                {/* Visibility Toggle */}
-                <button
-                  onClick={() =>
-                    toggleMutation.mutate({
-                      id: item.id,
-                      visible: !item.visible,
-                    })
-                  }
-                  className={`w-10 h-5 rounded-full relative transition-colors cursor-pointer ${
-                    item.visible ? "bg-white/20" : "bg-white/[0.06]"
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 w-4 h-4 rounded-full transition-all ${
-                      item.visible
-                        ? "left-[22px] bg-white/70"
-                        : "left-0.5 bg-white/20"
-                    }`}
-                  />
-                </button>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
+              <div className="divide-y divide-white/[0.04]">
+                {orderedItems.map((item, index) => (
+                  <SortableRow key={item.id} item={item} index={index} />
+                ))}
               </div>
-            ))}
-          </div>
+            </SortableContext>
+          </DndContext>
         </div>
       )}
 

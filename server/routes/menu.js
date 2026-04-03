@@ -44,6 +44,23 @@ router.post("/", authMiddleware, (req, res) => {
   res.status(201).json(item);
 });
 
+// PUT /api/admin/menu-reorder
+router.put("/reorder", authMiddleware, (req, res) => {
+  const { items } = req.body; // [{ id, sort_order }]
+  if (!Array.isArray(items)) {
+    return res.status(400).json({ error: "Items array required" });
+  }
+
+  const stmt = db.prepare("UPDATE menu_items SET sort_order = ? WHERE id = ?");
+  const updateMany = db.transaction((items) => {
+    for (const item of items) {
+      stmt.run(item.sort_order, item.id);
+    }
+  });
+  updateMany(items);
+  res.json({ message: "Reordered successfully" });
+});
+
 // PUT /api/admin/menu/:id
 router.put("/:id", authMiddleware, (req, res) => {
   const existing = db.prepare("SELECT * FROM menu_items WHERE id = ?").get(req.params.id);
@@ -71,23 +88,6 @@ router.delete("/:id", authMiddleware, (req, res) => {
 
   db.prepare("DELETE FROM menu_items WHERE id = ?").run(req.params.id);
   res.json({ message: "Menu item deleted" });
-});
-
-// PUT /api/admin/menu-reorder
-router.put("/reorder", authMiddleware, (req, res) => {
-  const { items } = req.body; // [{ id, sort_order }]
-  if (!Array.isArray(items)) {
-    return res.status(400).json({ error: "Items array required" });
-  }
-
-  const stmt = db.prepare("UPDATE menu_items SET sort_order = ? WHERE id = ?");
-  const updateMany = db.transaction((items) => {
-    for (const item of items) {
-      stmt.run(item.sort_order, item.id);
-    }
-  });
-  updateMany(items);
-  res.json({ message: "Reordered successfully" });
 });
 
 export default router;
