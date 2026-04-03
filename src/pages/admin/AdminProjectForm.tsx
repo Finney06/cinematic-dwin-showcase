@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchProject } from "@/lib/api";
+import { fetchMenuItems, fetchProject } from "@/lib/api";
 import { createProject, updateProject } from "@/lib/adminApi";
 import ImageUpload from "@/components/admin/ImageUpload";
 import { toast } from "sonner";
@@ -16,6 +16,9 @@ const CATEGORIES = [
   { key: "news", label: "News" },
   { key: "internship", label: "Internship" },
 ];
+
+const getCategoryKeyFromPath = (path: string) =>
+  path.replace(/^\//, "").split("/")[0] || path;
 
 interface FormData {
   title: string;
@@ -49,6 +52,32 @@ const emptyForm: FormData = {
   status: "",
 };
 
+const extractYouTubeId = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+
+  try {
+    const url = new URL(trimmed);
+    const host = url.hostname.replace("www.", "");
+    if (host === "youtu.be") {
+      return url.pathname.replace("/", "").slice(0, 11);
+    }
+    if (host === "youtube.com" || host === "m.youtube.com") {
+      const v = url.searchParams.get("v");
+      if (v) return v.slice(0, 11);
+      const match = url.pathname.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
+      if (match) return match[1];
+      const embed = url.pathname.match(/\/embed\/([a-zA-Z0-9_-]{11})/);
+      if (embed) return embed[1];
+    }
+  } catch {
+    return trimmed;
+  }
+
+  return trimmed;
+};
+
 const AdminProjectForm = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -62,6 +91,20 @@ const AdminProjectForm = () => {
     queryFn: () => fetchProject(id!),
     enabled: isEditing,
   });
+
+  const { data: menuItems = [] } = useQuery({
+    queryKey: ["admin-menu-items"],
+    queryFn: () => fetchMenuItems(true),
+  });
+
+  const dynamicCategories = menuItems
+    .filter((item) => item.page_type === "category")
+    .map((item) => ({
+      key: getCategoryKeyFromPath(item.path),
+      label: item.label,
+    }));
+
+  const categoryOptions = dynamicCategories.length ? dynamicCategories : CATEGORIES;
 
   useEffect(() => {
     if (existingProject) {
@@ -123,7 +166,7 @@ const AdminProjectForm = () => {
     setForm((prev) => ({ ...prev, [field]: value }));
     // Auto-set category_label when category changes
     if (field === "category") {
-      const cat = CATEGORIES.find((c) => c.key === value);
+      const cat = categoryOptions.find((c) => c.key === value);
       if (cat) {
         setForm((prev) => ({ ...prev, category: value, category_label: cat.label }));
       }
@@ -178,7 +221,7 @@ const AdminProjectForm = () => {
               onChange={(e) => setField("category", e.target.value)}
               className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 focus:outline-none focus:border-white/20 transition-colors"
             >
-              {CATEGORIES.map((cat) => (
+              {categoryOptions.map((cat) => (
                 <option key={cat.key} value={cat.key} className="bg-[#141414] text-white">
                   {cat.label}
                 </option>
@@ -261,15 +304,18 @@ const AdminProjectForm = () => {
         {/* YouTube ID */}
         <div>
           <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
-            YouTube Video ID
+            YouTube Video (ID or link)
           </label>
           <input
             type="text"
             value={form.youtube_id}
-            onChange={(e) => setField("youtube_id", e.target.value)}
+            onChange={(e) => setField("youtube_id", extractYouTubeId(e.target.value))}
             className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
-            placeholder="e.g. QIoUmnSkOXE"
+            placeholder="Paste a YouTube link or ID"
           />
+          <p className="mt-2 text-[10px] text-white/20">
+            Example: https://youtu.be/QIoUmnSkOXE or QIoUmnSkOXE
+          </p>
           {form.youtube_id && (
             <div className="mt-3 flex items-center gap-3">
               <img

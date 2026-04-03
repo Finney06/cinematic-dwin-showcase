@@ -34,6 +34,20 @@ const AdminProjects = () => {
       p.category.toLowerCase().includes(search.toLowerCase())
   );
 
+  const grouped = filtered
+    .sort((a, b) => {
+      if (a.category_label !== b.category_label) {
+        return a.category_label.localeCompare(b.category_label);
+      }
+      return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+    })
+    .reduce<Record<string, typeof filtered>>((acc, project) => {
+      const key = project.category_label || project.category;
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(project);
+      return acc;
+    }, {});
+
   return (
     <div>
       {/* Header */}
@@ -104,53 +118,74 @@ const AdminProjects = () => {
           </Link>
         </div>
       ) : (
-        <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl overflow-hidden">
-          <div className="divide-y divide-white/[0.04]">
-            {filtered.map((project) => (
-              <div
-                key={project.id}
-                className="flex items-center gap-4 px-5 py-4 hover:bg-white/[0.02] transition-colors group"
-              >
-                <img
-                  src={project.thumbnail}
-                  alt={project.title}
-                  className="w-20 h-14 rounded-lg object-cover bg-white/5 flex-shrink-0"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-white/60 font-medium group-hover:text-white/80 transition-colors">
-                    {project.title}
-                  </p>
-                  <div className="flex items-center gap-3 mt-1">
-                    <span className="text-[10px] tracking-wider uppercase text-white/20">
-                      {project.category_label}
-                    </span>
-                    <span className="text-white/10">·</span>
-                    <span className="text-[10px] text-white/20">{project.year}</span>
-                    {project.status && (
-                      <>
-                        <span className="text-white/10">·</span>
-                        <span className="text-[10px] text-white/15">{project.status}</span>
-                      </>
-                    )}
-                  </div>
+        <div className="space-y-6">
+          {Object.entries(grouped).map(([category, items]) => (
+            <div
+              key={category}
+              className="bg-white/[0.02] border border-white/[0.06] rounded-xl overflow-hidden"
+            >
+              <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.06]">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-xs tracking-[0.2em] uppercase text-white/40">
+                    {category}
+                  </h3>
+                  <span className="text-[10px] text-white/20">{items.length} items</span>
                 </div>
-                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Link
-                    to={`/admin/projects/${project.id}/edit`}
-                    className="px-3 py-1.5 bg-white/[0.06] rounded-md text-[10px] tracking-wider uppercase text-white/40 hover:text-white/70 hover:bg-white/[0.1] transition-colors"
-                  >
-                    Edit
-                  </Link>
-                  <button
-                    onClick={() => setDeleteConfirm(project.id)}
-                    className="px-3 py-1.5 bg-red-500/10 rounded-md text-[10px] tracking-wider uppercase text-red-400/50 hover:text-red-400/80 hover:bg-red-500/20 transition-colors cursor-pointer"
-                  >
-                    Delete
-                  </button>
-                </div>
+                <Link
+                  to={`/admin/projects?category=${items[0]?.category}`}
+                  className="text-[10px] tracking-[0.15em] uppercase text-white/20 hover:text-white/50 transition-colors"
+                >
+                  Filter →
+                </Link>
               </div>
-            ))}
-          </div>
+              <div className="divide-y divide-white/[0.04]">
+                {items.map((project) => (
+                  <div
+                    key={project.id}
+                    className="flex items-center gap-4 px-5 py-4 hover:bg-white/[0.02] transition-colors group"
+                  >
+                    <img
+                      src={project.thumbnail}
+                      alt={project.title}
+                      className="w-20 h-14 rounded-lg object-cover bg-white/5 flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-white/60 font-medium group-hover:text-white/80 transition-colors">
+                        {project.title}
+                      </p>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-[10px] tracking-wider uppercase text-white/20">
+                          {project.category_label}
+                        </span>
+                        <span className="text-white/10">·</span>
+                        <span className="text-[10px] text-white/20">{project.year}</span>
+                        {project.status && (
+                          <>
+                            <span className="text-white/10">·</span>
+                            <span className="text-[10px] text-white/15">{project.status}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Link
+                        to={`/admin/projects/${project.id}/edit`}
+                        className="px-3 py-1.5 bg-white/[0.06] rounded-md text-[10px] tracking-wider uppercase text-white/40 hover:text-white/70 hover:bg-white/[0.1] transition-colors"
+                      >
+                        Edit
+                      </Link>
+                      <button
+                        onClick={() => setDeleteConfirm(project.id)}
+                        className="px-3 py-1.5 bg-red-500/10 rounded-md text-[10px] tracking-wider uppercase text-red-400/50 hover:text-red-400/80 hover:bg-red-500/20 transition-colors cursor-pointer"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 

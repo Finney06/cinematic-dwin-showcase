@@ -172,7 +172,7 @@ const Index = () => {
           className="absolute z-5 pointer-events-none"
           initial={{ opacity: 0, rotate: 0, scale: 1 }}
           animate={{
-            opacity: [0, 0.3, 0.3, 0],
+            opacity: [0, 0.6, 0.6, 0],
             rotate: [0, 360],
             scale: [1, 1, 0.15],
           }}
@@ -182,7 +182,7 @@ const Index = () => {
           }}
         >
           <svg width="320" height="320" viewBox="0 0 320 320" className="w-[70vw] h-[70vw] md:w-[50vw] md:h-[50vw] lg:w-[42vw] lg:h-[42vw]">
-            <circle cx="160" cy="160" r="155" fill="none" stroke="hsl(0 0% 92%)" strokeWidth="0.5" strokeDasharray="50 900" strokeLinecap="round" />
+            <circle cx="160" cy="160" r="155" fill="none" stroke="hsl(0 0% 92%)" strokeWidth="1" strokeOpacity="0.8" strokeDasharray="50 900" strokeLinecap="round" />
           </svg>
         </motion.div>
 
