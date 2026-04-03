@@ -289,6 +289,8 @@ const defaultSettings = {
     { label: "YouTube", url: "https://www.youtube.com/@Dwin_dik" },
     { label: "Twitter", url: "https://twitter.com/dwindik" },
   ]),
+  font_display: '"Cormorant Garamond", serif',
+  font_body: '"Inter", sans-serif',
   copyright_text: "©2025 Dwindik. All rights reserved.",
   site_title: "Dwindik",
 };

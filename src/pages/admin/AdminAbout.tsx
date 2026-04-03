@@ -18,6 +18,8 @@ const defaultAbout: AboutContent = {
   fullWidthImage: "",
   productionCompany: { name: "", description: "", collaborator: "" },
   portraitImage: "",
+  sections: [],
+  cta: { label: "", url: "" },
 };
 
 const AdminAbout = () => {
@@ -257,6 +259,116 @@ const AdminAbout = () => {
               >
                 + Add skill
               </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Extra Sections */}
+        <section className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xs tracking-[0.15em] uppercase text-white/30 font-medium">
+              Additional Sections
+            </h2>
+            <button
+              type="button"
+              onClick={() =>
+                setForm((p) => ({
+                  ...p,
+                  sections: [...(p.sections || []), { heading: "", body: "" }],
+                }))
+              }
+              className="text-xs text-white/30 hover:text-white/50 transition-colors cursor-pointer"
+            >
+              + Add section
+            </button>
+          </div>
+          <div className="space-y-4">
+            {(form.sections || []).map((section, i) => (
+              <div key={i} className="bg-white/[0.02] border border-white/[0.04] rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[10px] tracking-[0.18em] uppercase text-white/25">
+                    Section {i + 1}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = (form.sections || []).filter((_, idx) => idx !== i);
+                      setForm((p) => ({ ...p, sections: updated }));
+                    }}
+                    className="text-white/15 hover:text-red-400/60 transition-colors cursor-pointer"
+                  >
+                    ×
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  value={section.heading}
+                  onChange={(e) => {
+                    const updated = [...(form.sections || [])];
+                    updated[i] = { ...updated[i], heading: e.target.value };
+                    setForm((p) => ({ ...p, sections: updated }));
+                  }}
+                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
+                  placeholder="Section heading"
+                />
+                <textarea
+                  value={section.body}
+                  onChange={(e) => {
+                    const updated = [...(form.sections || [])];
+                    updated[i] = { ...updated[i], body: e.target.value };
+                    setForm((p) => ({ ...p, sections: updated }));
+                  }}
+                  rows={4}
+                  className="mt-3 w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors resize-none"
+                  placeholder="Section text..."
+                />
+              </div>
+            ))}
+            {!(form.sections || []).length && (
+              <p className="text-[11px] text-white/20">Add sections for flexible layouts.</p>
+            )}
+          </div>
+        </section>
+
+        {/* Call To Action */}
+        <section className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6">
+          <h2 className="text-xs tracking-[0.15em] uppercase text-white/30 font-medium mb-5">
+            Call To Action
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
+                CTA Label
+              </label>
+              <input
+                type="text"
+                value={form.cta?.label || ""}
+                onChange={(e) =>
+                  setForm((p) => ({
+                    ...p,
+                    cta: { label: e.target.value, url: p.cta?.url || "" },
+                  }))
+                }
+                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
+                placeholder="Contact Dwindik"
+              />
+            </div>
+            <div>
+              <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
+                CTA URL
+              </label>
+              <input
+                type="text"
+                value={form.cta?.url || ""}
+                onChange={(e) =>
+                  setForm((p) => ({
+                    ...p,
+                    cta: { label: p.cta?.label || "", url: e.target.value },
+                  }))
+                }
+                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
+                placeholder="https://..."
+              />
             </div>
           </div>
         </section>

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchProjects } from "@/lib/api";
+import { fetchMenuItems, fetchProjects } from "@/lib/api";
 import { deleteProject } from "@/lib/adminApi";
 import { Link, useSearchParams } from "react-router-dom";
 import { useState } from "react";
@@ -17,6 +17,11 @@ const AdminProjects = () => {
     queryFn: () => fetchProjects(categoryFilter || undefined),
   });
 
+  const { data: menuItems = [] } = useQuery({
+    queryKey: ["adminMenuItems"],
+    queryFn: () => fetchMenuItems(true),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteProject(id),
     onSuccess: () => {
@@ -27,12 +32,18 @@ const AdminProjects = () => {
     onError: (err: Error) => toast.error(err.message),
   });
 
-  const categories = [...new Set(projects.map((p) => p.category_label))];
   const filtered = projects.filter(
     (p) =>
       p.title.toLowerCase().includes(search.toLowerCase()) ||
       p.category.toLowerCase().includes(search.toLowerCase())
   );
+
+  const menuCategories = menuItems
+    .filter((item) => item.page_type === "category")
+    .map((item) => ({
+      key: item.path.replace(/^\//, "").split("/")[0] || item.path,
+      label: item.label,
+    }));
 
   const grouped = filtered
     .sort((a, b) => {
@@ -42,11 +53,24 @@ const AdminProjects = () => {
       return (a.sort_order ?? 0) - (b.sort_order ?? 0);
     })
     .reduce<Record<string, typeof filtered>>((acc, project) => {
-      const key = project.category_label || project.category;
+      const key = project.category;
       if (!acc[key]) acc[key] = [];
       acc[key].push(project);
       return acc;
     }, {});
+
+  const orderedSections = menuCategories
+    .map((cat) => ({
+      key: cat.key,
+      label: cat.label,
+      items: grouped[cat.key] || [],
+    }))
+    .filter((section) => section.items.length > 0 || !categoryFilter);
+
+  const otherKeys = Object.keys(grouped).filter(
+    (key) => !menuCategories.find((cat) => cat.key === key)
+  );
+  const otherItems = otherKeys.flatMap((key) => grouped[key]);
 
   return (
     <div>
@@ -87,17 +111,17 @@ const AdminProjects = () => {
         >
           All
         </Link>
-        {categories.map((cat) => (
+        {menuCategories.map((cat) => (
           <Link
-            key={cat}
-            to={`/admin/projects?category=${cat.toLowerCase()}`}
+            key={cat.key}
+            to={`/admin/projects?category=${cat.key}`}
             className={`px-3 py-2.5 rounded-lg text-xs tracking-wide transition-colors ${
-              categoryFilter === cat.toLowerCase()
+              categoryFilter === cat.key
                 ? "bg-white/[0.08] text-white/60"
                 : "bg-white/[0.03] text-white/25 hover:text-white/50"
             }`}
           >
-            {cat}
+            {cat.label}
           </Link>
         ))}
       </div>
@@ -119,20 +143,20 @@ const AdminProjects = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          {Object.entries(grouped).map(([category, items]) => (
+          {orderedSections.map(({ key, label, items }) => (
             <div
-              key={category}
+              key={key}
               className="bg-white/[0.02] border border-white/[0.06] rounded-xl overflow-hidden"
             >
               <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.06]">
                 <div className="flex items-center gap-3">
                   <h3 className="text-[12px] tracking-[0.18em] uppercase text-white/45">
-                    {category}
+                    {label}
                   </h3>
                   <span className="text-[11px] text-white/25">{items.length} items</span>
                 </div>
                 <Link
-                  to={`/admin/projects?category=${items[0]?.category}`}
+                  to={`/admin/projects?category=${key}`}
                   className="text-[11px] tracking-[0.15em] uppercase text-white/25 hover:text-white/55 transition-colors"
                 >
                   Filter →
@@ -186,6 +210,64 @@ const AdminProjects = () => {
               </div>
             </div>
           ))}
+          {otherItems.length > 0 && (
+            <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.06]">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-[12px] tracking-[0.18em] uppercase text-white/45">
+                    Other
+                  </h3>
+                  <span className="text-[11px] text-white/25">{otherItems.length} items</span>
+                </div>
+              </div>
+              <div className="divide-y divide-white/[0.04]">
+                {otherItems.map((project) => (
+                  <div
+                    key={project.id}
+                    className="flex items-center gap-4 px-5 py-4 hover:bg-white/[0.02] transition-colors group"
+                  >
+                    <img
+                      src={project.thumbnail}
+                      alt={project.title}
+                      className="w-20 h-14 rounded-lg object-cover bg-white/5 flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[15px] text-white/70 font-medium group-hover:text-white/85 transition-colors">
+                        {project.title}
+                      </p>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-[11px] tracking-wider uppercase text-white/25">
+                          {project.category_label}
+                        </span>
+                        <span className="text-white/10">·</span>
+                        <span className="text-[11px] text-white/25">{project.year}</span>
+                        {project.status && (
+                          <>
+                            <span className="text-white/10">·</span>
+                            <span className="text-[11px] text-white/20">{project.status}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Link
+                        to={`/admin/projects/${project.id}/edit`}
+                        className="px-3 py-1.5 bg-white/[0.06] rounded-md text-[10px] tracking-wider uppercase text-white/40 hover:text-white/70 hover:bg-white/[0.1] transition-colors"
+                      >
+                        Edit
+                      </Link>
+                      <button
+                        onClick={() => setDeleteConfirm(project.id)}
+                        className="px-3 py-1.5 bg-red-500/10 rounded-md text-[10px] tracking-wider uppercase text-red-400/50 hover:text-red-400/80 hover:bg-red-500/20 transition-colors cursor-pointer"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

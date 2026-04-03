@@ -74,6 +74,8 @@ export interface AboutContent {
     collaborator: string;
   };
   portraitImage: string;
+  sections?: { heading: string; body: string }[];
+  cta?: { label: string; url: string };
 }
 
 export interface SiteSettings {
@@ -82,6 +84,8 @@ export interface SiteSettings {
   social_youtube: string;
   social_twitter: string;
   social_links?: string;
+  font_display?: string;
+  font_body?: string;
   copyright_text: string;
   site_title: string;
   [key: string]: string;

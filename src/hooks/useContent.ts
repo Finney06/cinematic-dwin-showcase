@@ -7,6 +7,7 @@ import {
   fetchAboutContent,
   fetchSiteSettings,
   fetchMenuItems,
+  fetchPageContent,
 } from "@/lib/api";
 
 export function useProjects(category?: string) {
@@ -56,5 +57,13 @@ export function useMenuItems(all = false) {
   return useQuery({
     queryKey: ["menuItems", all],
     queryFn: () => fetchMenuItems(all),
+  });
+}
+
+export function usePageContent(slug: string) {
+  return useQuery({
+    queryKey: ["pageContent", slug],
+    queryFn: () => fetchPageContent(slug),
+    enabled: !!slug,
   });
 }

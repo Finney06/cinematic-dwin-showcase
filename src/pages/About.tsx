@@ -64,6 +64,9 @@ const About = () => {
   const collaborator =
     content?.productionCompany?.collaborator || "In collaboration with The Winlos Studio";
   const portraitImage = content?.portraitImage || "/dwindik/5.jpeg";
+  const extraSections = content?.sections?.length ? content.sections : [];
+  const ctaLabel = content?.cta?.label || "";
+  const ctaUrl = content?.cta?.url || "";
   const contactEmail = settings?.contact_email || "hello@dwindik.com";
 
   return (
@@ -200,6 +203,33 @@ const About = () => {
         </section>
 
         {/* ═══ FULL-WIDTH IMAGE ═══ */}
+        {extraSections.length > 0 && (
+          <section className="px-5 sm:px-8 md:px-12 pt-16 sm:pt-24">
+            <div className="max-w-3xl space-y-10">
+              {extraSections.map((section, index) => (
+                <motion.div
+                  key={`${section.heading}-${index}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.8 }}
+                >
+                  {section.heading && (
+                    <h2 className="font-body text-[9px] sm:text-[10px] tracking-[0.3em] uppercase text-foreground/25">
+                      {section.heading}
+                    </h2>
+                  )}
+                  {section.body && (
+                    <p className="mt-4 font-body text-sm sm:text-base leading-[1.9] text-foreground/50 whitespace-pre-wrap">
+                      {section.body}
+                    </p>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </section>
+        )}
+
         <section className="px-5 sm:px-8 md:px-12 pt-16 sm:pt-24">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -240,6 +270,16 @@ const About = () => {
                 <p className="mt-3 font-body text-[10px] tracking-[0.2em] uppercase text-foreground/25">
                   {collaborator}
                 </p>
+                {ctaLabel && ctaUrl && (
+                  <a
+                    href={ctaUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 mt-6 text-[10px] tracking-[0.3em] uppercase text-foreground/40 hover:text-foreground/70 transition-colors"
+                  >
+                    {ctaLabel} →
+                  </a>
+                )}
               </div>
 
               {/* Right — Portrait */}

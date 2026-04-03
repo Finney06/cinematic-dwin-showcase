@@ -6,6 +6,27 @@ import { toast } from "sonner";
 
 type SocialLink = { label: string; url: string };
 
+const GOOGLE_FONTS = [
+  { label: "Cormorant Garamond", family: "Cormorant Garamond", fallback: "serif" },
+  { label: "Inter", family: "Inter", fallback: "sans-serif" },
+  { label: "Playfair Display", family: "Playfair Display", fallback: "serif" },
+  { label: "Lora", family: "Lora", fallback: "serif" },
+  { label: "Merriweather", family: "Merriweather", fallback: "serif" },
+  { label: "Libre Baskerville", family: "Libre Baskerville", fallback: "serif" },
+  { label: "Crimson Pro", family: "Crimson Pro", fallback: "serif" },
+  { label: "Spectral", family: "Spectral", fallback: "serif" },
+  { label: "Fraunces", family: "Fraunces", fallback: "serif" },
+  { label: "Montserrat", family: "Montserrat", fallback: "sans-serif" },
+  { label: "Poppins", family: "Poppins", fallback: "sans-serif" },
+  { label: "Raleway", family: "Raleway", fallback: "sans-serif" },
+  { label: "Roboto", family: "Roboto", fallback: "sans-serif" },
+  { label: "DM Sans", family: "DM Sans", fallback: "sans-serif" },
+  { label: "Manrope", family: "Manrope", fallback: "sans-serif" },
+  { label: "Space Grotesk", family: "Space Grotesk", fallback: "sans-serif" },
+  { label: "Outfit", family: "Outfit", fallback: "sans-serif" },
+  { label: "Sora", family: "Sora", fallback: "sans-serif" },
+];
+
 const parseSocialLinks = (raw?: string): SocialLink[] => {
   if (!raw) return [];
   try {
@@ -36,6 +57,8 @@ const AdminSettings = () => {
     social_instagram: "",
     social_youtube: "",
     social_twitter: "",
+    font_display: '"Cormorant Garamond", serif',
+    font_body: '"Inter", sans-serif',
     copyright_text: "",
     site_title: "",
   });
@@ -59,6 +82,8 @@ const AdminSettings = () => {
         social_instagram: data.social_instagram || "",
         social_youtube: data.social_youtube || "",
         social_twitter: data.social_twitter || "",
+        font_display: data.font_display || '"Cormorant Garamond", serif',
+        font_body: data.font_body || '"Inter", sans-serif',
         copyright_text: data.copyright_text || "",
         site_title: data.site_title || "",
       });
@@ -159,6 +184,64 @@ const AdminSettings = () => {
                   onChange={(e) => setForm((p) => ({ ...p, site_title: e.target.value }))}
                   className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
                 />
+              </div>
+              <div>
+                <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
+                  Display Font Family
+                </label>
+                <select
+                  value={form.font_display}
+                  onChange={(e) => setForm((p) => ({ ...p, font_display: e.target.value }))}
+                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 focus:outline-none focus:border-white/20 transition-colors"
+                >
+                  {GOOGLE_FONTS.map((font) => (
+                    <option
+                      key={`display-${font.family}`}
+                      value={`"${font.family}", ${font.fallback}`}
+                      className="bg-[#141414]"
+                    >
+                      {font.label}
+                    </option>
+                  ))}
+                </select>
+                <div
+                  className="mt-3 bg-white/[0.03] border border-white/[0.06] rounded-lg px-4 py-3 text-white/60"
+                  style={{ fontFamily: form.font_display }}
+                >
+                  Display preview — Dwindik
+                </div>
+                <p className="mt-2 text-[10px] text-white/20">
+                  Used for headings.
+                </p>
+              </div>
+              <div>
+                <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
+                  Body Font Family
+                </label>
+                <select
+                  value={form.font_body}
+                  onChange={(e) => setForm((p) => ({ ...p, font_body: e.target.value }))}
+                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 focus:outline-none focus:border-white/20 transition-colors"
+                >
+                  {GOOGLE_FONTS.map((font) => (
+                    <option
+                      key={`body-${font.family}`}
+                      value={`"${font.family}", ${font.fallback}`}
+                      className="bg-[#141414]"
+                    >
+                      {font.label}
+                    </option>
+                  ))}
+                </select>
+                <div
+                  className="mt-3 bg-white/[0.03] border border-white/[0.06] rounded-lg px-4 py-3 text-white/60"
+                  style={{ fontFamily: form.font_body }}
+                >
+                  Body preview — Every frame is intentional.
+                </div>
+                <p className="mt-2 text-[10px] text-white/20">
+                  Used for body text.
+                </p>
               </div>
               <div>
                 <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">

@@ -6,17 +6,6 @@ import { createProject, updateProject } from "@/lib/adminApi";
 import ImageUpload from "@/components/admin/ImageUpload";
 import { toast } from "sonner";
 
-const CATEGORIES = [
-  { key: "film", label: "Film" },
-  { key: "television", label: "Television" },
-  { key: "nonfiction", label: "Nonfiction" },
-  { key: "audio", label: "Audio" },
-  { key: "music", label: "Music" },
-  { key: "commercials", label: "Commercials" },
-  { key: "news", label: "News" },
-  { key: "internship", label: "Internship" },
-];
-
 const getCategoryKeyFromPath = (path: string) =>
   path.replace(/^\//, "").split("/")[0] || path;
 
@@ -93,7 +82,7 @@ const AdminProjectForm = () => {
   });
 
   const { data: menuItems = [] } = useQuery({
-    queryKey: ["admin-menu-items"],
+    queryKey: ["adminMenuItems"],
     queryFn: () => fetchMenuItems(true),
   });
 
@@ -104,7 +93,7 @@ const AdminProjectForm = () => {
       label: item.label,
     }));
 
-  const categoryOptions = dynamicCategories.length ? dynamicCategories : CATEGORIES;
+  const categoryOptions = dynamicCategories.length ? dynamicCategories : [];
 
   useEffect(() => {
     if (existingProject) {
@@ -234,13 +223,24 @@ const AdminProjectForm = () => {
               value={form.category}
               onChange={(e) => setField("category", e.target.value)}
               className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 focus:outline-none focus:border-white/20 transition-colors"
+              disabled={!categoryOptions.length}
             >
+              {!categoryOptions.length && (
+                <option value="" className="bg-[#141414] text-white">
+                  No categories set — add one in Menu
+                </option>
+              )}
               {categoryOptions.map((cat) => (
                 <option key={cat.key} value={cat.key} className="bg-[#141414] text-white">
                   {cat.label}
                 </option>
               ))}
             </select>
+            {!categoryOptions.length && (
+              <p className="mt-2 text-[10px] text-white/20">
+                Go to Menu and create items with type “category” to populate this list.
+              </p>
+            )}
           </div>
         </div>
 

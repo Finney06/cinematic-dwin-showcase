@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
+import { useEffect } from "react";
+import { useSiteSettings } from "@/hooks/useContent";
 import Index from "./pages/Index";
 import Film from "./pages/Film";
 import Television from "./pages/Television";
@@ -26,15 +28,53 @@ import AdminAbout from "./pages/admin/AdminAbout";
 import AdminHero from "./pages/admin/AdminHero";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminMenu from "./pages/admin/AdminMenu";
+import AdminPages from "./pages/admin/AdminPages";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 
 const queryClient = new QueryClient();
+
+const FontSettings = () => {
+  const { data: settings } = useSiteSettings();
+
+  useEffect(() => {
+    if (!settings) return;
+    const display = settings.font_display || '"Cormorant Garamond", serif';
+    const body = settings.font_body || '"Inter", sans-serif';
+    document.documentElement.style.setProperty("--font-display", display);
+    document.documentElement.style.setProperty("--font-body", body);
+
+    const extractFamily = (value: string) => {
+      const match = value.match(/"([^"]+)"/);
+      return match?.[1] || value.split(",")[0].trim();
+    };
+
+    const families = [extractFamily(display), extractFamily(body)]
+      .filter(Boolean)
+      .map((f) => f.replace(/\s+/g, "+"));
+
+    const href = `https://fonts.googleapis.com/css2?${families
+      .map((f) => `family=${f}:wght@300;400;500;600;700`)
+      .join("&")}&display=swap`;
+
+    let link = document.getElementById("dynamic-google-fonts") as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement("link");
+      link.id = "dynamic-google-fonts";
+      link.rel = "stylesheet";
+      document.head.appendChild(link);
+    }
+    link.href = href;
+  }, [settings]);
+
+  return null;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <FontSettings />
       <BrowserRouter>
         <AnimatePresence mode="wait">
           <Routes>
@@ -65,6 +105,7 @@ const App = () => (
               <Route path="projects" element={<AdminProjects />} />
               <Route path="projects/new" element={<AdminProjectForm />} />
               <Route path="projects/:id/edit" element={<AdminProjectForm />} />
+              <Route path="pages" element={<AdminPages />} />
               <Route path="about" element={<AdminAbout />} />
               <Route path="hero" element={<AdminHero />} />
               <Route path="settings" element={<AdminSettings />} />
