@@ -3,7 +3,7 @@
 ## 1) Deploy API service
 
 1. Create a new **Web Service** on Render.
-2. Connect repository and select branch `feat/admin-feature` (or your main branch).
+2. Connect repository and select branch `main`.
 3. Set:
    - Root directory: `server`
    - Build command: `npm install`
@@ -48,3 +48,7 @@ If your platform does not provide durable disk, migrate to managed Postgres next
 
 Point frontend API proxy/base URL to your deployed backend domain.
 Update `CORS_ORIGIN` to include your frontend domain(s).
+
+Set frontend env variable:
+
+- `VITE_API_BASE_URL=https://your-backend-domain.com/api`

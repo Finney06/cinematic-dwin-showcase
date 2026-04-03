@@ -51,6 +51,10 @@ If `STORAGE_DRIVER=local`, files are stored in [server/uploads](server/uploads) 
 
 Set frontend API proxy/base to your backend URL in production (via Vite config or hosting rewrite rules).
 
+Set frontend env:
+
+- `VITE_API_BASE_URL=https://your-backend-domain.com/api`
+
 ## Getting Started
 
 ```bash
