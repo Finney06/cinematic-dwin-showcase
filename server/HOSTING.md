@@ -1,9 +1,9 @@
-# Backend Hosting Guide (Render + S3/R2 uploads)
+# Backend Hosting Guide (Render + S3/R2 or Cloudinary uploads)
 
 ## 1) Deploy API service
 
 1. Create a new **Web Service** on Render.
-2. Connect repository and select branch `feat/admin-feature` (or your main branch).
+2. Connect repository and select branch `main`.
 3. Set:
    - Root directory: `server`
    - Build command: `npm install`
@@ -16,7 +16,7 @@ Required:
 - `PORT=5000`
 - `JWT_SECRET=<strong-secret>`
 - `CORS_ORIGIN=https://your-frontend-domain.com`
-- `STORAGE_DRIVER=s3`
+- `STORAGE_DRIVER=s3` (or `cloudinary`)
 
 S3 / R2:
 
@@ -27,6 +27,13 @@ S3 / R2:
 - `S3_SECRET_ACCESS_KEY=<secret>`
 - `S3_PUBLIC_BASE_URL=<public base URL for files>`
 - `S3_FORCE_PATH_STYLE=false` (true for some S3-compatible providers)
+
+Cloudinary:
+
+- `CLOUDINARY_CLOUD_NAME=<cloud name>`
+- `CLOUDINARY_API_KEY=<api key>`
+- `CLOUDINARY_API_SECRET=<api secret>`
+- `CLOUDINARY_FOLDER=dwindik`
 
 Optional seed defaults:
 
@@ -48,3 +55,7 @@ If your platform does not provide durable disk, migrate to managed Postgres next
 
 Point frontend API proxy/base URL to your deployed backend domain.
 Update `CORS_ORIGIN` to include your frontend domain(s).
+
+Set frontend env variable:
+
+- `VITE_API_BASE_URL=https://your-backend-domain.com/api`
