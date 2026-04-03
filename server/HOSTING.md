@@ -1,0 +1,50 @@
+# Backend Hosting Guide (Render + S3/R2 uploads)
+
+## 1) Deploy API service
+
+1. Create a new **Web Service** on Render.
+2. Connect repository and select branch `feat/admin-feature` (or your main branch).
+3. Set:
+   - Root directory: `server`
+   - Build command: `npm install`
+   - Start command: `npm start`
+
+## 2) Set environment variables
+
+Required:
+
+- `PORT=5000`
+- `JWT_SECRET=<strong-secret>`
+- `CORS_ORIGIN=https://your-frontend-domain.com`
+- `STORAGE_DRIVER=s3`
+
+S3 / R2:
+
+- `S3_ENDPOINT=<provider endpoint>`
+- `S3_BUCKET=<bucket name>`
+- `S3_REGION=auto` (R2) or your provider region
+- `S3_ACCESS_KEY_ID=<key>`
+- `S3_SECRET_ACCESS_KEY=<secret>`
+- `S3_PUBLIC_BASE_URL=<public base URL for files>`
+- `S3_FORCE_PATH_STYLE=false` (true for some S3-compatible providers)
+
+Optional seed defaults:
+
+- `ADMIN_USERNAME=dwindik`
+- `ADMIN_PASSWORD=admin123`
+
+## 3) Database note (SQLite)
+
+SQLite works for initial deployment, but persistent volume is required to keep data.
+If your platform does not provide durable disk, migrate to managed Postgres next.
+
+## 4) Smoke test
+
+- `GET /api/health`
+- Login via `/api/auth/login`
+- Upload image/video from admin and confirm returned URL is from your object storage domain.
+
+## 5) Frontend connection
+
+Point frontend API proxy/base URL to your deployed backend domain.
+Update `CORS_ORIGIN` to include your frontend domain(s).
