@@ -25,6 +25,22 @@ const letterVariant = {
 
 type Phase = "idle" | "video" | "image";
 
+function isPlayableVideoSource(url?: string): boolean {
+  if (!url) return false;
+  const input = url.trim();
+  if (!input) return false;
+
+  const allowed = /\.(mp4|webm|mov|ogg)(\?.*)?$/i;
+  if (input.startsWith("/")) return allowed.test(input);
+
+  try {
+    const parsed = new URL(input);
+    return allowed.test(parsed.pathname + parsed.search);
+  } catch {
+    return false;
+  }
+}
+
 const Index = () => {
   const isOgPreview =
     typeof window !== "undefined" &&
@@ -40,24 +56,31 @@ const Index = () => {
   const videoUrl = heroData?.video_url || "/dwindik/video1.mp4";
   const heroImage = heroData?.hero_image || "/dwindik/5.jpeg";
   const heroLink = heroData?.hero_link || "https://youtu.be/mPAZSvF5usk?si=IxaXZFE0nJZw0ypt";
+  const canPlayHeroVideo = isPlayableVideoSource(videoUrl);
 
   useEffect(() => {
     if (isOgPreview) return;
-    const t = setTimeout(() => setPhase("video"), VIDEO_START_DELAY);
+    const t = setTimeout(() => setPhase(canPlayHeroVideo ? "video" : "image"), VIDEO_START_DELAY);
     return () => clearTimeout(t);
-  }, [isOgPreview]);
+  }, [isOgPreview, canPlayHeroVideo]);
 
   useEffect(() => {
     if (isOgPreview) return;
     if (phase !== "video") return;
+
     const vid = videoRef.current;
     if (!vid) return;
     vid.currentTime = 0;
     vid.playbackRate = 1;
     vid.play().catch(() => {});
     const onEnded = () => setPhase("image");
+    const onError = () => setPhase("image");
     vid.addEventListener("ended", onEnded);
-    return () => vid.removeEventListener("ended", onEnded);
+    vid.addEventListener("error", onError);
+    return () => {
+      vid.removeEventListener("ended", onEnded);
+      vid.removeEventListener("error", onError);
+    };
   }, [phase, isOgPreview]);
 
   return (
@@ -90,18 +113,20 @@ const Index = () => {
                 boxShadow: "0 0 0 1px rgba(255,255,255,0.05), 0 0 80px rgba(0,0,0,0.4), 0 30px 80px rgba(0,0,0,0.35)",
               }}
             >
-              <video
-                ref={videoRef}
-                className="absolute inset-0 w-full h-full rounded-full"
-                src={videoUrl}
-                muted
-                playsInline
-                style={{
-                  objectFit: "cover",
-                  opacity: phase === "video" ? 1 : 0,
-                  transition: "opacity 0.3s linear",
-                }}
-              />
+              {canPlayHeroVideo && (
+                <video
+                  ref={videoRef}
+                  className="absolute inset-0 w-full h-full rounded-full"
+                  src={videoUrl}
+                  muted
+                  playsInline
+                  style={{
+                    objectFit: "cover",
+                    opacity: phase === "video" ? 1 : 0,
+                    transition: "opacity 0.3s linear",
+                  }}
+                />
+              )}
               {phase === "image" && (
                 <div className="absolute inset-0 rounded-full overflow-hidden">
                   {isOgPreview ? (

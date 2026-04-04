@@ -130,19 +130,14 @@ const AdminHero = () => {
             Media
           </h2>
           <div className="space-y-5">
-            <div>
-              <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
-                Video URL
-              </label>
-              <input
-                type="text"
-                value={form.video_url}
-                onChange={(e) => setForm((p) => ({ ...p, video_url: e.target.value }))}
-                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
-                placeholder="/dwindik/video1.mp4"
-              />
-              <p className="mt-1 text-[10px] text-white/15">Path to the video file in public folder or uploaded file URL</p>
-            </div>
+            <ImageUpload
+              value={form.video_url}
+              onChange={(url) => setForm((p) => ({ ...p, video_url: url }))}
+              label="Hero Video (plays first)"
+              accept="video/mp4,video/webm,video/quicktime,video/ogg"
+              previewType="video"
+            />
+            <p className="-mt-3 text-[10px] text-white/15">Upload a short hero video (recommended: mp4/webm, 4-12 seconds)</p>
             <ImageUpload
               value={form.hero_image}
               onChange={(url) => setForm((p) => ({ ...p, hero_image: url }))}
@@ -160,6 +155,7 @@ const AdminHero = () => {
                 placeholder="https://youtu.be/..."
               />
               <p className="mt-1 text-[10px] text-white/15">Where the circle links to when clicked</p>
+              <p className="mt-1 text-[10px] text-white/15">If using YouTube, place the link here (not in Hero Video)</p>
             </div>
           </div>
         </section>

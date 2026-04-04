@@ -6,11 +6,23 @@ interface ImageUploadProps {
   onChange: (url: string) => void;
   label?: string;
   accept?: string;
+  previewType?: "image" | "video" | "auto";
 }
 
-const ImageUpload = ({ value, onChange, label = "Image", accept = "image/*" }: ImageUploadProps) => {
+const isVideoUrl = (url: string) => /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(url);
+
+const ImageUpload = ({
+  value,
+  onChange,
+  label = "Image",
+  accept = "image/*",
+  previewType = "auto",
+}: ImageUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const shouldPreviewVideo =
+    previewType === "video" ||
+    (previewType === "auto" && (accept.includes("video") || isVideoUrl(value)));
 
   const handleFile = useCallback(
     async (file: File) => {
@@ -72,11 +84,21 @@ const ImageUpload = ({ value, onChange, label = "Image", accept = "image/*" }: I
           </div>
         ) : value ? (
           <div className="relative group">
-            <img
-              src={value}
-              alt={label}
-              className="max-h-40 mx-auto rounded object-cover"
-            />
+            {shouldPreviewVideo ? (
+              <video
+                src={value}
+                className="max-h-40 mx-auto rounded object-cover"
+                muted
+                playsInline
+                controls
+              />
+            ) : (
+              <img
+                src={value}
+                alt={label}
+                className="max-h-40 mx-auto rounded object-cover"
+              />
+            )}
             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded">
               <span className="text-xs text-white/70">Click to change</span>
             </div>
