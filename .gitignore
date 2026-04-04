@@ -19,6 +19,7 @@ dist-ssr
 !**/.env.example
 
 # SQLite runtime files
+server/cms.db
 *.db-shm
 *.db-wal
 
