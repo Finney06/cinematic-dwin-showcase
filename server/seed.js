@@ -7,6 +7,15 @@ console.log("🌱  Seeding Dwindik CMS database...\n");
 // ─── 1. Admin User ──────────────────────────────────────────
 const username = process.env.ADMIN_USERNAME || "dwindik";
 const password = process.env.ADMIN_PASSWORD || "admin123";
+const isProduction = process.env.NODE_ENV === "production";
+
+if (isProduction && (!process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD === "admin123")) {
+  throw new Error("ADMIN_PASSWORD must be set to a strong value in production before running seed.");
+}
+
+if (password.length < 12) {
+  console.warn("⚠️  ADMIN_PASSWORD is shorter than 12 characters. Use a stronger password.");
+}
 
 const existingUser = db.prepare("SELECT * FROM admin_users WHERE username = ?").get(username);
 if (!existingUser) {

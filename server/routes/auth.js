@@ -1,14 +1,37 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import rateLimit from "express-rate-limit";
 import db from "../db.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { logAudit } from "../utils/audit.js";
 
 const router = Router();
+const jwtExpiresIn = process.env.JWT_EXPIRES_IN || "12h";
+const jwtIssuer = process.env.JWT_ISSUER || "dwindik-cms";
+const jwtAudience = process.env.JWT_AUDIENCE || "dwindik-admin";
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many login attempts. Try again in 15 minutes." },
+});
+
+const isStrongPassword = (password) => {
+  return (
+    typeof password === "string" &&
+    password.length >= 12 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /\d/.test(password) &&
+    /[^A-Za-z0-9]/.test(password)
+  );
+};
 
 // POST /api/auth/login
-router.post("/login", (req, res) => {
+router.post("/login", loginLimiter, (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
     return res.status(400).json({ error: "Username and password required" });
@@ -27,7 +50,11 @@ router.post("/login", (req, res) => {
   const token = jwt.sign(
     { id: user.id, username: user.username },
     process.env.JWT_SECRET,
-    { expiresIn: "7d" }
+    {
+      expiresIn: jwtExpiresIn,
+      issuer: jwtIssuer,
+      audience: jwtAudience,
+    }
   );
 
   res.json({ token, user: { id: user.id, username: user.username } });
@@ -47,6 +74,13 @@ router.put("/change-password", authMiddleware, (req, res) => {
   const { currentPassword, newPassword } = req.body;
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ error: "Both passwords required" });
+  }
+
+  if (!isStrongPassword(newPassword)) {
+    return res.status(400).json({
+      error:
+        "New password must be at least 12 characters and include uppercase, lowercase, number, and symbol",
+    });
   }
 
   const user = db.prepare("SELECT * FROM admin_users WHERE id = ?").get(req.user.id);

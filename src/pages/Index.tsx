@@ -26,7 +26,10 @@ const letterVariant = {
 type Phase = "idle" | "video" | "image";
 
 const Index = () => {
-  const [phase, setPhase] = useState<Phase>("idle");
+  const isOgPreview =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).has("og");
+  const [phase, setPhase] = useState<Phase>(isOgPreview ? "image" : "idle");
   const videoRef = useRef<HTMLVideoElement>(null);
   
   const { data: heroData } = useHeroContent();
@@ -39,11 +42,13 @@ const Index = () => {
   const heroLink = heroData?.hero_link || "https://youtu.be/mPAZSvF5usk?si=IxaXZFE0nJZw0ypt";
 
   useEffect(() => {
+    if (isOgPreview) return;
     const t = setTimeout(() => setPhase("video"), VIDEO_START_DELAY);
     return () => clearTimeout(t);
-  }, []);
+  }, [isOgPreview]);
 
   useEffect(() => {
+    if (isOgPreview) return;
     if (phase !== "video") return;
     const vid = videoRef.current;
     if (!vid) return;
@@ -53,11 +58,11 @@ const Index = () => {
     const onEnded = () => setPhase("image");
     vid.addEventListener("ended", onEnded);
     return () => vid.removeEventListener("ended", onEnded);
-  }, [phase]);
+  }, [phase, isOgPreview]);
 
   return (
     <div className="bg-background min-h-screen relative">
-      <Navbar enterDelay={2.4} />
+      <Navbar enterDelay={isOgPreview ? 0 : 2.4} />
 
       {/* ═══ HERO ═══ */}
       <main className="h-screen flex items-center justify-center relative overflow-hidden">
@@ -66,7 +71,7 @@ const Index = () => {
           className="absolute z-0 translate-x-4 sm:translate-x-6 md:translate-x-10 lg:translate-x-14"
           initial={{ opacity: 0, scale: 0.3 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: isOgPreview ? 0 : 1.8, delay: isOgPreview ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
           style={{ perspective: "800px" }}
         >
           <a
@@ -99,41 +104,50 @@ const Index = () => {
               />
               {phase === "image" && (
                 <div className="absolute inset-0 rounded-full overflow-hidden">
-                  <motion.div
-                    className="absolute inset-0"
-                    initial={{
-                      clipPath: "polygon(0% 0%, 0% 0%, -4% 15%, -8% 30%, -10% 50%, -8% 70%, -4% 85%, 0% 100%, 0% 100%)",
-                    }}
-                    animate={{
-                      clipPath: "polygon(0% 0%, 115% 0%, 111% 15%, 107% 30%, 105% 50%, 107% 70%, 111% 85%, 115% 100%, 0% 100%)",
-                    }}
-                    transition={{ duration: 1.4, delay: 0.15, ease: [0.25, 0.9, 0.3, 1] }}
-                  >
-                    <img className="w-full h-full object-cover" src={heroImage} alt={brandText} />
-                    <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.15)" }} />
-                  </motion.div>
-                  <motion.div
-                    className="absolute pointer-events-none z-20"
-                    initial={{ left: "-10%" }}
-                    animate={{ left: "105%" }}
-                    transition={{ duration: 1.4, delay: 0.15, ease: [0.25, 0.9, 0.3, 1] }}
-                    style={{
-                      top: "-5%", width: "14%", height: "110%",
-                      background: "radial-gradient(ellipse 50% 45% at 50% 50%, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.12) 50%, transparent 100%)",
-                      filter: "blur(8px)", borderRadius: "50%",
-                    }}
-                  />
-                  <motion.div
-                    className="absolute pointer-events-none z-20"
-                    initial={{ left: "-22%" }}
-                    animate={{ left: "100%" }}
-                    transition={{ duration: 1.6, delay: 0.15, ease: [0.25, 0.9, 0.3, 1] }}
-                    style={{
-                      top: "-10%", width: "28%", height: "120%",
-                      background: "radial-gradient(ellipse 45% 40% at 50% 50%, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.04) 50%, transparent 100%)",
-                      filter: "blur(18px)", borderRadius: "50%",
-                    }}
-                  />
+                  {isOgPreview ? (
+                    <>
+                      <img className="w-full h-full object-cover" src={heroImage} alt={brandText} />
+                      <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.15)" }} />
+                    </>
+                  ) : (
+                    <>
+                      <motion.div
+                        className="absolute inset-0"
+                        initial={{
+                          clipPath: "polygon(0% 0%, 0% 0%, -4% 15%, -8% 30%, -10% 50%, -8% 70%, -4% 85%, 0% 100%, 0% 100%)",
+                        }}
+                        animate={{
+                          clipPath: "polygon(0% 0%, 115% 0%, 111% 15%, 107% 30%, 105% 50%, 107% 70%, 111% 85%, 115% 100%, 0% 100%)",
+                        }}
+                        transition={{ duration: 1.4, delay: 0.15, ease: [0.25, 0.9, 0.3, 1] }}
+                      >
+                        <img className="w-full h-full object-cover" src={heroImage} alt={brandText} />
+                        <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.15)" }} />
+                      </motion.div>
+                      <motion.div
+                        className="absolute pointer-events-none z-20"
+                        initial={{ left: "-10%" }}
+                        animate={{ left: "105%" }}
+                        transition={{ duration: 1.4, delay: 0.15, ease: [0.25, 0.9, 0.3, 1] }}
+                        style={{
+                          top: "-5%", width: "14%", height: "110%",
+                          background: "radial-gradient(ellipse 50% 45% at 50% 50%, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.12) 50%, transparent 100%)",
+                          filter: "blur(8px)", borderRadius: "50%",
+                        }}
+                      />
+                      <motion.div
+                        className="absolute pointer-events-none z-20"
+                        initial={{ left: "-22%" }}
+                        animate={{ left: "100%" }}
+                        transition={{ duration: 1.6, delay: 0.15, ease: [0.25, 0.9, 0.3, 1] }}
+                        style={{
+                          top: "-10%", width: "28%", height: "120%",
+                          background: "radial-gradient(ellipse 45% 40% at 50% 50%, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.04) 50%, transparent 100%)",
+                          filter: "blur(18px)", borderRadius: "50%",
+                        }}
+                      />
+                    </>
+                  )}
                 </div>
               )}
               <div
@@ -152,7 +166,7 @@ const Index = () => {
         <motion.h1
           className="relative z-10 flex items-center overflow-hidden"
           variants={letterContainer}
-          initial="hidden"
+          initial={isOgPreview ? "visible" : "hidden"}
           animate="visible"
         >
           {brandText.split("").map((letter, i) => (
@@ -172,12 +186,12 @@ const Index = () => {
           className="absolute z-5 pointer-events-none"
           initial={{ opacity: 0, rotate: 0, scale: 1 }}
           animate={{
-            opacity: [0, 0.6, 0.6, 0],
+            opacity: isOgPreview ? 0 : [0, 0.6, 0.6, 0],
             rotate: [0, 360],
-            scale: [1, 1, 0.15],
+            scale: isOgPreview ? 1 : [1, 1, 0.15],
           }}
           transition={{
-            duration: 2.2, delay: 0.2, ease: [0.22, 1, 0.36, 1],
+            duration: isOgPreview ? 0 : 2.2, delay: isOgPreview ? 0 : 0.2, ease: [0.22, 1, 0.36, 1],
             times: [0, 0.08, 0.65, 1],
           }}
         >
@@ -190,7 +204,7 @@ const Index = () => {
         <motion.p
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 0.2, y: 0 }}
-          transition={{ duration: 1.2, delay: 2.6 }}
+          transition={{ duration: isOgPreview ? 0 : 1.2, delay: isOgPreview ? 0 : 2.6 }}
           className="absolute bottom-10 sm:bottom-14 left-0 right-0 text-center px-4 font-body text-[11px] sm:text-[12px] tracking-[0.35em] sm:tracking-[0.6em] uppercase text-foreground"
         >
           {tagline}

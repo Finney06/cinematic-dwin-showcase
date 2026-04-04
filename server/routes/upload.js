@@ -12,12 +12,13 @@ import { getStorageDriver, uploadBuffer } from "../utils/storage.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const uploadsDir = path.join(__dirname, "..", "uploads");
+const maxUploadMb = Math.max(1, parseInt(process.env.MAX_UPLOAD_MB || "25", 10));
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 250 * 1024 * 1024 }, // 250MB
+  limits: { fileSize: maxUploadMb * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowed = /\.(jpg|jpeg|png|gif|webp|svg|mp4|webm|mov)$/i;
+    const allowed = /\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)$/i;
     if (allowed.test(path.extname(file.originalname))) {
       cb(null, true);
     } else {

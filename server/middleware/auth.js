@@ -1,5 +1,8 @@
 import jwt from "jsonwebtoken";
 
+const jwtIssuer = process.env.JWT_ISSUER || "dwindik-cms";
+const jwtAudience = process.env.JWT_AUDIENCE || "dwindik-admin";
+
 export function authMiddleware(req, res, next) {
   const header = req.headers.authorization;
   if (!header || !header.startsWith("Bearer ")) {
@@ -8,7 +11,10 @@ export function authMiddleware(req, res, next) {
 
   const token = header.split(" ")[1];
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+      issuer: jwtIssuer,
+      audience: jwtAudience,
+    });
     req.user = decoded;
     next();
   } catch {
