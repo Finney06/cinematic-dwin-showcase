@@ -39,7 +39,7 @@ const RouteSeo = () => {
   useEffect(() => {
     const path = location.pathname;
     const map: Record<string, { title: string; description: string }> = {
-      "/": { title: "Dwindik | Cinematic Portfolio", description: "Director of Photography and visual storytelling portfolio." },
+      "/": { title: "Dwindik Portfolio", description: "Director of Photography and visual storytelling portfolio." },
       "/film": { title: "Film | Dwindik", description: "Film projects and cinematography work by Dwindik." },
       "/television": { title: "Television | Dwindik", description: "Television projects and production work." },
       "/nonfiction": { title: "Nonfiction | Dwindik", description: "Nonfiction visual storytelling projects." },
