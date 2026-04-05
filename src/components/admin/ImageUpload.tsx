@@ -7,6 +7,8 @@ interface ImageUploadProps {
   label?: string;
   accept?: string;
   previewType?: "image" | "video" | "auto";
+  allowManualUrl?: boolean;
+  allowClear?: boolean;
 }
 
 const isVideoUrl = (url: string) => /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(url);
@@ -17,6 +19,8 @@ const ImageUpload = ({
   label = "Image",
   accept = "image/*",
   previewType = "auto",
+  allowManualUrl = true,
+  allowClear = true,
 }: ImageUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -124,13 +128,24 @@ const ImageUpload = ({
           </div>
         )}
       </div>
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="Or paste URL..."
-        className="w-full bg-white/[0.04] border border-white/[0.08] rounded-md px-3 py-2 text-sm text-white/70 placeholder:text-white/20 focus:outline-none focus:border-white/20 transition-colors"
-      />
+      {allowManualUrl && (
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Or paste URL..."
+          className="w-full bg-white/[0.04] border border-white/[0.08] rounded-md px-3 py-2 text-sm text-white/70 placeholder:text-white/20 focus:outline-none focus:border-white/20 transition-colors"
+        />
+      )}
+      {allowClear && value && (
+        <button
+          type="button"
+          onClick={() => onChange("")}
+          className="text-[11px] text-white/45 hover:text-white/70 transition-colors"
+        >
+          Remove current file
+        </button>
+      )}
     </div>
   );
 };

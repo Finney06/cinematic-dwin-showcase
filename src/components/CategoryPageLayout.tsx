@@ -50,7 +50,7 @@ const CategoryPageLayout = ({ title, projects, isLoading }: CategoryPageLayoutPr
               <img
                 src={featured.thumbnail}
                 alt={featured.title}
-                className="w-full h-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-[1.03]"
+                className="w-full h-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
               <div className="absolute inset-0 bg-gradient-to-r from-background/50 to-transparent" />
@@ -102,7 +102,7 @@ const CategoryPageLayout = ({ title, projects, isLoading }: CategoryPageLayoutPr
                   <img
                     src={project.thumbnail}
                     alt={project.title}
-                    className="w-full h-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-[1.04]"
+                    className="w-full h-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
 

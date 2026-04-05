@@ -136,6 +136,7 @@ const AdminHero = () => {
               label="Hero Video (plays first)"
               accept="video/mp4,video/webm,video/quicktime,video/ogg"
               previewType="video"
+              allowManualUrl={false}
             />
             <p className="-mt-3 text-[10px] text-white/15">Upload a short hero video (recommended: mp4/webm, 4-12 seconds)</p>
             <ImageUpload

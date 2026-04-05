@@ -17,6 +17,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 5000;
 const isProduction = process.env.NODE_ENV === "production";
+const storageDriver = (process.env.STORAGE_DRIVER || "local").toLowerCase();
 
 const allowedOrigins = (process.env.CORS_ORIGIN || "")
   .split(",")
@@ -30,6 +31,34 @@ if (!jwtSecret || jwtSecret === "change-this-in-production") {
     throw new Error(message);
   }
   console.warn(`⚠️  ${message}`);
+}
+
+if (isProduction) {
+  if (storageDriver === "local") {
+    throw new Error(
+      "STORAGE_DRIVER=local is not recommended in production. Use STORAGE_DRIVER=cloudinary or STORAGE_DRIVER=s3."
+    );
+  }
+
+  if (storageDriver === "cloudinary") {
+    const requiredCloudinary = [
+      "CLOUDINARY_CLOUD_NAME",
+      "CLOUDINARY_API_KEY",
+      "CLOUDINARY_API_SECRET",
+    ];
+    const missing = requiredCloudinary.filter((key) => !process.env[key]);
+    if (missing.length > 0) {
+      throw new Error(`Missing Cloudinary env vars: ${missing.join(", ")}`);
+    }
+  }
+
+  if (storageDriver === "s3") {
+    const requiredS3 = ["S3_BUCKET", "S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY", "S3_PUBLIC_BASE_URL"];
+    const missing = requiredS3.filter((key) => !process.env[key]);
+    if (missing.length > 0) {
+      throw new Error(`Missing S3 env vars: ${missing.join(", ")}`);
+    }
+  }
 }
 
 // ─── Ensure uploads directory exists ─────────────────────────

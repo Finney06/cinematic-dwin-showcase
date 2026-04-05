@@ -2,6 +2,7 @@ import { Router } from "express";
 import db from "../db.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { logAudit } from "../utils/audit.js";
+import { deleteUploadedUrl } from "../utils/storage.js";
 
 const router = Router();
 
@@ -74,10 +75,13 @@ router.put("/about", authMiddleware, (req, res) => {
 });
 
 // PUT /api/admin/content/hero
-router.put("/hero", authMiddleware, (req, res) => {
+router.put("/hero", authMiddleware, async (req, res) => {
   const { brand_text, tagline, video_url, hero_image, hero_link } = req.body;
 
   const existing = db.prepare("SELECT * FROM hero_content LIMIT 1").get();
+  const previousVideoUrl = existing?.video_url || "";
+  const nextVideoUrl = video_url ?? previousVideoUrl;
+
   if (existing) {
     db.prepare(`
       UPDATE hero_content SET
@@ -87,7 +91,7 @@ router.put("/hero", authMiddleware, (req, res) => {
     `).run(
       brand_text ?? existing.brand_text,
       tagline ?? existing.tagline,
-      video_url ?? existing.video_url,
+      nextVideoUrl,
       hero_image ?? existing.hero_image,
       hero_link ?? existing.hero_link,
       existing.id
@@ -97,6 +101,14 @@ router.put("/hero", authMiddleware, (req, res) => {
       INSERT INTO hero_content (brand_text, tagline, video_url, hero_image, hero_link)
       VALUES (?, ?, ?, ?, ?)
     `).run(brand_text || "DWINDIK", tagline || "Cre8te", video_url || "", hero_image || "", hero_link || "");
+  }
+
+  if (existing && previousVideoUrl && nextVideoUrl !== previousVideoUrl) {
+    try {
+      await deleteUploadedUrl(previousVideoUrl);
+    } catch (error) {
+      console.warn("Failed to delete previous hero video:", error?.message || error);
+    }
   }
 
   logAudit(req, "content.hero.update", "content", "hero");

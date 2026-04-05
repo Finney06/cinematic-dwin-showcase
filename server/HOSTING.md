@@ -16,9 +16,9 @@ Required:
 - `PORT=5000`
 - `JWT_SECRET=<strong-secret>`
 - `CORS_ORIGIN=https://your-frontend-domain.com`
-- `STORAGE_DRIVER=s3` (or `cloudinary`)
+- `STORAGE_DRIVER=cloudinary` (recommended for this codebase) or `s3`
 
-S3 / R2:
+S3 / R2 (alternative):
 
 - `S3_ENDPOINT=<provider endpoint>`
 - `S3_BUCKET=<bucket name>`
@@ -28,7 +28,7 @@ S3 / R2:
 - `S3_PUBLIC_BASE_URL=<public base URL for files>`
 - `S3_FORCE_PATH_STYLE=false` (true for some S3-compatible providers)
 
-Cloudinary:
+Cloudinary (recommended):
 
 - `CLOUDINARY_CLOUD_NAME=<cloud name>`
 - `CLOUDINARY_API_KEY=<api key>`
