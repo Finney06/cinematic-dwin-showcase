@@ -86,6 +86,15 @@ export interface SiteSettings {
   social_links?: string;
   font_display?: string;
   font_body?: string;
+  animation_enabled?: string;
+  animation_preset?: string;
+  animation_speed?: string;
+  animation_section_page_transition?: string;
+  animation_section_category_pages?: string;
+  animation_section_navbar?: string;
+  animation_section_footer?: string;
+  animation_section_home_hero?: string;
+  animation_section_project_detail?: string;
   copyright_text: string;
   site_title: string;
   [key: string]: string;

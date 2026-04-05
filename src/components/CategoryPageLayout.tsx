@@ -1,6 +1,7 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Link } from "react-router-dom";
 import type { ProjectData } from "@/lib/api";
+import { useAnimationSettings } from "@/hooks/useAnimationSettings";
 
 interface CategoryPageLayoutProps {
   title: string;
@@ -9,6 +10,10 @@ interface CategoryPageLayoutProps {
 }
 
 const CategoryPageLayout = ({ title, projects, isLoading }: CategoryPageLayoutProps) => {
+  const shouldReduceMotion = useReducedMotion();
+  const { getDuration, getDelay, getOffsetY, ease, isSectionEnabled } = useAnimationSettings();
+  const instant = shouldReduceMotion || !isSectionEnabled("categoryPages");
+
   const featured = projects[0];
   const rest = projects.slice(1);
 
@@ -16,9 +21,9 @@ const CategoryPageLayout = ({ title, projects, isLoading }: CategoryPageLayoutPr
     <>
       {/* Page title */}
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: instant ? 1 : 0, y: instant ? 0 : getOffsetY(30) }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: instant ? 0 : getDuration(1), ease }}
         className="mb-10 sm:mb-16 md:mb-20"
       >
         <h1 className="font-display text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-light text-foreground tracking-[0.04em] uppercase leading-[0.85]">
@@ -29,8 +34,9 @@ const CategoryPageLayout = ({ title, projects, isLoading }: CategoryPageLayoutPr
       {/* Loading state */}
       {isLoading && (
         <motion.div
-          initial={{ opacity: 0 }}
+          initial={{ opacity: instant ? 1 : 0 }}
           animate={{ opacity: 1 }}
+          transition={{ duration: instant ? 0 : getDuration(0.35), ease }}
           className="flex justify-center py-20"
         >
           <div className="w-6 h-6 border-2 border-foreground/10 border-t-foreground/40 rounded-full animate-spin" />
@@ -40,9 +46,9 @@ const CategoryPageLayout = ({ title, projects, isLoading }: CategoryPageLayoutPr
       {/* Featured / hero project — full width */}
       {featured && (
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: instant ? 1 : 0, y: instant ? 0 : getOffsetY(40) }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: instant ? 0 : getDuration(1), delay: instant ? 0 : getDelay(0.2), ease }}
           className="mb-8 sm:mb-12 md:mb-20"
         >
           <Link to={`/work/${featured.id}`} className="group block relative">
@@ -86,12 +92,12 @@ const CategoryPageLayout = ({ title, projects, isLoading }: CategoryPageLayoutPr
           {rest.map((project, i) => (
             <motion.div
               key={project.id}
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: instant ? 1 : 0, y: instant ? 0 : getOffsetY(40) }}
               animate={{ opacity: 1, y: 0 }}
               transition={{
-                duration: 0.8,
-                delay: 0.4 + i * 0.1,
-                ease: [0.22, 1, 0.36, 1],
+                duration: instant ? 0 : getDuration(0.8),
+                delay: instant ? 0 : getDelay(0.4 + i * 0.1),
+                ease,
               }}
             >
               <Link
@@ -136,9 +142,9 @@ const CategoryPageLayout = ({ title, projects, isLoading }: CategoryPageLayoutPr
       {/* Empty state */}
       {!isLoading && projects.length === 0 && (
         <motion.p
-          initial={{ opacity: 0 }}
+          initial={{ opacity: instant ? 1 : 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
+          transition={{ duration: instant ? 0 : getDuration(0.8), delay: instant ? 0 : getDelay(0.5), ease }}
           className="font-body text-sm text-foreground/30 tracking-[0.15em] uppercase text-center py-20"
         >
           Coming soon

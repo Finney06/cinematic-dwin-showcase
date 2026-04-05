@@ -1,33 +1,48 @@
 import { Link, useLocation } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useMenuItems, useSiteSettings } from "@/hooks/useContent";
-
-const menuContainer = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.2 } },
-  exit: { transition: { staggerChildren: 0.03, staggerDirection: -1 } },
-};
-
-const menuItemVariant = {
-  hidden: { y: 40, opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
-  },
-  exit: {
-    y: -20,
-    opacity: 0,
-    transition: { duration: 0.3, ease: "easeIn" as const },
-  },
-};
+import { useAnimationSettings } from "@/hooks/useAnimationSettings";
 
 interface NavbarProps {
   enterDelay?: number;
 }
 
 const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
+  const shouldReduceMotion = useReducedMotion();
+  const { getDuration, getDelay, getOffsetY, ease, isSectionEnabled } = useAnimationSettings();
+  const instant = shouldReduceMotion || !isSectionEnabled("navbar");
+
+  const menuContainer = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: instant ? 0 : getDuration(0.06),
+        delayChildren: instant ? 0 : getDelay(0.2),
+      },
+    },
+    exit: {
+      transition: {
+        staggerChildren: instant ? 0 : getDuration(0.03),
+        staggerDirection: -1,
+      },
+    },
+  };
+
+  const menuItemVariant = {
+    hidden: { y: instant ? 0 : getOffsetY(40), opacity: instant ? 1 : 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { duration: instant ? 0 : getDuration(0.5), ease },
+    },
+    exit: {
+      y: instant ? 0 : getOffsetY(-20),
+      opacity: instant ? 1 : 0,
+      transition: { duration: instant ? 0 : getDuration(0.3), ease: "easeIn" as const },
+    },
+  };
+
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
   const { data: menuItems = [] } = useMenuItems();
@@ -69,12 +84,12 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
   return (
     <>
       <motion.nav
-        initial={{ opacity: 0, y: "-2rem" }}
+        initial={{ opacity: instant ? 1 : 0, y: instant ? "0rem" : "-2rem" }}
         animate={{ opacity: 1, y: "0rem" }}
         transition={{
-          duration: 1.2,
-          delay: enterDelay,
-          ease: [0.22, 1, 0.36, 1],
+          duration: instant ? 0 : getDuration(1.2),
+          delay: instant ? 0 : getDelay(enterDelay),
+          ease,
         }}
         className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-5 sm:px-8 md:px-12 py-6 sm:py-8"
       >
@@ -102,7 +117,7 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
                   ? { rotate: 45, y: 6, width: 20 }
                   : { rotate: 0, y: 0, width: 20 }
               }
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: instant ? 0 : getDuration(0.4), ease }}
               className="block h-px bg-foreground origin-center"
             />
             <motion.span
@@ -111,7 +126,7 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
                   ? { opacity: 0, x: 10 }
                   : { opacity: 1, x: 0 }
               }
-              transition={{ duration: 0.3 }}
+              transition={{ duration: instant ? 0 : getDuration(0.3), ease }}
               className="block h-px bg-foreground/60 w-4"
             />
             <motion.span
@@ -120,7 +135,7 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
                   ? { rotate: -45, y: -6, width: 20 }
                   : { rotate: 0, y: 0, width: 20 }
               }
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: instant ? 0 : getDuration(0.4), ease }}
               className="block h-px bg-foreground origin-center"
             />
           </div>
@@ -132,17 +147,18 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
         {menuOpen && (
           <motion.div
             key="menu"
-            initial={{ opacity: 0 }}
+            initial={{ opacity: instant ? 1 : 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
+            exit={{ opacity: instant ? 1 : 0 }}
+            transition={{ duration: instant ? 0 : getDuration(0.5), ease }}
             className="fixed inset-0 z-[90]"
           >
             <motion.div
               className="absolute inset-0 bg-background/95 backdrop-blur-xl"
-              initial={{ opacity: 0 }}
+              initial={{ opacity: instant ? 1 : 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              exit={{ opacity: instant ? 1 : 0 }}
+              transition={{ duration: instant ? 0 : getDuration(0.4), ease }}
             />
             <div className="relative z-10 w-full h-full overflow-y-auto flex flex-col md:flex-row items-start md:items-center px-5 sm:px-10 md:px-20 pt-24 sm:pt-28 pb-8 md:pt-0 md:pb-0">
               <motion.div
@@ -184,10 +200,10 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
 
               <motion.div
                 className="mt-8 sm:mt-12 md:mt-0 md:w-[280px] flex flex-col gap-5 sm:gap-6"
-                initial={{ opacity: 0, x: 30 }}
+                initial={{ opacity: instant ? 1 : 0, x: instant ? 0 : 30 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 30 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
+                exit={{ opacity: instant ? 1 : 0, x: instant ? 0 : 30 }}
+                transition={{ duration: instant ? 0 : getDuration(0.6), delay: instant ? 0 : getDelay(0.4), ease }}
               >
                 <div>
                   <p className="font-body text-[10px] tracking-[0.3em] uppercase text-foreground/30 mb-3">
