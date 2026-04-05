@@ -28,16 +28,17 @@ function isPlayableVideoSource(url?: string): boolean {
 
 const Index = () => {
   const shouldReduceMotion = useReducedMotion();
-  const { getDuration, getDelay, ease, enabled, isSectionEnabled } = useAnimationSettings();
+  const { getSectionDuration, getSectionDelay, getSectionEase, enabled, isSectionEnabled } = useAnimationSettings();
   const sectionEnabled = isSectionEnabled("homeHero");
   const instant = shouldReduceMotion || !sectionEnabled;
+  const sectionEase = getSectionEase("homeHero");
 
   const letterContainer = {
     hidden: {},
     visible: {
       transition: {
-        staggerChildren: instant ? 0 : getDuration(0.12),
-        delayChildren: instant ? 0 : getDelay(0.5),
+        staggerChildren: instant ? 0 : getSectionDuration("homeHero", 0.12),
+        delayChildren: instant ? 0 : getSectionDelay("homeHero", 0.5),
       },
     },
   };
@@ -47,7 +48,7 @@ const Index = () => {
     visible: {
       y: "0%",
       opacity: 1,
-      transition: { duration: instant ? 0 : getDuration(1), ease },
+      transition: { duration: instant ? 0 : getSectionDuration("homeHero", 1), ease: sectionEase },
     },
   };
 
@@ -107,9 +108,9 @@ const Index = () => {
           initial={{ opacity: instant ? 1 : 0, scale: instant ? 1 : 0.3 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{
-            duration: isOgPreview || instant ? 0 : getDuration(1.8),
-            delay: isOgPreview || instant ? 0 : getDelay(0.3),
-            ease,
+            duration: isOgPreview || instant ? 0 : getSectionDuration("homeHero", 1.8),
+            delay: isOgPreview || instant ? 0 : getSectionDelay("homeHero", 0.3),
+            ease: sectionEase,
           }}
           style={{ perspective: "800px" }}
         >
@@ -122,7 +123,7 @@ const Index = () => {
             <motion.div
               className="circle-media w-[80vw] h-[80vw] sm:w-[75vw] sm:h-[75vw] md:w-[55vw] md:h-[55vw] lg:w-[45vw] lg:h-[45vw] rounded-full relative"
               animate={enabled && sectionEnabled && !instant ? { rotateX: [0, 1.5, -1, 0], rotateY: [0, -2, 1.5, 0] } : { rotateX: 0, rotateY: 0 }}
-              transition={enabled && sectionEnabled && !instant ? { duration: getDuration(10), ease: "easeInOut", repeat: Infinity, repeatType: "mirror" } : { duration: 0 }}
+              transition={enabled && sectionEnabled && !instant ? { duration: getSectionDuration("homeHero", 10), ease: "easeInOut", repeat: Infinity, repeatType: "mirror" } : { duration: 0 }}
               style={{
                 transformStyle: "preserve-3d",
                 background: "hsl(0 0% 10%)",
@@ -162,7 +163,7 @@ const Index = () => {
                         animate={{
                           clipPath: "polygon(0% 0%, 115% 0%, 111% 15%, 107% 30%, 105% 50%, 107% 70%, 111% 85%, 115% 100%, 0% 100%)",
                         }}
-                        transition={{ duration: instant ? 0 : getDuration(1.4), delay: instant ? 0 : getDelay(0.15), ease }}
+                        transition={{ duration: instant ? 0 : getSectionDuration("homeHero", 1.4), delay: instant ? 0 : getSectionDelay("homeHero", 0.15), ease: sectionEase }}
                       >
                         <img className="w-full h-full object-cover" src={heroImage} alt={brandText} />
                         <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.15)" }} />
@@ -171,7 +172,7 @@ const Index = () => {
                         className="absolute pointer-events-none z-20"
                         initial={{ left: instant ? "105%" : "-10%" }}
                         animate={{ left: "105%" }}
-                        transition={{ duration: instant ? 0 : getDuration(1.4), delay: instant ? 0 : getDelay(0.15), ease }}
+                        transition={{ duration: instant ? 0 : getSectionDuration("homeHero", 1.4), delay: instant ? 0 : getSectionDelay("homeHero", 0.15), ease: sectionEase }}
                         style={{
                           top: "-5%", width: "14%", height: "110%",
                           background: "radial-gradient(ellipse 50% 45% at 50% 50%, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.12) 50%, transparent 100%)",
@@ -182,7 +183,7 @@ const Index = () => {
                         className="absolute pointer-events-none z-20"
                         initial={{ left: instant ? "100%" : "-22%" }}
                         animate={{ left: "100%" }}
-                        transition={{ duration: instant ? 0 : getDuration(1.6), delay: instant ? 0 : getDelay(0.15), ease }}
+                        transition={{ duration: instant ? 0 : getSectionDuration("homeHero", 1.6), delay: instant ? 0 : getSectionDelay("homeHero", 0.15), ease: sectionEase }}
                         style={{
                           top: "-10%", width: "28%", height: "120%",
                           background: "radial-gradient(ellipse 45% 40% at 50% 50%, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.04) 50%, transparent 100%)",
@@ -234,9 +235,9 @@ const Index = () => {
             scale: isOgPreview ? 1 : [1, 1, 0.15],
           }}
           transition={{
-            duration: isOgPreview || instant ? 0 : getDuration(2.2),
-            delay: isOgPreview || instant ? 0 : getDelay(0.2),
-            ease,
+            duration: isOgPreview || instant ? 0 : getSectionDuration("homeHero", 2.2),
+            delay: isOgPreview || instant ? 0 : getSectionDelay("homeHero", 0.2),
+            ease: sectionEase,
             times: [0, 0.08, 0.65, 1],
           }}
         >
@@ -249,7 +250,7 @@ const Index = () => {
         <motion.p
           initial={{ opacity: instant ? 1 : 0, y: instant ? 0 : 16 }}
           animate={{ opacity: 0.2, y: 0 }}
-          transition={{ duration: isOgPreview || instant ? 0 : getDuration(1.2), delay: isOgPreview || instant ? 0 : getDelay(2.6), ease }}
+          transition={{ duration: isOgPreview || instant ? 0 : getSectionDuration("homeHero", 1.2), delay: isOgPreview || instant ? 0 : getSectionDelay("homeHero", 2.6), ease: sectionEase }}
           className="absolute bottom-10 sm:bottom-14 left-0 right-0 text-center px-4 font-body text-[11px] sm:text-[12px] tracking-[0.35em] sm:tracking-[0.6em] uppercase text-foreground"
         >
           {tagline}

@@ -5,8 +5,9 @@ import { useAnimationSettings } from "@/hooks/useAnimationSettings";
 
 const Footer = () => {
   const shouldReduceMotion = useReducedMotion();
-  const { getDuration, ease, isSectionEnabled } = useAnimationSettings();
+  const { getSectionDuration, getSectionEase, isSectionEnabled } = useAnimationSettings();
   const instant = shouldReduceMotion || !isSectionEnabled("footer");
+  const sectionEase = getSectionEase("footer");
 
   const { data: menuItems = [] } = useMenuItems();
   const { data: settings } = useSiteSettings();
@@ -32,7 +33,7 @@ const Footer = () => {
       initial={{ opacity: instant ? 1 : 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ once: true }}
-      transition={{ duration: instant ? 0 : getDuration(1), ease }}
+      transition={{ duration: instant ? 0 : getSectionDuration("footer", 1), ease: sectionEase }}
       className="border-t border-foreground/[0.06] px-5 sm:px-8 md:px-12 py-10 sm:py-12 mt-14 sm:mt-20"
     >
       {/* Nav links row */}

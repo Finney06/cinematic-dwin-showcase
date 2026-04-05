@@ -65,11 +65,35 @@ const AdminSettings = () => {
     animation_preset: "cinematic",
     animation_speed: "1",
     animation_section_page_transition: "true",
+    animation_section_page_transition_profile: "inherit",
+    animation_section_page_transition_duration: "1",
+    animation_section_page_transition_delay: "1",
+    animation_section_page_transition_distance: "1",
     animation_section_category_pages: "true",
+    animation_section_category_pages_profile: "inherit",
+    animation_section_category_pages_duration: "1",
+    animation_section_category_pages_delay: "1",
+    animation_section_category_pages_distance: "1",
     animation_section_navbar: "true",
+    animation_section_navbar_profile: "inherit",
+    animation_section_navbar_duration: "1",
+    animation_section_navbar_delay: "1",
+    animation_section_navbar_distance: "1",
     animation_section_footer: "true",
+    animation_section_footer_profile: "inherit",
+    animation_section_footer_duration: "1",
+    animation_section_footer_delay: "1",
+    animation_section_footer_distance: "1",
     animation_section_home_hero: "true",
+    animation_section_home_hero_profile: "inherit",
+    animation_section_home_hero_duration: "1",
+    animation_section_home_hero_delay: "1",
+    animation_section_home_hero_distance: "1",
     animation_section_project_detail: "true",
+    animation_section_project_detail_profile: "inherit",
+    animation_section_project_detail_duration: "1",
+    animation_section_project_detail_delay: "1",
+    animation_section_project_detail_distance: "1",
     copyright_text: "",
     site_title: "",
   });
@@ -99,11 +123,35 @@ const AdminSettings = () => {
         animation_preset: data.animation_preset || "cinematic",
         animation_speed: data.animation_speed || "1",
         animation_section_page_transition: data.animation_section_page_transition || "true",
+        animation_section_page_transition_profile: data.animation_section_page_transition_profile || "inherit",
+        animation_section_page_transition_duration: data.animation_section_page_transition_duration || "1",
+        animation_section_page_transition_delay: data.animation_section_page_transition_delay || "1",
+        animation_section_page_transition_distance: data.animation_section_page_transition_distance || "1",
         animation_section_category_pages: data.animation_section_category_pages || "true",
+        animation_section_category_pages_profile: data.animation_section_category_pages_profile || "inherit",
+        animation_section_category_pages_duration: data.animation_section_category_pages_duration || "1",
+        animation_section_category_pages_delay: data.animation_section_category_pages_delay || "1",
+        animation_section_category_pages_distance: data.animation_section_category_pages_distance || "1",
         animation_section_navbar: data.animation_section_navbar || "true",
+        animation_section_navbar_profile: data.animation_section_navbar_profile || "inherit",
+        animation_section_navbar_duration: data.animation_section_navbar_duration || "1",
+        animation_section_navbar_delay: data.animation_section_navbar_delay || "1",
+        animation_section_navbar_distance: data.animation_section_navbar_distance || "1",
         animation_section_footer: data.animation_section_footer || "true",
+        animation_section_footer_profile: data.animation_section_footer_profile || "inherit",
+        animation_section_footer_duration: data.animation_section_footer_duration || "1",
+        animation_section_footer_delay: data.animation_section_footer_delay || "1",
+        animation_section_footer_distance: data.animation_section_footer_distance || "1",
         animation_section_home_hero: data.animation_section_home_hero || "true",
+        animation_section_home_hero_profile: data.animation_section_home_hero_profile || "inherit",
+        animation_section_home_hero_duration: data.animation_section_home_hero_duration || "1",
+        animation_section_home_hero_delay: data.animation_section_home_hero_delay || "1",
+        animation_section_home_hero_distance: data.animation_section_home_hero_distance || "1",
         animation_section_project_detail: data.animation_section_project_detail || "true",
+        animation_section_project_detail_profile: data.animation_section_project_detail_profile || "inherit",
+        animation_section_project_detail_duration: data.animation_section_project_detail_duration || "1",
+        animation_section_project_detail_delay: data.animation_section_project_detail_delay || "1",
+        animation_section_project_detail_distance: data.animation_section_project_detail_distance || "1",
         copyright_text: data.copyright_text || "",
         site_title: data.site_title || "",
       };
@@ -303,6 +351,13 @@ const AdminSettings = () => {
                       <option value="smooth" className="bg-[#141414]">Smooth</option>
                       <option value="snappy" className="bg-[#141414]">Snappy</option>
                       <option value="minimal" className="bg-[#141414]">Minimal</option>
+                      <option value="gentle" className="bg-[#141414]">Gentle</option>
+                      <option value="dramatic" className="bg-[#141414]">Dramatic</option>
+                      <option value="luxury" className="bg-[#141414]">Luxury</option>
+                      <option value="energetic" className="bg-[#141414]">Energetic</option>
+                      <option value="documentary" className="bg-[#141414]">Documentary</option>
+                      <option value="editorial" className="bg-[#141414]">Editorial</option>
+                      <option value="experimental" className="bg-[#141414]">Experimental</option>
                     </select>
                   </div>
                   <div>
@@ -328,13 +383,19 @@ const AdminSettings = () => {
                     </label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {[
-                        { key: "animation_section_page_transition", label: "Page Transitions" },
-                        { key: "animation_section_category_pages", label: "Category Pages" },
-                        { key: "animation_section_navbar", label: "Navbar + Menu" },
-                        { key: "animation_section_footer", label: "Footer" },
-                        { key: "animation_section_home_hero", label: "Homepage Hero" },
-                        { key: "animation_section_project_detail", label: "Project Detail" },
-                      ].map((item) => (
+                        { key: "animation_section_page_transition", profileKey: "animation_section_page_transition_profile", label: "Page Transitions" },
+                        { key: "animation_section_category_pages", profileKey: "animation_section_category_pages_profile", label: "Category Pages" },
+                        { key: "animation_section_navbar", profileKey: "animation_section_navbar_profile", label: "Navbar + Menu" },
+                        { key: "animation_section_footer", profileKey: "animation_section_footer_profile", label: "Footer" },
+                        { key: "animation_section_home_hero", profileKey: "animation_section_home_hero_profile", label: "Homepage Hero" },
+                        { key: "animation_section_project_detail", profileKey: "animation_section_project_detail_profile", label: "Project Detail" },
+                      ].map((item) => {
+                        const durationKey = `${item.key}_duration` as keyof typeof form;
+                        const delayKey = `${item.key}_delay` as keyof typeof form;
+                        const distanceKey = `${item.key}_distance` as keyof typeof form;
+                        const profileKey = item.profileKey as keyof typeof form;
+
+                        return (
                         <div key={item.key} className="bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-3">
                           <p className="text-[10px] tracking-[0.12em] uppercase text-white/40 mb-2">{item.label}</p>
                           <select
@@ -350,11 +411,93 @@ const AdminSettings = () => {
                             <option value="true" className="bg-[#141414]">Enabled</option>
                             <option value="false" className="bg-[#141414]">Disabled</option>
                           </select>
+                          <label className="mt-3 block text-[10px] tracking-[0.08em] uppercase text-white/35">
+                            Profile
+                          </label>
+                          <select
+                            value={form[profileKey]}
+                            onChange={(e) =>
+                              setForm((p) => ({
+                                ...p,
+                                [profileKey]: e.target.value,
+                              }))
+                            }
+                            className="mt-1 w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white/80 focus:outline-none focus:border-white/20 transition-colors"
+                          >
+                            <option value="inherit" className="bg-[#141414]">Inherit Global</option>
+                            <option value="cinematic" className="bg-[#141414]">Cinematic</option>
+                            <option value="smooth" className="bg-[#141414]">Smooth</option>
+                            <option value="snappy" className="bg-[#141414]">Snappy</option>
+                            <option value="minimal" className="bg-[#141414]">Minimal</option>
+                            <option value="gentle" className="bg-[#141414]">Gentle</option>
+                            <option value="dramatic" className="bg-[#141414]">Dramatic</option>
+                            <option value="luxury" className="bg-[#141414]">Luxury</option>
+                            <option value="energetic" className="bg-[#141414]">Energetic</option>
+                            <option value="documentary" className="bg-[#141414]">Documentary</option>
+                            <option value="editorial" className="bg-[#141414]">Editorial</option>
+                            <option value="experimental" className="bg-[#141414]">Experimental</option>
+                          </select>
+                          <div className="mt-3 space-y-2">
+                            <label className="block text-[10px] tracking-[0.08em] uppercase text-white/35">
+                              Duration × {Number(form[durationKey]).toFixed(2)}
+                            </label>
+                            <input
+                              type="range"
+                              min="0.4"
+                              max="2"
+                              step="0.05"
+                              value={form[durationKey]}
+                              onChange={(e) =>
+                                setForm((p) => ({
+                                  ...p,
+                                  [durationKey]: e.target.value,
+                                }))
+                              }
+                              className="w-full accent-white/80"
+                            />
+
+                            <label className="block text-[10px] tracking-[0.08em] uppercase text-white/35">
+                              Delay × {Number(form[delayKey]).toFixed(2)}
+                            </label>
+                            <input
+                              type="range"
+                              min="0.4"
+                              max="2"
+                              step="0.05"
+                              value={form[delayKey]}
+                              onChange={(e) =>
+                                setForm((p) => ({
+                                  ...p,
+                                  [delayKey]: e.target.value,
+                                }))
+                              }
+                              className="w-full accent-white/80"
+                            />
+
+                            <label className="block text-[10px] tracking-[0.08em] uppercase text-white/35">
+                              Distance × {Number(form[distanceKey]).toFixed(2)}
+                            </label>
+                            <input
+                              type="range"
+                              min="0.4"
+                              max="2"
+                              step="0.05"
+                              value={form[distanceKey]}
+                              onChange={(e) =>
+                                setForm((p) => ({
+                                  ...p,
+                                  [distanceKey]: e.target.value,
+                                }))
+                              }
+                              className="w-full accent-white/80"
+                            />
+                          </div>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                     <p className="mt-2 text-[10px] text-white/20">
-                      Use these to switch animation per section without touching code.
+                      Use these to switch animation per section and fine-tune timing/motion without touching code.
                     </p>
                   </div>
                 </div>
