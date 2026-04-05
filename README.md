@@ -32,6 +32,7 @@ Deploy [server](server) as a Node service (Render, Railway, Fly.io, etc.) and se
 - `PORT`
 - `JWT_SECRET`
 - `CORS_ORIGIN` (your frontend URL, comma-separated if multiple)
+- `CMS_DB_PATH` (path to `cms.db` on a persistent disk/volume)
 
 ### 2) Configure uploads storage
 
@@ -54,6 +55,8 @@ Cloudinary option:
 - `CLOUDINARY_FOLDER`
 
 If `STORAGE_DRIVER=local`, files are stored in [server/uploads](server/uploads) and are not durable on most hosting platforms.
+
+If SQLite is used, make sure `CMS_DB_PATH` points to durable storage. Otherwise content can reset on redeploy/restart.
 
 ### 3) Frontend to backend
 

@@ -67,6 +67,9 @@ const Footer = () => {
         <p className="font-body text-[10px] tracking-[0.15em] uppercase text-foreground/15">
           {settings?.copyright_text || "©2026 Dwindik. All rights reserved."}
         </p>
+        <p className="font-body text-[9px] tracking-[0.12em] uppercase text-foreground/10">
+          Build: 2026-04-05
+        </p>
       </div>
     </motion.footer>
   );

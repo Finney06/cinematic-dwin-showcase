@@ -1,9 +1,25 @@
 import Database from "better-sqlite3";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const dbPath = path.join(__dirname, "cms.db");
+const configuredDbPath = (process.env.CMS_DB_PATH || "").trim();
+const dbPath = configuredDbPath
+  ? path.resolve(configuredDbPath)
+  : path.join(__dirname, "cms.db");
+
+fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+
+if (process.env.NODE_ENV === "production") {
+  if (!configuredDbPath) {
+    console.warn(
+      "⚠️  CMS_DB_PATH is not set. SQLite will use server/cms.db, which is often ephemeral in production and can reset content after redeploy/restart."
+    );
+  } else {
+    console.log(`ℹ️  SQLite DB path: ${dbPath}`);
+  }
+}
 
 const db = new Database(dbPath);
 

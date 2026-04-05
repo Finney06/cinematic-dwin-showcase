@@ -17,6 +17,7 @@ Required:
 - `JWT_SECRET=<strong-secret>`
 - `CORS_ORIGIN=https://your-frontend-domain.com`
 - `STORAGE_DRIVER=cloudinary` (recommended for this codebase) or `s3`
+- `CMS_DB_PATH=<path-on-persistent-volume>/cms.db`
 
 S3 / R2 (alternative):
 
@@ -44,6 +45,8 @@ Optional seed defaults:
 
 SQLite works for initial deployment, but persistent volume is required to keep data.
 If your platform does not provide durable disk, migrate to managed Postgres next.
+
+For Render-style deployments, mount a disk and point `CMS_DB_PATH` to that mount path.
 
 ## 4) Smoke test
 
