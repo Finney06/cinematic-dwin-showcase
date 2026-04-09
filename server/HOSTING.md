@@ -41,6 +41,11 @@ Optional seed defaults:
 - `ADMIN_USERNAME=dwindik`
 - `ADMIN_PASSWORD=admin123`
 
+Important:
+
+- Do **not** run `npm run seed` on every deploy.
+- In production, seeding is blocked by default unless `ALLOW_PROD_SEED=true` is set temporarily.
+
 ## 3) Database note (SQLite)
 
 SQLite works for initial deployment, but persistent volume is required to keep data.

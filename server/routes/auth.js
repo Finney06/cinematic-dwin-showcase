@@ -2,7 +2,7 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
-import db from "../db.js";
+import pool from "../db.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { logAudit } from "../utils/audit.js";
 
@@ -31,68 +31,85 @@ const isStrongPassword = (password) => {
 };
 
 // POST /api/auth/login
-router.post("/login", loginLimiter, (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({ error: "Username and password required" });
-  }
-
-  const user = db.prepare("SELECT * FROM admin_users WHERE username = ?").get(username);
-  if (!user) {
-    return res.status(401).json({ error: "Invalid credentials" });
-  }
-
-  const valid = bcrypt.compareSync(password, user.password_hash);
-  if (!valid) {
-    return res.status(401).json({ error: "Invalid credentials" });
-  }
-
-  const token = jwt.sign(
-    { id: user.id, username: user.username },
-    process.env.JWT_SECRET,
-    {
-      expiresIn: jwtExpiresIn,
-      issuer: jwtIssuer,
-      audience: jwtAudience,
+router.post("/login", loginLimiter, async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ error: "Username and password required" });
     }
-  );
 
-  res.json({ token, user: { id: user.id, username: user.username } });
+    const { rows } = await pool.query("SELECT * FROM admin_users WHERE username = $1", [username]);
+    const user = rows[0];
+    
+    if (!user) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    const valid = bcrypt.compareSync(password, user.password_hash);
+    if (!valid) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, username: user.username },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: jwtExpiresIn,
+        issuer: jwtIssuer,
+        audience: jwtAudience,
+      }
+    );
+
+    res.json({ token, user: { id: user.id, username: user.username } });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 // GET /api/auth/me
-router.get("/me", authMiddleware, (req, res) => {
-  const user = db
-    .prepare("SELECT id, username, created_at FROM admin_users WHERE id = ?")
-    .get(req.user.id);
-  if (!user) return res.status(404).json({ error: "User not found" });
-  res.json(user);
+router.get("/me", authMiddleware, async (req, res) => {
+  try {
+    const { rows } = await pool.query("SELECT id, username, created_at FROM admin_users WHERE id = $1", [req.user.id]);
+    const user = rows[0];
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 // PUT /api/auth/change-password
-router.put("/change-password", authMiddleware, (req, res) => {
-  const { currentPassword, newPassword } = req.body;
-  if (!currentPassword || !newPassword) {
-    return res.status(400).json({ error: "Both passwords required" });
-  }
+router.put("/change-password", authMiddleware, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: "Both passwords required" });
+    }
 
-  if (!isStrongPassword(newPassword)) {
-    return res.status(400).json({
-      error:
-        "New password must be at least 12 characters and include uppercase, lowercase, number, and symbol",
-    });
-  }
+    if (!isStrongPassword(newPassword)) {
+      return res.status(400).json({
+        error:
+          "New password must be at least 12 characters and include uppercase, lowercase, number, and symbol",
+      });
+    }
 
-  const user = db.prepare("SELECT * FROM admin_users WHERE id = ?").get(req.user.id);
-  const valid = bcrypt.compareSync(currentPassword, user.password_hash);
-  if (!valid) {
-    return res.status(401).json({ error: "Current password is incorrect" });
-  }
+    const { rows } = await pool.query("SELECT * FROM admin_users WHERE id = $1", [req.user.id]);
+    const user = rows[0];
+    const valid = bcrypt.compareSync(currentPassword, user.password_hash);
+    if (!valid) {
+      return res.status(401).json({ error: "Current password is incorrect" });
+    }
 
-  const hash = bcrypt.hashSync(newPassword, 10);
-  db.prepare("UPDATE admin_users SET password_hash = ? WHERE id = ?").run(hash, req.user.id);
-  logAudit(req, "auth.password.change", "user", String(req.user.id));
-  res.json({ message: "Password changed successfully" });
+    const hash = bcrypt.hashSync(newPassword, 10);
+    await pool.query("UPDATE admin_users SET password_hash = $1 WHERE id = $2", [hash, req.user.id]);
+    await logAudit(req, "auth.password.change", "user", String(req.user.id));
+    res.json({ message: "Password changed successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 export default router;
