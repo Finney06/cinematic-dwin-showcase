@@ -2,6 +2,58 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchProjects, fetchMenuItems, fetchAuditLogs } from "@/lib/api";
 import { Link } from "react-router-dom";
 
+const actionLabels: Record<string, string> = {
+  "project.create": "created a project",
+  "project.update": "updated a project",
+  "project.delete": "deleted a project",
+  "project.reorder": "reordered projects",
+  "menu.create": "added a menu item",
+  "menu.update": "updated a menu item",
+  "menu.delete": "removed a menu item",
+  "menu.reorder": "reordered the menu",
+  "content.about.update": "updated the About page",
+  "content.hero.update": "updated the Hero section",
+  "content.settings.update": "updated site settings",
+  "content.page.update": "updated a page",
+  "upload.single": "uploaded a file",
+  "upload.multiple": "uploaded multiple files",
+  "auth.password.change": "changed password",
+};
+
+const entityLabels: Record<string, string> = {
+  project: "Project",
+  menu: "Menu",
+  content: "Content",
+  page: "Page",
+  upload: "Upload",
+  user: "User",
+};
+
+function getFriendlyAction(action: string) {
+  return actionLabels[action] || action.replace(/[._]/g, " ");
+}
+
+function getFriendlyTarget(log: {
+  entity_type: string;
+  entity_id: string;
+  details?: Record<string, unknown>;
+}) {
+  const details = log.details || {};
+  const title = (details.title as string) || (details.label as string) || (details.pageSlug as string);
+  if (title) return title;
+
+  if (log.entity_id && log.entity_id !== "bulk" && log.entity_id !== "batch") {
+    const entity = entityLabels[log.entity_type] || "Item";
+    return `${entity}: ${log.entity_id}`;
+  }
+
+  if (typeof details.count === "number") {
+    return `${details.count} items`;
+  }
+
+  return entityLabels[log.entity_type] || "System";
+}
+
 const AdminDashboard = () => {
   const { data: projects = [], isLoading: projectsLoading } = useQuery({
     queryKey: ["admin-projects"],
@@ -216,10 +268,10 @@ const AdminDashboard = () => {
                 <div key={log.id} className="px-5 py-3.5 flex items-center justify-between gap-4">
                   <div className="min-w-0">
                     <p className="text-xs text-white/60 truncate">
-                      <span className="text-white/35">{log.username}</span> · {log.action}
+                      <span className="text-white/35">{log.username}</span> {getFriendlyAction(log.action)}
                     </p>
                     <p className="text-[10px] text-white/25 mt-0.5 truncate">
-                      {log.entity_type}{log.entity_id ? `/${log.entity_id}` : ""}
+                      {getFriendlyTarget(log)}
                     </p>
                   </div>
                   <span className="text-[10px] text-white/20 whitespace-nowrap">
