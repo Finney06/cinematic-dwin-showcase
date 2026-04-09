@@ -1,6 +1,8 @@
 import "dotenv/config";
 import bcrypt from "bcryptjs";
-import db from "./db.js";
+import pool, { initPromise } from "./db.js";
+
+await initPromise;
 
 console.log("🌱  Seeding Dwindik CMS database...\n");
 
@@ -8,6 +10,13 @@ console.log("🌱  Seeding Dwindik CMS database...\n");
 const username = process.env.ADMIN_USERNAME || "dwindik";
 const password = process.env.ADMIN_PASSWORD || "admin123";
 const isProduction = process.env.NODE_ENV === "production";
+const allowProdSeed = process.env.ALLOW_PROD_SEED === "true";
+
+if (isProduction && !allowProdSeed) {
+  throw new Error(
+    "Refusing to run seed in production. Set ALLOW_PROD_SEED=true only for one-time controlled seeding."
+  );
+}
 
 if (isProduction && (!process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD === "admin123")) {
   throw new Error("ADMIN_PASSWORD must be set to a strong value in production before running seed.");
@@ -17,10 +26,12 @@ if (password.length < 12) {
   console.warn("⚠️  ADMIN_PASSWORD is shorter than 12 characters. Use a stronger password.");
 }
 
-const existingUser = db.prepare("SELECT * FROM admin_users WHERE username = ?").get(username);
+const res = await pool.query("SELECT * FROM admin_users WHERE username = $1", [username]);
+const existingUser = res.rows[0];
+
 if (!existingUser) {
   const hash = bcrypt.hashSync(password, 10);
-  db.prepare("INSERT INTO admin_users (username, password_hash) VALUES (?, ?)").run(username, hash);
+  await pool.query("INSERT INTO admin_users (username, password_hash) VALUES ($1, $2)", [username, hash]);
   console.log(`  ✓ Admin user created: ${username}`);
 } else {
   console.log(`  ○ Admin user already exists: ${username}`);
@@ -217,36 +228,33 @@ const projects = [
   },
 ];
 
-const insertProject = db.prepare(`
-  INSERT OR IGNORE INTO projects
+const insertProjectQuery = `
+  INSERT INTO projects
     (id, title, category, category_label, year, role, description, synopsis, thumbnail, youtube_id, director, producers, cast_info, status, sort_order)
   VALUES
-    (@id, @title, @category, @category_label, @year, @role, @description, @synopsis, @thumbnail, @youtube_id, @director, @producers, @cast_info, @status, @sort_order)
-`);
+    ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+  ON CONFLICT (id) DO NOTHING
+`;
 
-const seedProjects = db.transaction((projects) => {
-  for (const p of projects) {
-    insertProject.run({
-      id: p.id,
-      title: p.title,
-      category: p.category,
-      category_label: p.category_label,
-      year: p.year,
-      role: p.role || "",
-      description: p.description || "",
-      synopsis: p.synopsis || "",
-      thumbnail: p.thumbnail || "",
-      youtube_id: p.youtube_id || "",
-      director: p.director || "",
-      producers: p.producers || "",
-      cast_info: p.cast_info || "",
-      status: p.status || "",
-      sort_order: p.sort_order || 0,
-    });
-  }
-});
-
-seedProjects(projects);
+for (const p of projects) {
+  await pool.query(insertProjectQuery, [
+    p.id,
+    p.title,
+    p.category,
+    p.category_label,
+    p.year,
+    p.role || "",
+    p.description || "",
+    p.synopsis || "",
+    p.thumbnail || "",
+    p.youtube_id || "",
+    p.director || "",
+    p.producers || "",
+    p.cast_info || "",
+    p.status || "",
+    p.sort_order || 0,
+  ]);
+}
 console.log(`  ✓ Seeded ${projects.length} projects`);
 
 // ─── 3. Menu Items ───────────────────────────────────────────
@@ -262,26 +270,29 @@ const menuItems = [
   { label: "Internship", path: "/internship", page_type: "page", sort_order: 9, visible: 1 },
 ];
 
-const existingMenuCount = db.prepare("SELECT COUNT(*) as count FROM menu_items").get();
-if (existingMenuCount.count === 0) {
-  const insertMenu = db.prepare(
-    "INSERT INTO menu_items (label, path, page_type, sort_order, visible) VALUES (?, ?, ?, ?, ?)"
-  );
+const existingMenuCountRes = await pool.query("SELECT COUNT(*) as count FROM menu_items");
+const existingMenuCount = parseInt(existingMenuCountRes.rows[0].count, 10);
+
+if (existingMenuCount === 0) {
+  const insertMenuQuery = `
+    INSERT INTO menu_items (label, path, page_type, sort_order, visible)
+    VALUES ($1, $2, $3, $4, $5)
+  `;
   for (const item of menuItems) {
-    insertMenu.run(item.label, item.path, item.page_type, item.sort_order, item.visible);
+    await pool.query(insertMenuQuery, [item.label, item.path, item.page_type, item.sort_order, item.visible]);
   }
   console.log(`  ✓ Seeded ${menuItems.length} menu items`);
 } else {
-  console.log(`  ○ Menu items already exist (${existingMenuCount.count})`);
+  console.log(`  ○ Menu items already exist (${existingMenuCount})`);
 }
 
 // ─── 4. Hero Content ─────────────────────────────────────────
-const existingHero = db.prepare("SELECT COUNT(*) as count FROM hero_content").get();
-if (existingHero.count === 0) {
-  db.prepare(`
+const existingHeroRes = await pool.query("SELECT COUNT(*) as count FROM hero_content");
+if (parseInt(existingHeroRes.rows[0].count, 10) === 0) {
+  await pool.query(`
     INSERT INTO hero_content (brand_text, tagline, video_url, hero_image, hero_link)
     VALUES ('DWINDIK', 'Cre8te', '/dwindik/video1.mp4', '/dwindik/5.jpeg', 'https://youtu.be/mPAZSvF5usk?si=IxaXZFE0nJZw0ypt')
-  `).run();
+  `);
   console.log("  ✓ Seeded hero content");
 } else {
   console.log("  ○ Hero content already exists");
@@ -304,16 +315,19 @@ const defaultSettings = {
   site_title: "Dwindik",
 };
 
-const upsertSetting = db.prepare(`
-  INSERT OR IGNORE INTO site_settings (key, value) VALUES (?, ?)
-`);
+const upsertSettingQuery = `
+  INSERT INTO site_settings (key, value) VALUES ($1, $2)
+  ON CONFLICT (key) DO NOTHING
+`;
 for (const [key, value] of Object.entries(defaultSettings)) {
-  upsertSetting.run(key, value);
+  await pool.query(upsertSettingQuery, [key, value]);
 }
 console.log("  ✓ Seeded site settings");
 
 // ─── 6. About Page Content ──────────────────────────────────
-const existingAbout = db.prepare("SELECT * FROM page_content WHERE page_slug = 'about'").get();
+const existingAboutRes = await pool.query("SELECT * FROM page_content WHERE page_slug = 'about'");
+const existingAbout = existingAboutRes.rows[0];
+
 if (!existingAbout) {
   const aboutContent = {
     heroImage: "/dwindik/1.jpeg",
@@ -361,9 +375,10 @@ if (!existingAbout) {
     portraitImage: "/dwindik/5.jpeg",
   };
 
-  db.prepare(
-    "INSERT INTO page_content (page_slug, title, content) VALUES ('about', 'About', ?)"
-  ).run(JSON.stringify(aboutContent));
+  await pool.query(
+    "INSERT INTO page_content (page_slug, title, content) VALUES ('about', 'About', $1)",
+    [JSON.stringify(aboutContent)]
+  );
   console.log("  ✓ Seeded about page content");
 } else {
   console.log("  ○ About page content already exists");

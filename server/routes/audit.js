@@ -1,23 +1,28 @@
 import { Router } from "express";
-import db from "../db.js";
+import pool from "../db.js";
 import { authMiddleware } from "../middleware/auth.js";
 
 const router = Router();
 
 // GET /api/admin/audit
-router.get("/", authMiddleware, (req, res) => {
-  const limit = Math.min(parseInt(req.query.limit, 10) || 30, 100);
-  const rows = db
-    .prepare(
-      "SELECT id, username, action, entity_type, entity_id, details, ip, created_at FROM audit_logs ORDER BY created_at DESC LIMIT ?"
-    )
-    .all(limit)
-    .map((row) => ({
+router.get("/", authMiddleware, async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit, 10) || 30, 100);
+    const { rows } = await pool.query(
+      "SELECT id, username, action, entity_type, entity_id, details, ip, created_at FROM audit_logs ORDER BY created_at DESC LIMIT $1",
+      [limit]
+    );
+
+    const mappedRows = rows.map((row) => ({
       ...row,
       details: JSON.parse(row.details || "{}"),
     }));
 
-  res.json(rows);
+    res.json(mappedRows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 export default router;

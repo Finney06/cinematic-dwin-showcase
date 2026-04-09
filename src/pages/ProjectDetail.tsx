@@ -1,11 +1,17 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useParams, Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
 import { useProject, useProjects } from "@/hooks/useContent";
+import { useAnimationSettings } from "@/hooks/useAnimationSettings";
 
 const ProjectDetail = () => {
+  const shouldReduceMotion = useReducedMotion();
+  const { getSectionDuration, getSectionDelay, getSectionOffsetY, getSectionEase, isSectionEnabled } = useAnimationSettings();
+  const instant = shouldReduceMotion || !isSectionEnabled("projectDetail");
+  const sectionEase = getSectionEase("projectDetail");
+
   const { id } = useParams<{ id: string }>();
   const { data: project, isLoading } = useProject(id || "");
   const { data: categoryProjects = [] } = useProjects(project?.category);
@@ -54,9 +60,9 @@ const ProjectDetail = () => {
       <main className="bg-background min-h-screen">
         {/* ═══ HERO ═══ */}
         <motion.div
-          initial={{ opacity: 0 }}
+          initial={{ opacity: instant ? 1 : 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 1.2 }}
+          transition={{ duration: instant ? 0 : getSectionDuration("projectDetail", 1.2), ease: sectionEase }}
           className="relative w-full h-[40vh] sm:h-[55vh] md:h-[70vh] overflow-hidden"
         >
           <img
@@ -69,9 +75,13 @@ const ProjectDetail = () => {
           {/* Title overlay */}
           <div className="absolute bottom-0 left-0 right-0 px-5 sm:px-8 md:px-12 pb-6 sm:pb-10 md:pb-14">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: instant ? 1 : 0, y: instant ? 0 : getSectionOffsetY("projectDetail", 20) }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
+              transition={{
+                duration: instant ? 0 : getSectionDuration("projectDetail", 0.8),
+                delay: instant ? 0 : getSectionDelay("projectDetail", 0.3),
+                ease: sectionEase,
+              }}
             >
               <span className="font-body text-[8px] sm:text-[9px] tracking-[0.3em] uppercase text-foreground/40 block mb-2 sm:mb-3">
                 {project.category_label} — {project.year}
@@ -92,9 +102,13 @@ const ProjectDetail = () => {
         <div className="px-5 sm:px-8 md:px-12">
           {/* Description / Synopsis */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: instant ? 1 : 0, y: instant ? 0 : getSectionOffsetY("projectDetail", 20) }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
+            transition={{
+              duration: instant ? 0 : getSectionDuration("projectDetail", 0.8),
+              delay: instant ? 0 : getSectionDelay("projectDetail", 0.5),
+              ease: sectionEase,
+            }}
             className="max-w-3xl pt-10 sm:pt-14 pb-12 sm:pb-16"
           >
             <p className="font-body text-sm sm:text-base md:text-lg leading-[1.8] text-foreground/55">
@@ -105,9 +119,13 @@ const ProjectDetail = () => {
           {/* ═══ YOUTUBE EMBED ═══ */}
           {project.youtube_id && (
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: instant ? 1 : 0, y: instant ? 0 : getSectionOffsetY("projectDetail", 30) }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
+              transition={{
+                duration: instant ? 0 : getSectionDuration("projectDetail", 0.8),
+                delay: instant ? 0 : getSectionDelay("projectDetail", 0.6),
+                ease: sectionEase,
+              }}
               className="mb-14 sm:mb-20"
             >
               <div className="relative aspect-video w-full max-w-5xl overflow-hidden bg-secondary">
@@ -124,10 +142,10 @@ const ProjectDetail = () => {
 
           {/* ═══ CREDITS ═══ */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: instant ? 1 : 0, y: instant ? 0 : getSectionOffsetY("projectDetail", 20) }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: instant ? 0 : getSectionDuration("projectDetail", 0.8), ease: sectionEase }}
             className="border-t border-foreground/[0.06] pt-10 sm:pt-12 max-w-3xl"
           >
             <span className="font-body text-[9px] tracking-[0.3em] uppercase text-foreground/25 block mb-6 sm:mb-8">
@@ -185,10 +203,10 @@ const ProjectDetail = () => {
 
           {/* ═══ NAVIGATION ═══ */}
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={{ opacity: instant ? 1 : 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: instant ? 0 : getSectionDuration("projectDetail", 0.8), ease: sectionEase }}
             className="border-t border-foreground/[0.06] pt-8 sm:pt-10 mt-14 sm:mt-20 pb-6 sm:pb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6"
           >
             <Link

@@ -1,8 +1,14 @@
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useMenuItems, useSiteSettings } from "@/hooks/useContent";
+import { useAnimationSettings } from "@/hooks/useAnimationSettings";
 
 const Footer = () => {
+  const shouldReduceMotion = useReducedMotion();
+  const { getSectionDuration, getSectionEase, isSectionEnabled } = useAnimationSettings();
+  const instant = shouldReduceMotion || !isSectionEnabled("footer");
+  const sectionEase = getSectionEase("footer");
+
   const { data: menuItems = [] } = useMenuItems();
   const { data: settings } = useSiteSettings();
 
@@ -24,10 +30,10 @@ const Footer = () => {
 
   return (
     <motion.footer
-      initial={{ opacity: 0 }}
+      initial={{ opacity: instant ? 1 : 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ once: true }}
-      transition={{ duration: 1 }}
+      transition={{ duration: instant ? 0 : getSectionDuration("footer", 1), ease: sectionEase }}
       className="border-t border-foreground/[0.06] px-5 sm:px-8 md:px-12 py-10 sm:py-12 mt-14 sm:mt-20"
     >
       {/* Nav links row */}
@@ -60,6 +66,9 @@ const Footer = () => {
         </div>
         <p className="font-body text-[10px] tracking-[0.15em] uppercase text-foreground/15">
           {settings?.copyright_text || "©2026 Dwindik. All rights reserved."}
+        </p>
+        <p className="font-body text-[9px] tracking-[0.12em] uppercase text-foreground/10">
+          Build: 2026-04-05
         </p>
       </div>
     </motion.footer>

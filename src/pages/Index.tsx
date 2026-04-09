@@ -1,27 +1,12 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useHeroContent, useLatestProjects } from "@/hooks/useContent";
+import { useAnimationSettings } from "@/hooks/useAnimationSettings";
 
 const VIDEO_START_DELAY = 1800;
-
-const letterContainer = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.12, delayChildren: 0.5 },
-  },
-};
-
-const letterVariant = {
-  hidden: { y: "110%", opacity: 0 },
-  visible: {
-    y: "0%",
-    opacity: 1,
-    transition: { duration: 1, ease: [0.22, 1, 0.36, 1] as const },
-  },
-};
 
 type Phase = "idle" | "video" | "image";
 
@@ -42,6 +27,31 @@ function isPlayableVideoSource(url?: string): boolean {
 }
 
 const Index = () => {
+  const shouldReduceMotion = useReducedMotion();
+  const { getSectionDuration, getSectionDelay, getSectionEase, enabled, isSectionEnabled } = useAnimationSettings();
+  const sectionEnabled = isSectionEnabled("homeHero");
+  const instant = shouldReduceMotion || !sectionEnabled;
+  const sectionEase = getSectionEase("homeHero");
+
+  const letterContainer = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: instant ? 0 : getSectionDuration("homeHero", 0.12),
+        delayChildren: instant ? 0 : getSectionDelay("homeHero", 0.5),
+      },
+    },
+  };
+
+  const letterVariant = {
+    hidden: { y: instant ? "0%" : "110%", opacity: instant ? 1 : 0 },
+    visible: {
+      y: "0%",
+      opacity: 1,
+      transition: { duration: instant ? 0 : getSectionDuration("homeHero", 1), ease: sectionEase },
+    },
+  };
+
   const isOgPreview =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).has("og");
@@ -60,9 +70,12 @@ const Index = () => {
 
   useEffect(() => {
     if (isOgPreview) return;
-    const t = setTimeout(() => setPhase(canPlayHeroVideo ? "video" : "image"), VIDEO_START_DELAY);
+    const t = setTimeout(
+      () => setPhase(canPlayHeroVideo && !instant ? "video" : "image"),
+      instant ? 0 : VIDEO_START_DELAY
+    );
     return () => clearTimeout(t);
-  }, [isOgPreview, canPlayHeroVideo]);
+  }, [isOgPreview, canPlayHeroVideo, instant]);
 
   useEffect(() => {
     if (isOgPreview) return;
@@ -92,9 +105,13 @@ const Index = () => {
         {/* Circle */}
         <motion.div
           className="absolute z-0 translate-x-4 sm:translate-x-6 md:translate-x-10 lg:translate-x-14"
-          initial={{ opacity: 0, scale: 0.3 }}
+          initial={{ opacity: instant ? 1 : 0, scale: instant ? 1 : 0.3 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: isOgPreview ? 0 : 1.8, delay: isOgPreview ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
+          transition={{
+            duration: isOgPreview || instant ? 0 : getSectionDuration("homeHero", 1.8),
+            delay: isOgPreview || instant ? 0 : getSectionDelay("homeHero", 0.3),
+            ease: sectionEase,
+          }}
           style={{ perspective: "800px" }}
         >
           <a
@@ -105,8 +122,8 @@ const Index = () => {
           >
             <motion.div
               className="circle-media w-[80vw] h-[80vw] sm:w-[75vw] sm:h-[75vw] md:w-[55vw] md:h-[55vw] lg:w-[45vw] lg:h-[45vw] rounded-full relative"
-              animate={{ rotateX: [0, 1.5, -1, 0], rotateY: [0, -2, 1.5, 0] }}
-              transition={{ duration: 10, ease: "easeInOut", repeat: Infinity, repeatType: "mirror" }}
+              animate={enabled && sectionEnabled && !instant ? { rotateX: [0, 1.5, -1, 0], rotateY: [0, -2, 1.5, 0] } : { rotateX: 0, rotateY: 0 }}
+              transition={enabled && sectionEnabled && !instant ? { duration: getSectionDuration("homeHero", 10), ease: "easeInOut", repeat: Infinity, repeatType: "mirror" } : { duration: 0 }}
               style={{
                 transformStyle: "preserve-3d",
                 background: "hsl(0 0% 10%)",
@@ -138,22 +155,24 @@ const Index = () => {
                     <>
                       <motion.div
                         className="absolute inset-0"
-                        initial={{
+                        initial={instant ? {
+                          clipPath: "polygon(0% 0%, 115% 0%, 111% 15%, 107% 30%, 105% 50%, 107% 70%, 111% 85%, 115% 100%, 0% 100%)",
+                        } : {
                           clipPath: "polygon(0% 0%, 0% 0%, -4% 15%, -8% 30%, -10% 50%, -8% 70%, -4% 85%, 0% 100%, 0% 100%)",
                         }}
                         animate={{
                           clipPath: "polygon(0% 0%, 115% 0%, 111% 15%, 107% 30%, 105% 50%, 107% 70%, 111% 85%, 115% 100%, 0% 100%)",
                         }}
-                        transition={{ duration: 1.4, delay: 0.15, ease: [0.25, 0.9, 0.3, 1] }}
+                        transition={{ duration: instant ? 0 : getSectionDuration("homeHero", 1.4), delay: instant ? 0 : getSectionDelay("homeHero", 0.15), ease: sectionEase }}
                       >
                         <img className="w-full h-full object-cover" src={heroImage} alt={brandText} />
                         <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.15)" }} />
                       </motion.div>
                       <motion.div
                         className="absolute pointer-events-none z-20"
-                        initial={{ left: "-10%" }}
+                        initial={{ left: instant ? "105%" : "-10%" }}
                         animate={{ left: "105%" }}
-                        transition={{ duration: 1.4, delay: 0.15, ease: [0.25, 0.9, 0.3, 1] }}
+                        transition={{ duration: instant ? 0 : getSectionDuration("homeHero", 1.4), delay: instant ? 0 : getSectionDelay("homeHero", 0.15), ease: sectionEase }}
                         style={{
                           top: "-5%", width: "14%", height: "110%",
                           background: "radial-gradient(ellipse 50% 45% at 50% 50%, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.12) 50%, transparent 100%)",
@@ -162,9 +181,9 @@ const Index = () => {
                       />
                       <motion.div
                         className="absolute pointer-events-none z-20"
-                        initial={{ left: "-22%" }}
+                        initial={{ left: instant ? "100%" : "-22%" }}
                         animate={{ left: "100%" }}
-                        transition={{ duration: 1.6, delay: 0.15, ease: [0.25, 0.9, 0.3, 1] }}
+                        transition={{ duration: instant ? 0 : getSectionDuration("homeHero", 1.6), delay: instant ? 0 : getSectionDelay("homeHero", 0.15), ease: sectionEase }}
                         style={{
                           top: "-10%", width: "28%", height: "120%",
                           background: "radial-gradient(ellipse 45% 40% at 50% 50%, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.04) 50%, transparent 100%)",
@@ -209,14 +228,16 @@ const Index = () => {
         {/* Rotating arc */}
         <motion.div
           className="absolute z-5 pointer-events-none"
-          initial={{ opacity: 0, rotate: 0, scale: 1 }}
+          initial={{ opacity: instant ? 0 : 0, rotate: 0, scale: 1 }}
           animate={{
             opacity: isOgPreview ? 0 : [0, 0.6, 0.6, 0],
             rotate: [0, 360],
             scale: isOgPreview ? 1 : [1, 1, 0.15],
           }}
           transition={{
-            duration: isOgPreview ? 0 : 2.2, delay: isOgPreview ? 0 : 0.2, ease: [0.22, 1, 0.36, 1],
+            duration: isOgPreview || instant ? 0 : getSectionDuration("homeHero", 2.2),
+            delay: isOgPreview || instant ? 0 : getSectionDelay("homeHero", 0.2),
+            ease: sectionEase,
             times: [0, 0.08, 0.65, 1],
           }}
         >
@@ -227,9 +248,9 @@ const Index = () => {
 
         {/* Tagline */}
         <motion.p
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: instant ? 1 : 0, y: instant ? 0 : 16 }}
           animate={{ opacity: 0.2, y: 0 }}
-          transition={{ duration: isOgPreview ? 0 : 1.2, delay: isOgPreview ? 0 : 2.6 }}
+          transition={{ duration: isOgPreview || instant ? 0 : getSectionDuration("homeHero", 1.2), delay: isOgPreview || instant ? 0 : getSectionDelay("homeHero", 2.6), ease: sectionEase }}
           className="absolute bottom-10 sm:bottom-14 left-0 right-0 text-center px-4 font-body text-[11px] sm:text-[12px] tracking-[0.35em] sm:tracking-[0.6em] uppercase text-foreground"
         >
           {tagline}

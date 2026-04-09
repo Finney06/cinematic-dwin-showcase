@@ -1,11 +1,12 @@
-import db from "../db.js";
+import pool from "../db.js";
 
-export const logAudit = (req, action, entityType, entityId = "", details = {}) => {
+export const logAudit = async (req, action, entityType, entityId = "", details = {}) => {
   try {
-    db.prepare(
-      `INSERT INTO audit_logs (user_id, username, action, entity_type, entity_id, details, ip)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
-    ).run(
+    const query = `
+      INSERT INTO audit_logs (user_id, username, action, entity_type, entity_id, details, ip)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `;
+    const values = [
       req.user?.id || null,
       req.user?.username || "system",
       action,
@@ -13,7 +14,8 @@ export const logAudit = (req, action, entityType, entityId = "", details = {}) =
       entityId,
       JSON.stringify(details || {}),
       req.ip || req.headers["x-forwarded-for"] || ""
-    );
+    ];
+    await pool.query(query, values);
   } catch (error) {
     console.error("Failed to write audit log:", error);
   }
