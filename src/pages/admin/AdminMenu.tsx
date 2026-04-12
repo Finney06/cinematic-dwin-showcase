@@ -15,6 +15,7 @@ import {
   KeyboardSensor,
   useSensor,
   useSensors,
+  DragEndEvent,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -92,11 +93,11 @@ const AdminMenu = () => {
 
   const itemIds = useMemo(() => orderedItems.map((item) => item.id), [orderedItems]);
 
-  const handleDragEnd = (event: { active: { id: number }; over: { id: number } | null }) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const oldIndex = orderedItems.findIndex((item) => item.id === active.id);
-    const newIndex = orderedItems.findIndex((item) => item.id === over.id);
+    const oldIndex = orderedItems.findIndex((item) => String(item.id) === String(active.id));
+    const newIndex = orderedItems.findIndex((item) => String(item.id) === String(over.id));
     if (oldIndex < 0 || newIndex < 0) return;
 
     const next = arrayMove(orderedItems, oldIndex, newIndex);
