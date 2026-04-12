@@ -133,6 +133,7 @@ const Index = () => {
 
   /* ─ Derived ─ */
   const isDone = phase === "done";
+  const isEclipseActive = phase === "corona" || phase === "dim";
   const showText = isAtLeast(phase, "reveal");
   const showTagline = isAtLeast(phase, "done");
 
@@ -397,6 +398,43 @@ const Index = () => {
               }}
             />
 
+            {/* Subtle corona flicker noise (only during eclipse peak) */}
+            <motion.div
+              className="absolute pointer-events-none"
+              style={{
+                top: "-12%",
+                left: "4%",
+                width: "54%",
+                height: "48%",
+                zIndex: 17,
+                mixBlendMode: "screen",
+                background: `radial-gradient(
+                  circle at 34% 28%,
+                  rgba(255,255,255,0.7) 0%,
+                  rgba(255,255,255,0.2) 38%,
+                  transparent 72%
+                )`,
+                filter: "blur(7px)",
+              }}
+              animate={{
+                opacity:
+                  phase === "corona"
+                    ? [0.02, 0.09, 0.03, 0.11, 0.04, 0.08, 0.02]
+                    : 0,
+                scale:
+                  phase === "corona" ? [1, 1.03, 0.99, 1.02, 1] : 1,
+                x:
+                  phase === "corona" ? [0, -1.2, 0.7, -0.8, 0] : 0,
+                y:
+                  phase === "corona" ? [0, 0.8, -0.6, 0.4, 0] : 0,
+              }}
+              transition={{
+                duration: getSectionDuration("homeHero", 0.55),
+                ease: "linear",
+                repeat: phase === "corona" ? 3 : 0,
+              }}
+            />
+
             {/* ══ THE DARK CIRCLE ══ */}
             <a
               href={heroLink}
@@ -409,6 +447,8 @@ const Index = () => {
                 animate={
                   enabled && sectionEnabled && !instant && isDone
                     ? { rotateX: [0, 1.5, -1, 0], rotateY: [0, -2, 1.5, 0] }
+                    : enabled && sectionEnabled && !instant && isEclipseActive
+                    ? { rotateX: [0, 0.9, -0.5, 0], rotateY: [0, -1.1, 0.6, 0], scale: [1, 1.01, 0.997, 1] }
                     : { rotateX: 0, rotateY: 0 }
                 }
                 transition={
@@ -419,13 +459,65 @@ const Index = () => {
                         repeat: Infinity,
                         repeatType: "mirror",
                       }
+                    : enabled && sectionEnabled && !instant && isEclipseActive
+                    ? {
+                        duration: getSectionDuration("homeHero", 3.4),
+                        ease: [0.22, 0.7, 0.25, 1],
+                      }
                     : { duration: 0 }
                 }
                 style={{
                   transformStyle: "preserve-3d",
-                  background: "hsl(0 0% 5%)",
+                  background: "hsl(0 0% 3%)",
                 }}
               >
+                {/* Sphere depth base (prevents flat/boring look on load) */}
+                <motion.div
+                  className="absolute inset-0 rounded-full pointer-events-none"
+                  style={{
+                    zIndex: 1,
+                    background: `radial-gradient(
+                      circle at 36% 30%,
+                      rgba(255,255,255,0.14) 0%,
+                      rgba(255,255,255,0.06) 24%,
+                      rgba(255,255,255,0.015) 42%,
+                      rgba(0,0,0,0.26) 72%,
+                      rgba(0,0,0,0.52) 100%
+                    )`,
+                  }}
+                  animate={{
+                    opacity:
+                      phase === "void" ? 0.9 :
+                      phase === "corona" ? 0.78 :
+                      phase === "dim" ? 0.62 :
+                      0.45,
+                  }}
+                  transition={{ duration: getSectionDuration("homeHero", 1.2), ease: sectionEase }}
+                />
+
+                {/* Limb darkening near edge for realism */}
+                <motion.div
+                  className="absolute inset-0 rounded-full pointer-events-none"
+                  style={{
+                    zIndex: 2,
+                    background: `radial-gradient(
+                      circle,
+                      transparent 64%,
+                      rgba(0,0,0,0.2) 78%,
+                      rgba(0,0,0,0.42) 90%,
+                      rgba(0,0,0,0.6) 100%
+                    )`,
+                  }}
+                  animate={{
+                    opacity:
+                      phase === "void" ? 0.85 :
+                      phase === "corona" ? 0.72 :
+                      phase === "dim" ? 0.58 :
+                      0.5,
+                  }}
+                  transition={{ duration: getSectionDuration("homeHero", 1.2), ease: sectionEase }}
+                />
+
                 {/* White Exposure — soft glow inside circle as light pushes through */}
                 <motion.div
                   className="absolute inset-0 rounded-full pointer-events-none"
