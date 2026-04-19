@@ -86,10 +86,12 @@ const FontSettings = () => {
 
   useEffect(() => {
     if (!settings) return;
-    const display = settings.font_display || '"Cormorant Garamond", serif';
-    const body = settings.font_body || '"Inter", sans-serif';
+    const display = settings.font_display || '"Pragmatica", "Helvetica Neue", Arial, sans-serif';
+    const body = settings.font_body || '"Heiti TC", "PingFang TC", "Microsoft JhengHei", sans-serif';
     document.documentElement.style.setProperty("--font-display", display);
     document.documentElement.style.setProperty("--font-body", body);
+
+    const localOnlyFamilies = new Set(["Pragmatica", "Heiti TC"]);
 
     const extractFamily = (value: string) => {
       const match = value.match(/"([^"]+)"/);
@@ -98,7 +100,14 @@ const FontSettings = () => {
 
     const families = [extractFamily(display), extractFamily(body)]
       .filter(Boolean)
+      .filter((f) => !localOnlyFamilies.has(f))
       .map((f) => f.replace(/\s+/g, "+"));
+
+    if (!families.length) {
+      const existing = document.getElementById("dynamic-google-fonts");
+      if (existing) existing.remove();
+      return;
+    }
 
     const href = `https://fonts.googleapis.com/css2?${families
       .map((f) => `family=${f}:wght@300;400;500;600;700`)
