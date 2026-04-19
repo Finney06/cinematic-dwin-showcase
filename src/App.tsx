@@ -33,6 +33,34 @@ import ProtectedRoute from "./components/admin/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
+const DEFAULT_DISPLAY_FONT =
+  '"Pragmatica Book", "Pragmatica", "Pragmatica Light", "Heiti TC", "Inter", sans-serif';
+const DEFAULT_BODY_FONT =
+  '"Heiti HC", "Heiti TC", "STHeiti", "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", "Inter", sans-serif';
+const LEGACY_DISPLAY_FONT = '"Cormorant Garamond", serif';
+const LEGACY_BODY_FONT = '"Inter", sans-serif';
+
+const GOOGLE_HOSTED_FAMILIES = new Set([
+  "Cormorant Garamond",
+  "Inter",
+  "Playfair Display",
+  "Lora",
+  "Merriweather",
+  "Libre Baskerville",
+  "Crimson Pro",
+  "Spectral",
+  "Fraunces",
+  "Montserrat",
+  "Poppins",
+  "Raleway",
+  "Roboto",
+  "DM Sans",
+  "Manrope",
+  "Space Grotesk",
+  "Outfit",
+  "Sora",
+]);
+
 const RouteSeo = () => {
   const location = useLocation();
 
@@ -86,25 +114,40 @@ const FontSettings = () => {
 
   useEffect(() => {
     if (!settings) return;
-    const display = settings.font_display || '"Cormorant Garamond", serif';
-    const body = settings.font_body || '"Inter", sans-serif';
+    const display =
+      !settings.font_display || settings.font_display === LEGACY_DISPLAY_FONT
+        ? DEFAULT_DISPLAY_FONT
+        : settings.font_display;
+    const body =
+      !settings.font_body || settings.font_body === LEGACY_BODY_FONT
+        ? DEFAULT_BODY_FONT
+        : settings.font_body;
+
     document.documentElement.style.setProperty("--font-display", display);
     document.documentElement.style.setProperty("--font-body", body);
 
-    const extractFamily = (value: string) => {
-      const match = value.match(/"([^"]+)"/);
-      return match?.[1] || value.split(",")[0].trim();
+    const extractFamilies = (value: string) => {
+      const quotedFamilies = [...value.matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+      if (quotedFamilies.length > 0) return quotedFamilies;
+      return [value.split(",")[0].trim()];
     };
 
-    const families = [extractFamily(display), extractFamily(body)]
+    const families = [...extractFamilies(display), ...extractFamilies(body)]
+      .filter((family) => GOOGLE_HOSTED_FAMILIES.has(family))
+      .filter((family, index, arr) => arr.indexOf(family) === index)
       .filter(Boolean)
       .map((f) => f.replace(/\s+/g, "+"));
+
+    let link = document.getElementById("dynamic-google-fonts") as HTMLLinkElement | null;
+    if (families.length === 0) {
+      link?.remove();
+      return;
+    }
 
     const href = `https://fonts.googleapis.com/css2?${families
       .map((f) => `family=${f}:wght@300;400;500;600;700`)
       .join("&")}&display=swap`;
 
-    let link = document.getElementById("dynamic-google-fonts") as HTMLLinkElement | null;
     if (!link) {
       link = document.createElement("link");
       link.id = "dynamic-google-fonts";

@@ -660,6 +660,76 @@ const Index = () => {
                 />
               </motion.div>
             </a>
+
+            {/* ═══ CRESCENT RIM LIGHT ═══ */}
+            {/* Sits on the upper-left rim of the dark circle during corona,
+                then shrinks behind as the eclipse deepens. */}
+            <motion.div
+              className="absolute inset-0 pointer-events-none"
+              style={{ zIndex: 19 }}
+              animate={{
+                opacity:
+                  phase === "void" ? 0 :
+                  phase === "corona" ? [0.35, 1, 0.7] :
+                  phase === "dim" ? 0.2 :
+                  0,
+              }}
+              transition={{
+                duration: getSectionDuration("homeHero", phase === "corona" ? 2.2 : 1.2),
+                times: phase === "corona" ? [0, 0.32, 1] : undefined,
+                ease: phase === "corona" ? [0.12, 0.9, 0.24, 1] : sectionEase,
+              }}
+            >
+              <svg
+                className="absolute inset-0 w-full h-full"
+                viewBox="0 0 320 320"
+                style={{ overflow: "visible" }}
+              >
+                <g transform="rotate(-148 160 160)">
+                  {/* Outer bloom halo */}
+                  <motion.circle
+                    cx="160" cy="160" r="160"
+                    fill="none" stroke="rgba(255,255,255,0.28)"
+                    strokeWidth="7" strokeLinecap="round"
+                    style={{ filter: "blur(6px)" }}
+                    animate={{
+                      strokeDasharray:
+                        phase === "corona" ? "195 900" :
+                        phase === "dim" ? "70 900" :
+                        "10 900",
+                    }}
+                    transition={{ duration: getSectionDuration("homeHero", 1.6), ease: sectionEase }}
+                  />
+                  {/* Mid glow */}
+                  <motion.circle
+                    cx="160" cy="160" r="160"
+                    fill="none" stroke="rgba(255,255,255,0.75)"
+                    strokeWidth="3" strokeLinecap="round"
+                    style={{ filter: "blur(2px)" }}
+                    animate={{
+                      strokeDasharray:
+                        phase === "corona" ? "170 900" :
+                        phase === "dim" ? "55 900" :
+                        "8 900",
+                    }}
+                    transition={{ duration: getSectionDuration("homeHero", 1.6), ease: sectionEase }}
+                  />
+                  {/* Bright hot core */}
+                  <motion.circle
+                    cx="160" cy="160" r="160"
+                    fill="none" stroke="rgba(255,255,255,1)"
+                    strokeWidth="1.4" strokeLinecap="round"
+                    animate={{
+                      strokeDasharray:
+                        phase === "corona" ? "148 900" :
+                        phase === "dim" ? "42 900" :
+                        "6 900",
+                    }}
+                    transition={{ duration: getSectionDuration("homeHero", 1.6), ease: sectionEase }}
+                  />
+                </g>
+              </svg>
+            </motion.div>
           </div>
         </motion.div>
 
@@ -684,28 +754,141 @@ const Index = () => {
           </motion.h1>
         )}
 
-        {/* ═══ ROTATING ARC ═══ */}
-        {phase === "reveal" && (
+        {/* ═══ SHOOTING STAR ORBIT ═══ */}
+        {/* A thin comet-like streak orbits the dark circle as DWINDIK appears */}
+        {isAtLeast(phase, "reveal") && !instant && !isOgPreview && (
           <motion.div
-            className="absolute z-5 pointer-events-none"
-            initial={{ opacity: 0, rotate: 0, scale: 1 }}
+            className="absolute z-[6] pointer-events-none flex items-center justify-center inset-0"
+            initial={{ opacity: 0, rotate: 0 }}
             animate={{
-              opacity: [0, 0.6, 0.6, 0],
-              rotate: [0, 360],
-              scale: [1, 1, 0.15],
+              opacity: [0, 1, 1, 0.85, 0],
+              rotate: -410,
             }}
             transition={{
-              duration: getSectionDuration("homeHero", 2.0),
-              ease: sectionEase,
-              times: [0, 0.08, 0.65, 1],
+              duration: getSectionDuration("homeHero", 2.4),
+              ease: [0.22, 0.72, 0.28, 1],
+              times: [0, 0.08, 0.62, 0.88, 1],
             }}
           >
-            <svg width="320" height="320" viewBox="0 0 320 320"
-              className="w-[70vw] h-[70vw] md:w-[50vw] md:h-[50vw] lg:w-[42vw] lg:h-[42vw]">
-              <circle cx="160" cy="160" r="155" fill="none" stroke="hsl(0 0% 92%)"
-                strokeWidth="1" strokeOpacity="0.8" strokeDasharray="50 900" strokeLinecap="round" />
-            </svg>
+            <div className="relative w-[80vw] h-[80vw] sm:w-[75vw] sm:h-[75vw] md:w-[55vw] md:h-[55vw] lg:w-[45vw] lg:h-[45vw] translate-x-2 sm:translate-x-3 md:translate-x-5 lg:translate-x-7">
+              {/* Stacked comet tail — layers taper from faint long to bright short */}
+              <svg
+                className="absolute inset-0 w-full h-full"
+                viewBox="0 0 320 320"
+                style={{ overflow: "visible" }}
+              >
+                <g transform="rotate(-90 160 160)">
+                  {/* Faint long trail */}
+                  <circle
+                    cx="160" cy="160" r="158" fill="none"
+                    stroke="rgba(255,255,255,0.12)" strokeWidth="1"
+                    strokeDasharray="140 900" strokeLinecap="round"
+                  />
+                  {/* Medium trail */}
+                  <circle
+                    cx="160" cy="160" r="158" fill="none"
+                    stroke="rgba(255,255,255,0.3)" strokeWidth="1"
+                    strokeDasharray="78 900" strokeLinecap="round"
+                  />
+                  {/* Bright head segment */}
+                  <circle
+                    cx="160" cy="160" r="158" fill="none"
+                    stroke="rgba(255,255,255,0.95)" strokeWidth="1.3"
+                    strokeDasharray="26 900" strokeLinecap="round"
+                  />
+                </g>
+              </svg>
+
+              {/* Glowing star head at top (path origin after -90° rotation) */}
+              <div
+                className="absolute"
+                style={{
+                  top: "0.625%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  width: "7px",
+                  height: "7px",
+                  borderRadius: "50%",
+                  background: "rgba(255,255,255,1)",
+                  boxShadow:
+                    "0 0 6px 2px rgba(255,255,255,0.95), 0 0 18px 6px rgba(255,255,255,0.55), 0 0 38px 12px rgba(255,255,255,0.22), 0 0 70px 22px rgba(255,255,255,0.08)",
+                }}
+              />
+            </div>
           </motion.div>
+        )}
+
+        {/* ═══ COSMIC SPARKLES ═══ */}
+        {/* Tiny twinkling dots drift around the reveal to sell the cosmic vibe */}
+        {isAtLeast(phase, "reveal") && !instant && !isOgPreview && (
+          <>
+            <motion.div
+              className="absolute pointer-events-none"
+              style={{
+                top: "18%", left: "11%",
+                width: "3px", height: "3px",
+                borderRadius: "50%", background: "rgba(255,255,255,1)",
+                boxShadow:
+                  "0 0 5px 1px rgba(255,255,255,0.9), 0 0 14px 3px rgba(255,255,255,0.3)",
+                zIndex: 7,
+              }}
+              initial={{ opacity: 0, scale: 0.4 }}
+              animate={{
+                opacity: [0, 0.95, 0.2, 0.85, 0.15, 0.9, 0.25],
+                scale: [0.4, 1, 0.7, 1.1, 0.75, 1, 0.6],
+              }}
+              transition={{
+                duration: 4.4,
+                delay: getSectionDelay("homeHero", 0.4),
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+            <motion.div
+              className="absolute pointer-events-none"
+              style={{
+                top: "72%", left: "84%",
+                width: "2px", height: "2px",
+                borderRadius: "50%", background: "rgba(255,255,255,1)",
+                boxShadow:
+                  "0 0 4px 1px rgba(255,255,255,0.85), 0 0 11px 2px rgba(255,255,255,0.25)",
+                zIndex: 7,
+              }}
+              initial={{ opacity: 0, scale: 0.4 }}
+              animate={{
+                opacity: [0.1, 0.85, 0.2, 1, 0.3, 0.8, 0.15],
+                scale: [0.5, 1.1, 0.8, 1, 0.7, 1.05, 0.5],
+              }}
+              transition={{
+                duration: 5.2,
+                delay: getSectionDelay("homeHero", 0.9),
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+            <motion.div
+              className="absolute pointer-events-none"
+              style={{
+                top: "26%", left: "88%",
+                width: "2px", height: "2px",
+                borderRadius: "50%", background: "rgba(255,255,255,1)",
+                boxShadow:
+                  "0 0 4px 1px rgba(255,255,255,0.85), 0 0 10px 2px rgba(255,255,255,0.22)",
+                zIndex: 7,
+              }}
+              initial={{ opacity: 0, scale: 0.4 }}
+              animate={{
+                opacity: [0, 0.75, 0.1, 0.95, 0.2, 0.7, 0.12],
+                scale: [0.4, 1, 0.65, 1.1, 0.7, 1, 0.45],
+              }}
+              transition={{
+                duration: 3.8,
+                delay: getSectionDelay("homeHero", 1.6),
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+          </>
         )}
 
         {/* ═══ TAGLINE ═══ */}

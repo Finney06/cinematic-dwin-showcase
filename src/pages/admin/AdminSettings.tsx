@@ -7,25 +7,42 @@ import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 
 type SocialLink = { label: string; url: string };
 
-const GOOGLE_FONTS = [
-  { label: "Cormorant Garamond", family: "Cormorant Garamond", fallback: "serif" },
-  { label: "Inter", family: "Inter", fallback: "sans-serif" },
-  { label: "Playfair Display", family: "Playfair Display", fallback: "serif" },
-  { label: "Lora", family: "Lora", fallback: "serif" },
-  { label: "Merriweather", family: "Merriweather", fallback: "serif" },
-  { label: "Libre Baskerville", family: "Libre Baskerville", fallback: "serif" },
-  { label: "Crimson Pro", family: "Crimson Pro", fallback: "serif" },
-  { label: "Spectral", family: "Spectral", fallback: "serif" },
-  { label: "Fraunces", family: "Fraunces", fallback: "serif" },
-  { label: "Montserrat", family: "Montserrat", fallback: "sans-serif" },
-  { label: "Poppins", family: "Poppins", fallback: "sans-serif" },
-  { label: "Raleway", family: "Raleway", fallback: "sans-serif" },
-  { label: "Roboto", family: "Roboto", fallback: "sans-serif" },
-  { label: "DM Sans", family: "DM Sans", fallback: "sans-serif" },
-  { label: "Manrope", family: "Manrope", fallback: "sans-serif" },
-  { label: "Space Grotesk", family: "Space Grotesk", fallback: "sans-serif" },
-  { label: "Outfit", family: "Outfit", fallback: "sans-serif" },
-  { label: "Sora", family: "Sora", fallback: "sans-serif" },
+const DEFAULT_DISPLAY_FONT =
+  '"Pragmatica Book", "Pragmatica", "Pragmatica Light", "Heiti TC", "Inter", sans-serif';
+const DEFAULT_BODY_FONT =
+  '"Heiti HC", "Heiti TC", "STHeiti", "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", "Inter", sans-serif';
+
+const FONT_OPTIONS = [
+  {
+    label: "Heiti HC (Primary)",
+    value: DEFAULT_BODY_FONT,
+  },
+  {
+    label: "Pragmatica Book (Secondary)",
+    value: DEFAULT_DISPLAY_FONT,
+  },
+  {
+    label: "Pragmatica Light",
+    value: '"Pragmatica Light", "Pragmatica", "Heiti TC", "Inter", sans-serif',
+  },
+  { label: "Inter", value: '"Inter", sans-serif' },
+  { label: "Cormorant Garamond", value: '"Cormorant Garamond", serif' },
+  { label: "Playfair Display", value: '"Playfair Display", serif' },
+  { label: "Lora", value: '"Lora", serif' },
+  { label: "Merriweather", value: '"Merriweather", serif' },
+  { label: "Libre Baskerville", value: '"Libre Baskerville", serif' },
+  { label: "Crimson Pro", value: '"Crimson Pro", serif' },
+  { label: "Spectral", value: '"Spectral", serif' },
+  { label: "Fraunces", value: '"Fraunces", serif' },
+  { label: "Montserrat", value: '"Montserrat", sans-serif' },
+  { label: "Poppins", value: '"Poppins", sans-serif' },
+  { label: "Raleway", value: '"Raleway", sans-serif' },
+  { label: "Roboto", value: '"Roboto", sans-serif' },
+  { label: "DM Sans", value: '"DM Sans", sans-serif' },
+  { label: "Manrope", value: '"Manrope", sans-serif' },
+  { label: "Space Grotesk", value: '"Space Grotesk", sans-serif' },
+  { label: "Outfit", value: '"Outfit", sans-serif' },
+  { label: "Sora", value: '"Sora", sans-serif' },
 ];
 
 const parseSocialLinks = (raw?: string): SocialLink[] => {
@@ -59,8 +76,8 @@ const AdminSettings = () => {
     social_instagram: "",
     social_youtube: "",
     social_twitter: "",
-    font_display: '"Cormorant Garamond", serif',
-    font_body: '"Inter", sans-serif',
+    font_display: DEFAULT_DISPLAY_FONT,
+    font_body: DEFAULT_BODY_FONT,
     animation_enabled: "true",
     animation_preset: "cinematic",
     animation_speed: "1",
@@ -117,8 +134,8 @@ const AdminSettings = () => {
         social_instagram: data.social_instagram || "",
         social_youtube: data.social_youtube || "",
         social_twitter: data.social_twitter || "",
-        font_display: data.font_display || '"Cormorant Garamond", serif',
-        font_body: data.font_body || '"Inter", sans-serif',
+        font_display: data.font_display || DEFAULT_DISPLAY_FONT,
+        font_body: data.font_body || DEFAULT_BODY_FONT,
         animation_enabled: data.animation_enabled || "true",
         animation_preset: data.animation_preset || "cinematic",
         animation_speed: data.animation_speed || "1",
@@ -271,10 +288,10 @@ const AdminSettings = () => {
                   onChange={(e) => setForm((p) => ({ ...p, font_display: e.target.value }))}
                   className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 focus:outline-none focus:border-white/20 transition-colors"
                 >
-                  {GOOGLE_FONTS.map((font) => (
+                  {FONT_OPTIONS.map((font) => (
                     <option
-                      key={`display-${font.family}`}
-                      value={`"${font.family}", ${font.fallback}`}
+                      key={`display-${font.label}`}
+                      value={font.value}
                       className="bg-[#141414]"
                     >
                       {font.label}
@@ -300,10 +317,10 @@ const AdminSettings = () => {
                   onChange={(e) => setForm((p) => ({ ...p, font_body: e.target.value }))}
                   className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 focus:outline-none focus:border-white/20 transition-colors"
                 >
-                  {GOOGLE_FONTS.map((font) => (
+                  {FONT_OPTIONS.map((font) => (
                     <option
-                      key={`body-${font.family}`}
-                      value={`"${font.family}", ${font.fallback}`}
+                      key={`body-${font.label}`}
+                      value={font.value}
                       className="bg-[#141414]"
                     >
                       {font.label}
