@@ -82,73 +82,9 @@
   }
 }
 
-/* ═══ Eclipse Intro Animation ═══ */
-
-@keyframes eclipse-pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.85;
-    transform: scale(1.025);
-  }
-}
-
-@keyframes eclipse-shimmer {
-  0%, 100% {
-    filter: blur(0px);
-    opacity: 1;
-  }
-  33% {
-    filter: blur(1px);
-    opacity: 0.92;
-  }
-  66% {
-    filter: blur(0.5px);
-    opacity: 0.96;
-  }
-}
-
-.eclipse-corona-pulse {
-  animation: eclipse-pulse 2s ease-in-out infinite;
-}
-
-.eclipse-circle {
-  transition: box-shadow 1.6s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.eclipse-glow-none {
-  box-shadow: none;
-}
-
-.eclipse-glow-intense {
-  box-shadow:
-    0 0 18px 7px rgba(255, 255, 255, 1),
-    0 0 45px 18px rgba(255, 255, 255, 0.82),
-    0 0 95px 38px rgba(255, 255, 255, 0.52),
-    0 0 150px 70px rgba(255, 255, 255, 0.28),
-    0 0 240px 110px rgba(255, 255, 255, 0.12);
-}
-
-.eclipse-glow-dim {
-  box-shadow:
-    0 0 10px 4px rgba(255, 255, 255, 0.5),
-    0 0 25px 10px rgba(255, 255, 255, 0.25),
-    0 0 50px 22px rgba(255, 255, 255, 0.1),
-    0 0 90px 40px rgba(255, 255, 255, 0.04);
-}
-
-.eclipse-glow-subtle {
-  box-shadow:
-    0 0 6px 3px rgba(255, 255, 255, 0.2),
-    0 0 18px 8px rgba(255, 255, 255, 0.08),
-    0 0 35px 16px rgba(255, 255, 255, 0.03);
-}
-
-.eclipse-glow-final {
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.05),
-    0 0 80px rgba(0, 0, 0, 0.4),
-    0 30px 80px rgba(0, 0, 0, 0.35);
+/* Cinematic intro canvas host — sits behind all HTML overlays */
+.intro-canvas-host {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
 }
