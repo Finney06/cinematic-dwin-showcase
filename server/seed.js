@@ -309,7 +309,7 @@ const defaultSettings = {
     { label: "YouTube", url: "https://www.youtube.com/@Dwin_dik" },
     { label: "Twitter", url: "https://twitter.com/dwindik" },
   ]),
-  font_display: '"Pragmatica", "Helvetica Neue", Arial, sans-serif',
+  font_display: '"Pragmatica", "Inter", "Helvetica Neue", Arial, sans-serif',
   font_body: '"Heiti TC", "PingFang TC", "Microsoft JhengHei", sans-serif',
   copyright_text: "©2026 Dwindik. All rights reserved.",
   site_title: "Dwindik",

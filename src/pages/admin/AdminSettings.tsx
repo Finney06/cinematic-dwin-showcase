@@ -9,7 +9,7 @@ type SocialLink = { label: string; url: string };
 
 const GOOGLE_FONTS = [
   { label: "Heiti TC", family: "Heiti TC", fallback: '"PingFang TC", "Microsoft JhengHei", sans-serif' },
-  { label: "Pragmatica", family: "Pragmatica", fallback: '"Helvetica Neue", Arial, sans-serif' },
+  { label: "Pragmatica", family: "Pragmatica", fallback: '"Inter", "Helvetica Neue", Arial, sans-serif' },
   { label: "Cormorant Garamond", family: "Cormorant Garamond", fallback: "serif" },
   { label: "Inter", family: "Inter", fallback: "sans-serif" },
   { label: "Playfair Display", family: "Playfair Display", fallback: "serif" },
@@ -61,7 +61,7 @@ const AdminSettings = () => {
     social_instagram: "",
     social_youtube: "",
     social_twitter: "",
-    font_display: '"Pragmatica", "Helvetica Neue", Arial, sans-serif',
+    font_display: '"Pragmatica", "Inter", "Helvetica Neue", Arial, sans-serif',
     font_body: '"Heiti TC", "PingFang TC", "Microsoft JhengHei", sans-serif',
     animation_enabled: "true",
     animation_preset: "cinematic",
@@ -119,7 +119,7 @@ const AdminSettings = () => {
         social_instagram: data.social_instagram || "",
         social_youtube: data.social_youtube || "",
         social_twitter: data.social_twitter || "",
-        font_display: data.font_display || '"Pragmatica", "Helvetica Neue", Arial, sans-serif',
+        font_display: data.font_display || '"Pragmatica", "Inter", "Helvetica Neue", Arial, sans-serif',
         font_body: data.font_body || '"Heiti TC", "PingFang TC", "Microsoft JhengHei", sans-serif',
         animation_enabled: data.animation_enabled || "true",
         animation_preset: data.animation_preset || "cinematic",

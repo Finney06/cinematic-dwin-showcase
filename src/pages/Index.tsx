@@ -7,6 +7,7 @@ import { useHeroContent, useLatestProjects } from "@/hooks/useContent";
 import { useAnimationSettings } from "@/hooks/useAnimationSettings";
 
 const VIDEO_START_DELAY = 1800;
+const BRAND_TEXT_REVEAL_DELAY = 900;
 
 type Phase = "idle" | "video" | "image";
 
@@ -56,7 +57,11 @@ const Index = () => {
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).has("og");
   const [phase, setPhase] = useState<Phase>(isOgPreview ? "image" : "idle");
+  const [showBrandText, setShowBrandText] = useState(isOgPreview);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const brandFitRef = useRef<HTMLSpanElement>(null);
+  const brandMeasureRef = useRef<HTMLSpanElement>(null);
+  const [brandGap, setBrandGap] = useState(0);
   
   const { data: heroData } = useHeroContent();
   const { data: latestProjects } = useLatestProjects(5);
@@ -96,6 +101,56 @@ const Index = () => {
     };
   }, [phase, isOgPreview]);
 
+  useEffect(() => {
+    if (isOgPreview) {
+      setShowBrandText(true);
+      return;
+    }
+
+    if (phase !== "image") {
+      setShowBrandText(false);
+      return;
+    }
+
+    const t = setTimeout(
+      () => setShowBrandText(true),
+      instant ? 0 : BRAND_TEXT_REVEAL_DELAY
+    );
+    return () => clearTimeout(t);
+  }, [phase, isOgPreview, instant]);
+
+  useEffect(() => {
+    const computeBrandGap = () => {
+      const targetWidth = brandFitRef.current?.clientWidth ?? 0;
+      const naturalWidth = brandMeasureRef.current?.scrollWidth ?? 0;
+      const chars = Math.max(brandText.length, 1);
+
+      if (targetWidth <= 0 || naturalWidth <= 0 || chars <= 1) {
+        setBrandGap(0);
+        return;
+      }
+
+      const nextGap = (targetWidth - naturalWidth) / (chars - 1);
+      setBrandGap(Number.isFinite(nextGap) ? Math.max(-1.5, nextGap) : 0);
+    };
+
+    computeBrandGap();
+
+    if (typeof document !== "undefined" && "fonts" in document) {
+      document.fonts.ready.then(computeBrandGap).catch(() => {});
+    }
+
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(computeBrandGap);
+      if (brandFitRef.current) observer.observe(brandFitRef.current);
+      if (brandMeasureRef.current) observer.observe(brandMeasureRef.current);
+      return () => observer.disconnect();
+    }
+
+    window.addEventListener("resize", computeBrandGap);
+    return () => window.removeEventListener("resize", computeBrandGap);
+  }, [brandText]);
+
   return (
     <div className="bg-background min-h-screen relative">
       <Navbar enterDelay={isOgPreview ? 0 : 2.4} />
@@ -121,7 +176,7 @@ const Index = () => {
             className="block rounded-full cursor-pointer"
           >
             <motion.div
-              className="circle-media w-[80vw] h-[80vw] sm:w-[75vw] sm:h-[75vw] md:w-[55vw] md:h-[55vw] lg:w-[45vw] lg:h-[45vw] rounded-full relative"
+              className="circle-media w-[80vw] h-[80vw] sm:w-[75vw] sm:h-[75vw] md:w-[55vw] md:h-[55vw] lg:w-[45vw] lg:h-[45vw] rounded-full relative overflow-hidden"
               animate={enabled && sectionEnabled && !instant ? { rotateX: [0, 1.5, -1, 0], rotateY: [0, -2, 1.5, 0] } : { rotateX: 0, rotateY: 0 }}
               transition={enabled && sectionEnabled && !instant ? { duration: getSectionDuration("homeHero", 10), ease: "easeInOut", repeat: Infinity, repeatType: "mirror" } : { duration: 0 }}
               style={{
@@ -202,28 +257,42 @@ const Index = () => {
                   filter: "blur(8px)", transform: "rotate(-12deg)",
                 }}
               />
+
+              {/* DWINDIK text */}
+              <motion.h1
+                className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none"
+                variants={letterContainer}
+                initial={isOgPreview ? "visible" : "hidden"}
+                animate={showBrandText ? "visible" : "hidden"}
+              >
+                <span ref={brandFitRef} className="w-[92%] text-center whitespace-nowrap overflow-hidden">
+                  <span
+                    className="inline-flex items-center"
+                    style={{ columnGap: `${brandGap}px` }}
+                  >
+                    {brandText.split("").map((letter, i) => (
+                      <span key={i} className="inline-block overflow-hidden align-middle">
+                      <motion.span
+                        variants={letterVariant}
+                        className="font-display text-[10vw] sm:text-[9vw] md:text-[6.3vw] lg:text-[5.1vw] font-light text-foreground leading-none uppercase select-none inline-block"
+                      >
+                        {letter}
+                      </motion.span>
+                      </span>
+                    ))}
+                  </span>
+                  <span
+                    ref={brandMeasureRef}
+                    aria-hidden
+                    className="absolute opacity-0 pointer-events-none whitespace-nowrap font-display text-[10vw] sm:text-[9vw] md:text-[6.3vw] lg:text-[5.1vw] font-light leading-none uppercase"
+                  >
+                    {brandText}
+                  </span>
+                </span>
+              </motion.h1>
             </motion.div>
           </a>
         </motion.div>
-
-        {/* DWINDIK text */}
-        <motion.h1
-          className="relative z-10 flex items-center overflow-hidden"
-          variants={letterContainer}
-          initial={isOgPreview ? "visible" : "hidden"}
-          animate="visible"
-        >
-          {brandText.split("").map((letter, i) => (
-            <span key={i} className="inline-block overflow-hidden">
-              <motion.span
-                variants={letterVariant}
-                className="font-display text-[16vw] md:text-[13vw] lg:text-[11vw] font-light tracking-[0.12em] sm:tracking-[0.15em] md:tracking-[0.25em] text-foreground leading-none uppercase select-none inline-block"
-              >
-                {letter}
-              </motion.span>
-            </span>
-          ))}
-        </motion.h1>
 
         {/* Rotating arc */}
         <motion.div
