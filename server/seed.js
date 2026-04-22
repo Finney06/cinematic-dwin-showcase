@@ -309,8 +309,8 @@ const defaultSettings = {
     { label: "YouTube", url: "https://www.youtube.com/@Dwin_dik" },
     { label: "Twitter", url: "https://twitter.com/dwindik" },
   ]),
-  font_display: '"Pragmatica", "Inter", "Helvetica Neue", Arial, sans-serif',
-  font_body: '"Heiti TC", "PingFang TC", "Microsoft JhengHei", sans-serif',
+  font_display: '"Heiti TC", "PingFang TC", "Microsoft JhengHei", sans-serif',
+  font_body: '"Pragmatica", "Inter", "Helvetica Neue", Arial, sans-serif',
   copyright_text: "©2026 Dwindik. All rights reserved.",
   site_title: "Dwindik",
 };
@@ -322,6 +322,8 @@ const upsertSettingQuery = `
 for (const [key, value] of Object.entries(defaultSettings)) {
   await pool.query(upsertSettingQuery, [key, value]);
 }
+await pool.query("UPDATE site_settings SET value = $1 WHERE key = 'font_display'", [defaultSettings.font_display]);
+await pool.query("UPDATE site_settings SET value = $1 WHERE key = 'font_body'", [defaultSettings.font_body]);
 console.log("  ✓ Seeded site settings");
 
 // ─── 6. About Page Content ──────────────────────────────────

@@ -30,6 +30,17 @@ const CategoryPageLayout = ({ title, projects, isLoading }: CategoryPageLayoutPr
         <h1 className="font-display text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-light text-foreground tracking-[0.04em] uppercase leading-[0.85]">
           {title}
         </h1>
+        <motion.div
+          initial={{ scaleX: instant ? 1 : 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{
+            duration: instant ? 0 : getSectionDuration("categoryPages", 1.2),
+            delay: instant ? 0 : getSectionDelay("categoryPages", 0.35),
+            ease: [0.22, 1, 0.36, 1],
+          }}
+          style={{ originX: 0 }}
+          className="h-px bg-foreground/20 mt-6 w-24 sm:w-32"
+        />
       </motion.div>
 
       {/* Loading state */}
@@ -61,16 +72,21 @@ const CategoryPageLayout = ({ title, projects, isLoading }: CategoryPageLayoutPr
               <img
                 src={featured.thumbnail}
                 alt={featured.title}
-                className="w-full h-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
+                className="w-full h-full object-cover transition-transform [transition-duration:1200ms] ease-out group-hover:scale-[1.03]"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
               <div className="absolute inset-0 bg-gradient-to-r from-background/50 to-transparent" />
+              <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.65) 100%)" }} />
+              <div className="film-grain absolute inset-0 z-10 pointer-events-none" />
 
               {/* Play icon if has video */}
               {featured.youtube_id && (
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-60 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full border border-white/30 flex items-center justify-center backdrop-blur-sm bg-white/5">
-                    <div className="w-0 h-0 border-t-[6px] sm:border-t-[8px] border-t-transparent border-b-[6px] sm:border-b-[8px] border-b-transparent border-l-[10px] sm:border-l-[14px] border-l-white/70 ml-0.5 sm:ml-1" />
+                  <div className="relative">
+                    <div className="absolute inset-0 rounded-full border border-white/30 group-hover:scale-150 group-hover:opacity-0 transition-all duration-700" />
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full border border-white/30 flex items-center justify-center backdrop-blur-sm bg-white/5">
+                      <div className="w-0 h-0 border-t-[6px] sm:border-t-[8px] border-t-transparent border-b-[6px] sm:border-b-[8px] border-b-transparent border-l-[10px] sm:border-l-[14px] border-l-white/70 ml-0.5 sm:ml-1" />
+                    </div>
                   </div>
                 </div>
               )}
@@ -85,10 +101,23 @@ const CategoryPageLayout = ({ title, projects, isLoading }: CategoryPageLayoutPr
                 <h2 className="font-display text-xl sm:text-3xl md:text-5xl lg:text-6xl font-light text-foreground tracking-[0.03em] leading-[0.95]">
                   {featured.title}
                 </h2>
+                <p className="mt-2 font-body text-[9px] sm:text-[10px] tracking-[0.22em] uppercase text-foreground/45 opacity-100 sm:opacity-0 sm:translate-y-2 sm:group-hover:translate-y-0 sm:group-hover:opacity-100 transition-all duration-500 delay-100">
+                  {featured.role} · {featured.year}
+                </p>
               </div>
             </div>
           </Link>
         </motion.div>
+      )}
+
+      {rest.length > 0 && (
+        <div className="flex items-center gap-4 mb-8 sm:mb-12">
+          <div className="flex-1 h-px bg-foreground/10" />
+          <span className="font-body text-[9px] tracking-[0.4em] uppercase text-foreground/25">
+            {rest.length} {rest.length === 1 ? "film" : "films"}
+          </span>
+          <div className="flex-1 h-px bg-foreground/10" />
+        </div>
       )}
 
       {/* Rest of projects — grid */}
@@ -113,9 +142,12 @@ const CategoryPageLayout = ({ title, projects, isLoading }: CategoryPageLayoutPr
                   <img
                     src={project.thumbnail}
                     alt={project.title}
-                    className="w-full h-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
+                    className="w-full h-full object-cover transition-transform [transition-duration:1200ms] ease-out group-hover:scale-[1.04]"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/30 to-transparent" />
+                  <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.62) 100%)" }} />
+                  <div className="film-grain absolute inset-0 z-10 pointer-events-none" />
+                  <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-foreground/60 origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-500 z-20" />
 
                   {/* Play icon */}
                   {project.youtube_id && (
@@ -136,6 +168,9 @@ const CategoryPageLayout = ({ title, projects, isLoading }: CategoryPageLayoutPr
                     <h3 className="font-display text-base sm:text-xl md:text-2xl font-light text-foreground tracking-[0.02em] leading-tight">
                       {project.title}
                     </h3>
+                    <p className="mt-2 font-body text-[9px] sm:text-[10px] tracking-[0.22em] uppercase text-foreground/40 opacity-100 sm:opacity-0 sm:translate-y-2 sm:group-hover:translate-y-0 sm:group-hover:opacity-100 transition-all duration-500 delay-100">
+                      {project.role} · {project.year}
+                    </p>
                   </div>
                 </div>
               </Link>

@@ -86,8 +86,8 @@ const FontSettings = () => {
 
   useEffect(() => {
     if (!settings) return;
-    const display = settings.font_display || '"Pragmatica", "Inter", "Helvetica Neue", Arial, sans-serif';
-    const body = settings.font_body || '"Heiti TC", "PingFang TC", "Microsoft JhengHei", sans-serif';
+    const display = settings.font_display || '"Heiti TC", "PingFang TC", "Microsoft JhengHei", sans-serif';
+    const body = settings.font_body || '"Pragmatica", "Inter", "Helvetica Neue", Arial, sans-serif';
     document.documentElement.style.setProperty("--font-display", display);
     document.documentElement.style.setProperty("--font-body", body);
 
