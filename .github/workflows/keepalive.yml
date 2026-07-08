@@ -1,0 +1,38 @@
+name: Keep backend + database awake
+
+# Pings the live Render API on a schedule so the free Render service and its
+# database don't go idle. /api/projects hits Postgres, so ONE ping keeps BOTH
+# the web service and the database warm.
+#
+# NOTE: this repo is PRIVATE -> GitHub gives 2,000 free Action minutes/month,
+# and each run bills ~1 minute. This is set to every 10 min = ~4,320 min/month,
+# which EXCEEDS the free 2,000. GitHub's default $0 spending limit means Actions
+# simply PAUSE around ~day 14 each month, then resume on the 1st (you are NOT
+# charged). So it pings aggressively for ~2 weeks/month, then goes quiet until the
+# billing cycle resets. Chosen deliberately for maximum keep-alive while running.
+#
+# To ping frequently AND all month for free, do ONE of:
+#   - Make this repo public -> unlimited Action minutes (keep */10, or go "*/5")
+#   - Free external monitor (UptimeRobot / cron-job.org) every 5-10 min
+#   - Upgrade Render to Starter ($7/mo) -> never sleeps, no pinging needed
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # every 10 minutes (see NOTE: ~2 weeks/month on free tier)
+  workflow_dispatch: {}       # lets you trigger it manually from the Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping API (keeps web service + database awake)
+        run: |
+          echo "Pinging dwindik-website (keeps DB warm via /api/projects)..."
+          curl --fail --show-error --silent --location \
+               --retry 3 --retry-delay 10 --max-time 90 \
+               -o /dev/null -w "projects -> HTTP %{http_code} in %{time_total}s\n" \
+               https://dwindik-website.onrender.com/api/projects
+          curl --fail --show-error --silent --location \
+               --max-time 90 \
+               -o /dev/null -w "health   -> HTTP %{http_code} in %{time_total}s\n" \
+               https://dwindik-website.onrender.com/api/health
