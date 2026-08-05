@@ -9,6 +9,9 @@ import { useAnimationSettings } from "@/hooks/useAnimationSettings";
 const VIDEO_START_DELAY = 1800;
 const BRAND_TEXT_REVEAL_DELAY = 900;
 
+/** Space kept clear above and below the hero circle so it never collides with the tagline. */
+const HERO_VERTICAL_RESERVE = 180;
+
 type Phase = "idle" | "video" | "image";
 
 function isPlayableVideoSource(url?: string): boolean {
@@ -156,7 +159,7 @@ const Index = () => {
       <Navbar enterDelay={isOgPreview ? 0 : 2.4} />
 
       {/* ═══ HERO ═══ */}
-      <main className="h-screen flex items-center justify-center relative overflow-hidden">
+      <main className="h-[100svh] flex items-center justify-center relative overflow-hidden">
         {/* Circle */}
         <motion.div
           className="absolute z-0 translate-x-4 sm:translate-x-6 md:translate-x-10 lg:translate-x-14"
@@ -176,13 +179,14 @@ const Index = () => {
             className="block rounded-full cursor-pointer"
           >
             <motion.div
-              className="circle-media w-[80vw] h-[80vw] sm:w-[75vw] sm:h-[75vw] md:w-[55vw] md:h-[55vw] lg:w-[45vw] lg:h-[45vw] rounded-full relative overflow-hidden"
+              className="circle-media w-[80vw] sm:w-[75vw] md:w-[55vw] lg:w-[45vw] aspect-square rounded-full relative overflow-hidden"
               animate={enabled && sectionEnabled && !instant ? { rotateX: [0, 1.5, -1, 0], rotateY: [0, -2, 1.5, 0] } : { rotateX: 0, rotateY: 0 }}
               transition={enabled && sectionEnabled && !instant ? { duration: getSectionDuration("homeHero", 10), ease: "easeInOut", repeat: Infinity, repeatType: "mirror" } : { duration: 0 }}
               style={{
                 transformStyle: "preserve-3d",
                 background: "hsl(0 0% 10%)",
                 boxShadow: "0 0 0 1px rgba(255,255,255,0.05), 0 0 80px rgba(0,0,0,0.4), 0 30px 80px rgba(0,0,0,0.35)",
+                maxWidth: `calc(100svh - ${HERO_VERTICAL_RESERVE}px)`,
               }}
             >
               {canPlayHeroVideo && (
@@ -264,6 +268,7 @@ const Index = () => {
                 variants={letterContainer}
                 initial={isOgPreview ? "visible" : "hidden"}
                 animate={showBrandText ? "visible" : "hidden"}
+                style={{ containerType: "inline-size" }}
               >
                 <span ref={brandFitRef} className="w-[92%] text-center whitespace-nowrap overflow-hidden">
                   <span
@@ -274,7 +279,7 @@ const Index = () => {
                       <span key={i} className="inline-block overflow-hidden align-middle">
                       <motion.span
                         variants={letterVariant}
-                        className="font-display text-[10vw] sm:text-[9vw] md:text-[6.3vw] lg:text-[5.1vw] font-light text-foreground leading-none uppercase select-none inline-block"
+                        className="font-display text-[12.5cqw] sm:text-[12cqw] md:text-[11.45cqw] lg:text-[11.33cqw] font-light text-foreground leading-none uppercase select-none inline-block"
                       >
                         {letter}
                       </motion.span>
@@ -284,7 +289,7 @@ const Index = () => {
                   <span
                     ref={brandMeasureRef}
                     aria-hidden
-                    className="absolute opacity-0 pointer-events-none whitespace-nowrap font-display text-[10vw] sm:text-[9vw] md:text-[6.3vw] lg:text-[5.1vw] font-light leading-none uppercase"
+                    className="absolute opacity-0 pointer-events-none whitespace-nowrap font-display text-[12.5cqw] sm:text-[12cqw] md:text-[11.45cqw] lg:text-[11.33cqw] font-light leading-none uppercase"
                   >
                     {brandText}
                   </span>
@@ -310,7 +315,16 @@ const Index = () => {
             times: [0, 0.08, 0.65, 1],
           }}
         >
-          <svg width="320" height="320" viewBox="0 0 320 320" className="w-[70vw] h-[70vw] md:w-[50vw] md:h-[50vw] lg:w-[42vw] lg:h-[42vw]">
+          <svg
+            width="320"
+            height="320"
+            viewBox="0 0 320 320"
+            className="w-[70vw] h-[70vw] md:w-[50vw] md:h-[50vw] lg:w-[42vw] lg:h-[42vw]"
+            style={{
+              maxWidth: `calc((100svh - ${HERO_VERTICAL_RESERVE}px) * 0.92)`,
+              maxHeight: `calc((100svh - ${HERO_VERTICAL_RESERVE}px) * 0.92)`,
+            }}
+          >
             <circle cx="160" cy="160" r="155" fill="none" stroke="hsl(0 0% 92%)" strokeWidth="1" strokeOpacity="0.8" strokeDasharray="50 900" strokeLinecap="round" />
           </svg>
         </motion.div>
