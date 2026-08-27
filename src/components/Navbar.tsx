@@ -3,6 +3,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useMenuItems, useSiteSettings } from "@/hooks/useContent";
 import { useAnimationSettings } from "@/hooks/useAnimationSettings";
+import { BRAND, DEFAULT_MENU, orEmpty } from "@/lib/brand";
 
 interface NavbarProps {
   enterDelay?: number;
@@ -46,8 +47,12 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
-  const { data: menuItems = [] } = useMenuItems();
+  const { data: fetchedMenuItems = [] } = useMenuItems();
   const { data: settings } = useSiteSettings();
+
+  const visibleMenuItems = fetchedMenuItems.filter((item) => item.visible);
+  const menuItems = visibleMenuItems.length ? visibleMenuItems : DEFAULT_MENU;
+  const contactEmail = orEmpty(settings?.contact_email);
 
   const socialLinks = (() => {
     if (settings?.social_links) {
@@ -96,12 +101,13 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
       >
         <Link
           to="/"
-          className="group flex items-center gap-2 hover:opacity-60 transition-opacity duration-700"
+          className="group flex items-center hover:opacity-70 transition-opacity duration-700"
         >
-          <span className="font-body text-[12px] sm:text-[13px] md:text-[15px] font-medium tracking-[0.22em] uppercase text-foreground leading-none">
-            Dwindik
-          </span>
-          <span className="block w-[5px] h-[5px] bg-foreground/40 rounded-full group-hover:bg-foreground/70 transition-colors duration-700" />
+          <img
+            src={BRAND.logo}
+            alt={BRAND.name}
+            className="h-6 sm:h-7 md:h-8 w-auto object-contain"
+          />
         </Link>
 
         <button
@@ -169,7 +175,7 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
                 animate="visible"
                 exit="exit"
               >
-                {menuItems.filter(item => item.visible).map((item, i) => {
+                {menuItems.map((item, i) => {
                   const isActive = location.pathname === item.path;
                   return (
                     <motion.div key={item.id} variants={menuItemVariant}>
@@ -210,35 +216,39 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
                   ease: sectionEase,
                 }}
               >
-                <div>
-                  <p className="font-body text-[10px] tracking-[0.3em] uppercase text-foreground/30 mb-3">
-                    Get in touch
-                  </p>
-                  <a
-                    href={`mailto:${settings?.contact_email || "hello@dwindik.com"}`}
-                    className="font-body text-sm text-foreground/50 hover:text-foreground/80 transition-colors duration-500"
-                  >
-                    {settings?.contact_email || "hello@dwindik.com"}
-                  </a>
-                </div>
-                <div>
-                  <p className="font-body text-[10px] tracking-[0.3em] uppercase text-foreground/30 mb-3">
-                    Follow
-                  </p>
-                  <div className="flex flex-wrap gap-4">
-                    {socialLinks.map((link) => (
-                      <a
-                        key={link.label}
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-body text-sm tracking-[0.15em] uppercase text-foreground/30 hover:text-foreground/70 transition-colors duration-500"
-                      >
-                        {link.label}
-                      </a>
-                    ))}
+                {contactEmail && (
+                  <div>
+                    <p className="font-body text-[10px] tracking-[0.3em] uppercase text-foreground/30 mb-3">
+                      Get in touch
+                    </p>
+                    <a
+                      href={`mailto:${contactEmail}`}
+                      className="font-body text-sm text-foreground/50 hover:text-foreground/80 transition-colors duration-500"
+                    >
+                      {contactEmail}
+                    </a>
                   </div>
-                </div>
+                )}
+                {socialLinks.length > 0 && (
+                  <div>
+                    <p className="font-body text-[10px] tracking-[0.3em] uppercase text-foreground/30 mb-3">
+                      Follow
+                    </p>
+                    <div className="flex flex-wrap gap-4">
+                      {socialLinks.map((link) => (
+                        <a
+                          key={link.label}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-body text-sm tracking-[0.15em] uppercase text-foreground/30 hover:text-foreground/70 transition-colors duration-500"
+                        >
+                          {link.label}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </motion.div>
             </div>
           </motion.div>

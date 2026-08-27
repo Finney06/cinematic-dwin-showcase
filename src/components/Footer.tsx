@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { useMenuItems, useSiteSettings } from "@/hooks/useContent";
 import { useAnimationSettings } from "@/hooks/useAnimationSettings";
+import { BRAND, DEFAULT_MENU, orEmpty } from "@/lib/brand";
 
 const Footer = () => {
   const shouldReduceMotion = useReducedMotion();
@@ -9,8 +10,11 @@ const Footer = () => {
   const instant = shouldReduceMotion || !isSectionEnabled("footer");
   const sectionEase = getSectionEase("footer");
 
-  const { data: menuItems = [] } = useMenuItems();
+  const { data: fetchedMenuItems = [] } = useMenuItems();
   const { data: settings } = useSiteSettings();
+
+  const visibleMenuItems = fetchedMenuItems.filter((item) => item.visible);
+  const menuItems = visibleMenuItems.length ? visibleMenuItems : DEFAULT_MENU;
 
   const socialLinks = (() => {
     if (settings?.social_links) {
@@ -38,7 +42,7 @@ const Footer = () => {
     >
       {/* Nav links row */}
       <div className="flex flex-wrap gap-x-6 gap-y-2 mb-8">
-        {menuItems.filter(item => item.visible).map((link) => (
+        {menuItems.map((link) => (
           <Link
             key={link.id}
             to={link.path}
@@ -65,7 +69,7 @@ const Footer = () => {
           ))}
         </div>
         <p className="font-body text-[10px] tracking-[0.15em] uppercase text-foreground/15">
-          {settings?.copyright_text || "©2026 Dwindik. All rights reserved."}
+          {orEmpty(settings?.copyright_text) || BRAND.copyright}
         </p>
         <p className="font-body text-[9px] tracking-[0.12em] uppercase text-foreground/10">
           Build: 2026-04-05

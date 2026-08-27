@@ -43,10 +43,10 @@ const ProjectDetail = () => {
               Project not found
             </p>
             <Link
-              to="/film"
+              to="/work"
               className="font-body text-[11px] tracking-[0.2em] uppercase text-foreground/50 mt-6 inline-block border-b border-foreground/10 pb-1 hover:text-foreground/70 transition-colors duration-500"
             >
-              Browse Projects
+              Browse the Slate
             </Link>
           </div>
         </main>
@@ -164,7 +164,7 @@ const ProjectDetail = () => {
               )}
               <div>
                 <span className="font-body text-[10px] tracking-[0.2em] uppercase text-foreground/20 block mb-1.5">
-                  Role
+                  CRA8 Credits
                 </span>
                 <span className="font-body text-sm text-foreground/65">
                   {project.role}

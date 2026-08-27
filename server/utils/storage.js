@@ -78,7 +78,7 @@ export const uploadBuffer = async ({ key, body, contentType }) => {
       throw new Error("Cloudinary credentials are not configured");
     }
 
-    const folder = process.env.CLOUDINARY_FOLDER || "dwindik";
+    const folder = process.env.CLOUDINARY_FOLDER || "cra8";
     const publicId = `${folder}/${key}`.replace(/\.[^.]+$/, "");
 
     const result = await new Promise((resolve, reject) => {

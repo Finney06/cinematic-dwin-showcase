@@ -7,6 +7,7 @@ import { AnimatePresence } from "framer-motion";
 import { useEffect } from "react";
 import { useSiteSettings } from "@/hooks/useContent";
 import Index from "./pages/Index";
+import Work from "./pages/Work";
 import Film from "./pages/Film";
 import Television from "./pages/Television";
 import Nonfiction from "./pages/Nonfiction";
@@ -38,34 +39,38 @@ const RouteSeo = () => {
 
   useEffect(() => {
     const path = location.pathname;
+    const studioDescription =
+      "CRA8 is a Nigerian film studio working in spiritual drama and thriller — cinematography, editing, visual effects and sound design.";
+
     const map: Record<string, { title: string; description: string }> = {
-      "/": { title: "Dwindik Portfolio", description: "Director of Photography and visual storytelling portfolio." },
-      "/film": { title: "Film | Dwindik", description: "Film projects and cinematography work by Dwindik." },
-      "/television": { title: "Television | Dwindik", description: "Television projects and production work." },
-      "/nonfiction": { title: "Nonfiction | Dwindik", description: "Nonfiction visual storytelling projects." },
-      "/audio": { title: "Audio | Dwindik", description: "Audio and sound-driven creative projects." },
-      "/music": { title: "Music | Dwindik", description: "Music visuals and creative direction work." },
-      "/commercials": { title: "Commercials | Dwindik", description: "Commercial productions and branded storytelling." },
-      "/news": { title: "News | Dwindik", description: "Latest updates and announcements." },
-      "/internship": { title: "Internship | Dwindik", description: "Internship opportunities and information." },
-      "/about": { title: "About | Dwindik", description: "About Dwindik, his craft, production company, and work." },
-      "/admin/login": { title: "Admin Login | Dwindik", description: "Sign in to the Dwindik admin portal." },
-      "/admin": { title: "Admin Dashboard | Dwindik", description: "Manage projects, pages, and settings." },
-      "/admin/projects": { title: "Admin Projects | Dwindik", description: "Manage portfolio projects." },
-      "/admin/pages": { title: "Admin Pages | Dwindik", description: "Edit custom page content." },
-      "/admin/about": { title: "Admin About | Dwindik", description: "Edit About page content." },
-      "/admin/hero": { title: "Admin Hero | Dwindik", description: "Edit homepage hero section." },
-      "/admin/settings": { title: "Admin Settings | Dwindik", description: "Update site settings and account options." },
-      "/admin/menu": { title: "Admin Menu | Dwindik", description: "Manage navigation structure." },
+      "/": { title: "CRA8 — Film Studio", description: studioDescription },
+      "/work": { title: "Work | CRA8", description: "The CRA8 slate — every film, with credits." },
+      "/film": { title: "Film | CRA8", description: "Films on the CRA8 slate." },
+      "/television": { title: "Television | CRA8", description: "Television work on the CRA8 slate." },
+      "/nonfiction": { title: "Nonfiction | CRA8", description: "Nonfiction work on the CRA8 slate." },
+      "/audio": { title: "Audio | CRA8", description: "Audio and sound-driven work from CRA8." },
+      "/music": { title: "Music | CRA8", description: "Music visuals from CRA8." },
+      "/commercials": { title: "Commercials | CRA8", description: "Commercial work from CRA8." },
+      "/news": { title: "News | CRA8", description: "Announcements and updates from CRA8." },
+      "/internship": { title: "Internship | CRA8", description: "Internship opportunities and information." },
+      "/about": { title: "About | CRA8", description: studioDescription },
+      "/admin/login": { title: "Admin Login | CRA8", description: "Sign in to the CRA8 admin portal." },
+      "/admin": { title: "Admin Dashboard | CRA8", description: "Manage projects, pages, and settings." },
+      "/admin/projects": { title: "Admin Projects | CRA8", description: "Manage the CRA8 slate." },
+      "/admin/pages": { title: "Admin Pages | CRA8", description: "Edit custom page content." },
+      "/admin/about": { title: "Admin About | CRA8", description: "Edit About page content." },
+      "/admin/hero": { title: "Admin Hero | CRA8", description: "Edit homepage hero section." },
+      "/admin/settings": { title: "Admin Settings | CRA8", description: "Update site settings and account options." },
+      "/admin/menu": { title: "Admin Menu | CRA8", description: "Manage navigation structure." },
     };
 
     const meta =
       map[path] ||
       (path.startsWith("/work/")
-        ? { title: "Project | Dwindik", description: "Project details and credits." }
+        ? { title: "Project | CRA8", description: "Project details and credits." }
         : path.startsWith("/admin/projects/")
-        ? { title: "Admin Project Editor | Dwindik", description: "Create and edit project entries." }
-        : { title: "Page Not Found | Dwindik", description: "The requested page could not be found." });
+        ? { title: "Admin Project Editor | CRA8", description: "Create and edit project entries." }
+        : { title: "Page Not Found | CRA8", description: "The requested page could not be found." });
 
     document.title = meta.title;
 
@@ -138,6 +143,7 @@ const App = () => (
           <Routes>
             {/* ─── Public ─── */}
             <Route path="/" element={<Index />} />
+            <Route path="/work" element={<Work />} />
             <Route path="/film" element={<Film />} />
             <Route path="/television" element={<Television />} />
             <Route path="/nonfiction" element={<Nonfiction />} />

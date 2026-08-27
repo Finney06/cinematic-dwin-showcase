@@ -201,76 +201,6 @@ const AdminAbout = () => {
           </button>
         </section>
 
-        {/* Craft Section */}
-        <section className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6">
-          <h2 className="text-xs tracking-[0.15em] uppercase text-white/30 font-medium mb-5">
-            The Craft
-          </h2>
-          <div className="space-y-5">
-            <div>
-              <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
-                Quote
-              </label>
-              <textarea
-                value={form.craftQuote}
-                onChange={(e) => setForm((p) => ({ ...p, craftQuote: e.target.value }))}
-                rows={3}
-                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 italic placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors resize-none"
-              />
-            </div>
-            <div>
-              <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-3">
-                Skills
-              </label>
-              {form.craftSkills.map((skill, i) => (
-                <div key={i} className="mb-4 bg-white/[0.02] border border-white/[0.04] rounded-lg p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <input
-                      type="text"
-                      value={skill.title}
-                      onChange={(e) => {
-                        const updated = [...form.craftSkills];
-                        updated[i] = { ...updated[i], title: e.target.value };
-                        setForm((p) => ({ ...p, craftSkills: updated }));
-                      }}
-                      className="flex-1 bg-transparent text-sm text-white/70 font-medium placeholder:text-white/15 focus:outline-none"
-                      placeholder="Skill title"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const updated = form.craftSkills.filter((_, idx) => idx !== i);
-                        setForm((p) => ({ ...p, craftSkills: updated.length ? updated : [{ title: "", description: "" }] }));
-                      }}
-                      className="text-white/15 hover:text-red-400/60 transition-colors ml-2 cursor-pointer"
-                    >
-                      ×
-                    </button>
-                  </div>
-                  <textarea
-                    value={skill.description}
-                    onChange={(e) => {
-                      const updated = [...form.craftSkills];
-                      updated[i] = { ...updated[i], description: e.target.value };
-                      setForm((p) => ({ ...p, craftSkills: updated }));
-                    }}
-                    rows={2}
-                    className="w-full bg-white/[0.04] border border-white/[0.06] rounded-md px-3 py-2 text-xs text-white/60 placeholder:text-white/15 focus:outline-none focus:border-white/15 transition-colors resize-none"
-                    placeholder="Skill description"
-                  />
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => setForm((p) => ({ ...p, craftSkills: [...p.craftSkills, { title: "", description: "" }] }))}
-                className="text-xs text-white/30 hover:text-white/50 transition-colors cursor-pointer"
-              >
-                + Add skill
-              </button>
-            </div>
-          </div>
-        </section>
-
         {/* Extra Sections */}
         <section className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
@@ -358,7 +288,7 @@ const AdminAbout = () => {
                   }))
                 }
                 className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
-                placeholder="Contact Dwindik"
+                placeholder="Contact CRA8"
               />
             </div>
             <div>
@@ -393,11 +323,14 @@ const AdminAbout = () => {
           />
         </section>
 
-        {/* Production Company */}
+        {/* Founder */}
         <section className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6">
-          <h2 className="text-xs tracking-[0.15em] uppercase text-white/30 font-medium mb-5">
-            Production Company
+          <h2 className="text-xs tracking-[0.15em] uppercase text-white/30 font-medium mb-1">
+            Founder
           </h2>
+          <p className="text-[10px] text-white/20 mb-4">
+            Shown near the bottom of the About page, next to a portrait.
+          </p>
           <div className="space-y-5">
             <div>
               <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
@@ -408,34 +341,37 @@ const AdminAbout = () => {
                 value={form.productionCompany.name}
                 onChange={(e) => setForm((p) => ({ ...p, productionCompany: { ...p.productionCompany, name: e.target.value } }))}
                 className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
+                placeholder="DWINDIK"
               />
             </div>
             <div>
               <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
-                Description
+                Bio
               </label>
               <textarea
                 value={form.productionCompany.description}
                 onChange={(e) => setForm((p) => ({ ...p, productionCompany: { ...p.productionCompany, description: e.target.value } }))}
                 rows={3}
                 className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors resize-none"
+                placeholder="Founder of CRA8. Director of Photography, VFX Artist, and Editor across the studio's slate."
               />
             </div>
             <div>
               <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
-                Collaborator
+                Role / Credits
               </label>
               <input
                 type="text"
                 value={form.productionCompany.collaborator}
                 onChange={(e) => setForm((p) => ({ ...p, productionCompany: { ...p.productionCompany, collaborator: e.target.value } }))}
                 className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
+                placeholder="In collaboration with The Winlos Media Ministry"
               />
             </div>
             <ImageUpload
               value={form.portraitImage}
               onChange={(url) => setForm((p) => ({ ...p, portraitImage: url }))}
-              label="Portrait Image"
+              label="Founder Portrait"
             />
           </div>
         </section>

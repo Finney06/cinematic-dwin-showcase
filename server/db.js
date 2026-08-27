@@ -59,11 +59,11 @@ const initDB = async () => {
 
       CREATE TABLE IF NOT EXISTS hero_content (
         id SERIAL PRIMARY KEY,
-        brand_text VARCHAR(255) DEFAULT 'DWINDIK',
-        tagline VARCHAR(255) DEFAULT 'Cre8te',
-        video_url VARCHAR(255) DEFAULT '/dwindik/video1.mp4',
-        hero_image VARCHAR(255) DEFAULT '/dwindik/5.jpeg',
-        hero_link VARCHAR(255) DEFAULT 'https://youtu.be/mPAZSvF5usk?si=IxaXZFE0nJZw0ypt',
+        brand_text VARCHAR(255) DEFAULT 'CRA8',
+        tagline VARCHAR(255) DEFAULT 'Spiritual Drama',
+        video_url VARCHAR(255) DEFAULT '/trillar-video.mp4',
+        hero_image VARCHAR(255) DEFAULT '',
+        hero_link VARCHAR(255) DEFAULT '',
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 

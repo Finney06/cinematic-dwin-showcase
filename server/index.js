@@ -130,5 +130,5 @@ app.use((err, req, res, next) => {
 
 // ─── Start ───────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`\n  🎬 Dwindik CMS Server running on http://localhost:${PORT}\n`);
+  console.log(`\n  🎬 CRA8 CMS Server running on http://localhost:${PORT}\n`);
 });

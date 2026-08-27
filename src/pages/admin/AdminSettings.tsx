@@ -287,7 +287,7 @@ const AdminSettings = () => {
                   className="mt-3 bg-white/[0.03] border border-white/[0.06] rounded-lg px-4 py-3 text-white/60"
                   style={{ fontFamily: form.font_display }}
                 >
-                  Display preview — Dwindik
+                  Display preview — CRA8
                 </div>
                 <p className="mt-2 text-[10px] text-white/20">
                   Used for headings.
@@ -513,7 +513,7 @@ const AdminSettings = () => {
                   value={form.contact_email}
                   onChange={(e) => setForm((p) => ({ ...p, contact_email: e.target.value }))}
                   className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
-                  placeholder="hello@dwindik.com"
+                  placeholder="hello@yourdomain.com"
                 />
               </div>
               <div>
