@@ -43,7 +43,7 @@ const AdminLogin = () => {
         {/* Brand */}
         <div className="text-center mb-10">
           <h1 className="text-[11px] tracking-[0.4em] uppercase text-white/20 font-medium">
-            Dwindik
+            CRA8
           </h1>
           <div className="w-6 h-px bg-white/10 mx-auto mt-3" />
           <p className="mt-3 text-[10px] tracking-[0.25em] uppercase text-white/15">
@@ -121,7 +121,7 @@ const AdminLogin = () => {
         </form>
 
         <p className="text-center mt-6 text-[10px] text-white/10 tracking-wide">
-          ©2026 Dwindik CMS
+          ©2026 CRA8 CMS
         </p>
       </div>
     </div>

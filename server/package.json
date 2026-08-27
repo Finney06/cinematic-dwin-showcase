@@ -1,12 +1,13 @@
 {
-  "name": "dwindik-cms-server",
+  "name": "cra8-cms-server",
   "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "nodemon index.js",
     "start": "node index.js",
-    "seed": "node seed.js"
+    "seed": "node seed.js",
+    "rebrand": "node rebrand-cra8.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.772.0",

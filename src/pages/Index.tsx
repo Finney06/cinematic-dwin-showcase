@@ -2,17 +2,40 @@ import { motion, useReducedMotion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import { useHeroContent, useLatestProjects } from "@/hooks/useContent";
+import { useHeroContent } from "@/hooks/useContent";
 import { useAnimationSettings } from "@/hooks/useAnimationSettings";
+import { BRAND, orEmpty } from "@/lib/brand";
 
 const VIDEO_START_DELAY = 1800;
-const BRAND_TEXT_REVEAL_DELAY = 900;
+/** How long the opening clip runs before the logo takes the circle. */
+const HERO_CLIP_DURATION = 8000;
 
 /** Space kept clear above and below the hero circle so it never collides with the tagline. */
 const HERO_VERTICAL_RESERVE = 180;
 
 type Phase = "idle" | "video" | "image";
+
+const YOUTUBE_ID_PATTERNS = [
+  /youtu\.be\/([\w-]{6,})/,
+  /\/shorts\/([\w-]{6,})/,
+  /[?&]v=([\w-]{6,})/,
+  /\/embed\/([\w-]{6,})/,
+];
+
+function getYouTubeId(url?: string): string {
+  if (!url) return "";
+  for (const pattern of YOUTUBE_ID_PATTERNS) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+  return "";
+}
+
+/** `?t=` / `?start=` on the hero clip picks the moment the circle opens on. */
+function getYouTubeStart(url?: string): number {
+  const match = url?.match(/[?&](?:t|start)=(\d+)/);
+  return match ? Number(match[1]) : 0;
+}
 
 function isPlayableVideoSource(url?: string): boolean {
   if (!url) return false;
@@ -30,6 +53,11 @@ function isPlayableVideoSource(url?: string): boolean {
   }
 }
 
+/**
+ * Home is the hero and nothing else — a single, non-scrolling screen. The
+ * studio statement, slate preview, and founder credit that used to live below
+ * it now live on their own pages (About, Work) instead of being repeated here.
+ */
 const Index = () => {
   const shouldReduceMotion = useReducedMotion();
   const { getSectionDuration, getSectionDelay, getSectionEase, enabled, isSectionEnabled } = useAnimationSettings();
@@ -37,44 +65,28 @@ const Index = () => {
   const instant = shouldReduceMotion || !sectionEnabled;
   const sectionEase = getSectionEase("homeHero");
 
-  const letterContainer = {
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: instant ? 0 : getSectionDuration("homeHero", 0.12),
-        delayChildren: instant ? 0 : getSectionDelay("homeHero", 0.5),
-      },
-    },
-  };
-
-  const letterVariant = {
-    hidden: { y: instant ? "0%" : "110%", opacity: instant ? 1 : 0 },
-    visible: {
-      y: "0%",
-      opacity: 1,
-      transition: { duration: instant ? 0 : getSectionDuration("homeHero", 1), ease: sectionEase },
-    },
-  };
-
   const isOgPreview =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).has("og");
   const [phase, setPhase] = useState<Phase>(isOgPreview ? "image" : "idle");
-  const [showBrandText, setShowBrandText] = useState(isOgPreview);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const brandFitRef = useRef<HTMLSpanElement>(null);
-  const brandMeasureRef = useRef<HTMLSpanElement>(null);
-  const [brandGap, setBrandGap] = useState(0);
-  
-  const { data: heroData } = useHeroContent();
-  const { data: latestProjects } = useLatestProjects(5);
 
-  const brandText = heroData?.brand_text || "DWINDIK";
-  const tagline = heroData?.tagline || "Cre8te";
-  const videoUrl = heroData?.video_url || "/dwindik/video1.mp4";
-  const heroImage = heroData?.hero_image || "/dwindik/5.jpeg";
-  const heroLink = heroData?.hero_link || "https://youtu.be/mPAZSvF5usk?si=IxaXZFE0nJZw0ypt";
-  const canPlayHeroVideo = isPlayableVideoSource(videoUrl);
+  const { data: heroData } = useHeroContent();
+
+  const brandText = orEmpty(heroData?.brand_text) || BRAND.name;
+  const tagline = orEmpty(heroData?.tagline) || BRAND.tagline;
+  /** Opening clip: a YouTube cut from the slate, or an uploaded video file. */
+  const clipUrl = orEmpty(heroData?.video_url) || BRAND.heroClip;
+  const clipYouTubeId = getYouTubeId(clipUrl);
+  const clipIsPortrait = /\/shorts\//.test(clipUrl);
+  const clipStart = getYouTubeStart(clipUrl);
+  const canPlayHeroVideo = Boolean(clipYouTubeId) || isPlayableVideoSource(clipUrl);
+  /** What the circle holds once the clip has run — the logo, unless admin sets a still. */
+  const heroStill = orEmpty(heroData?.hero_image) || BRAND.logo;
+  const stillIsLogo = heroStill === BRAND.logo;
+  const stillClassName = stillIsLogo ? "w-full h-full object-contain" : "w-full h-full object-cover";
+  const heroLink = heroData?.hero_link || "/work";
+  const isExternalHeroLink = /^https?:\/\//i.test(heroLink);
 
   useEffect(() => {
     if (isOgPreview) return;
@@ -85,9 +97,15 @@ const Index = () => {
     return () => clearTimeout(t);
   }, [isOgPreview, canPlayHeroVideo, instant]);
 
+  // A YouTube clip runs for a preset window; an uploaded file plays to its end.
   useEffect(() => {
     if (isOgPreview) return;
     if (phase !== "video") return;
+
+    if (clipYouTubeId) {
+      const t = setTimeout(() => setPhase("image"), HERO_CLIP_DURATION);
+      return () => clearTimeout(t);
+    }
 
     const vid = videoRef.current;
     if (!vid) return;
@@ -102,63 +120,128 @@ const Index = () => {
       vid.removeEventListener("ended", onEnded);
       vid.removeEventListener("error", onError);
     };
-  }, [phase, isOgPreview]);
+  }, [phase, isOgPreview, clipYouTubeId]);
 
-  useEffect(() => {
-    if (isOgPreview) {
-      setShowBrandText(true);
-      return;
-    }
+  const heroCircle = (
+    <motion.div
+      className="circle-media w-[80vw] sm:w-[75vw] md:w-[55vw] lg:w-[45vw] aspect-square rounded-full relative overflow-hidden"
+      animate={enabled && sectionEnabled && !instant ? { rotateX: [0, 1.5, -1, 0], rotateY: [0, -2, 1.5, 0] } : { rotateX: 0, rotateY: 0 }}
+      transition={enabled && sectionEnabled && !instant ? { duration: getSectionDuration("homeHero", 10), ease: "easeInOut", repeat: Infinity, repeatType: "mirror" } : { duration: 0 }}
+      style={{
+        transformStyle: "preserve-3d",
+        background: "hsl(0 0% 10%)",
+        boxShadow: "0 0 0 1px rgba(255,255,255,0.05), 0 0 80px rgba(0,0,0,0.4), 0 30px 80px rgba(0,0,0,0.35)",
+        maxWidth: `calc(100svh - ${HERO_VERTICAL_RESERVE}px)`,
+      }}
+    >
+      {clipYouTubeId ? (
+        phase === "video" && (
+          <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
+            <iframe
+              // Muted, chromeless and unclickable: the clip is texture, not a player.
+              src={
+                `https://www.youtube.com/embed/${clipYouTubeId}?autoplay=1&mute=1&controls=0` +
+                `&loop=1&playlist=${clipYouTubeId}&playsinline=1&modestbranding=1&rel=0` +
+                `&disablekb=1&fs=0&iv_load_policy=3&vq=hd1080` +
+                (clipStart ? `&start=${clipStart}` : "")
+              }
+              title={`${brandText} — opening clip`}
+              allow="autoplay; encrypted-media"
+              tabIndex={-1}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border-0"
+              style={
+                clipIsPortrait
+                  ? { width: "100%", height: "177.78%" }
+                  : { width: "177.78%", height: "100%" }
+              }
+            />
+          </div>
+        )
+      ) : (
+        canPlayHeroVideo && (
+          <video
+            ref={videoRef}
+            className="absolute inset-0 w-full h-full rounded-full"
+            src={clipUrl}
+            muted
+            playsInline
+            preload="auto"
+            style={{
+              objectFit: "cover",
+              opacity: phase === "video" ? 1 : 0,
+              transition: "opacity 0.3s linear",
+            }}
+          />
+        )
+      )}
+      {phase === "image" && heroStill && (
+        <div className="absolute inset-0 rounded-full overflow-hidden">
+          {isOgPreview ? (
+            <div className={stillIsLogo ? "absolute inset-0 bg-black" : "absolute inset-0"}>
+              <img className={stillClassName} src={heroStill} alt="" aria-hidden />
+              {!stillIsLogo && <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.15)" }} />}
+            </div>
+          ) : (
+            <>
+              <motion.div
+                className={stillIsLogo ? "absolute inset-0 bg-black" : "absolute inset-0"}
+                initial={instant ? {
+                  clipPath: "polygon(0% 0%, 115% 0%, 111% 15%, 107% 30%, 105% 50%, 107% 70%, 111% 85%, 115% 100%, 0% 100%)",
+                } : {
+                  clipPath: "polygon(0% 0%, 0% 0%, -4% 15%, -8% 30%, -10% 50%, -8% 70%, -4% 85%, 0% 100%, 0% 100%)",
+                }}
+                animate={{
+                  clipPath: "polygon(0% 0%, 115% 0%, 111% 15%, 107% 30%, 105% 50%, 107% 70%, 111% 85%, 115% 100%, 0% 100%)",
+                }}
+                transition={{ duration: instant ? 0 : getSectionDuration("homeHero", 1.4), delay: instant ? 0 : getSectionDelay("homeHero", 0.15), ease: sectionEase }}
+              >
+                <img className={stillClassName} src={heroStill} alt="" aria-hidden />
+                {!stillIsLogo && <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.15)" }} />}
+              </motion.div>
+              <motion.div
+                className="absolute pointer-events-none z-20"
+                initial={{ left: instant ? "105%" : "-10%" }}
+                animate={{ left: "105%" }}
+                transition={{ duration: instant ? 0 : getSectionDuration("homeHero", 1.4), delay: instant ? 0 : getSectionDelay("homeHero", 0.15), ease: sectionEase }}
+                style={{
+                  top: "-5%", width: "14%", height: "110%",
+                  background: "radial-gradient(ellipse 50% 45% at 50% 50%, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.12) 50%, transparent 100%)",
+                  filter: "blur(8px)", borderRadius: "50%",
+                }}
+              />
+              <motion.div
+                className="absolute pointer-events-none z-20"
+                initial={{ left: instant ? "100%" : "-22%" }}
+                animate={{ left: "100%" }}
+                transition={{ duration: instant ? 0 : getSectionDuration("homeHero", 1.6), delay: instant ? 0 : getSectionDelay("homeHero", 0.15), ease: sectionEase }}
+                style={{
+                  top: "-10%", width: "28%", height: "120%",
+                  background: "radial-gradient(ellipse 45% 40% at 50% 50%, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.04) 50%, transparent 100%)",
+                  filter: "blur(18px)", borderRadius: "50%",
+                }}
+              />
+            </>
+          )}
+        </div>
+      )}
+      <div
+        className="absolute pointer-events-none z-10 rounded-full"
+        style={{
+          top: "5%", left: "12%", width: "40%", height: "20%",
+          background: "radial-gradient(ellipse, rgba(255,255,255,0.07) 0%, transparent 70%)",
+          filter: "blur(8px)", transform: "rotate(-12deg)",
+        }}
+      />
 
-    if (phase !== "image") {
-      setShowBrandText(false);
-      return;
-    }
-
-    const t = setTimeout(
-      () => setShowBrandText(true),
-      instant ? 0 : BRAND_TEXT_REVEAL_DELAY
-    );
-    return () => clearTimeout(t);
-  }, [phase, isOgPreview, instant]);
-
-  useEffect(() => {
-    const computeBrandGap = () => {
-      const targetWidth = brandFitRef.current?.clientWidth ?? 0;
-      const naturalWidth = brandMeasureRef.current?.scrollWidth ?? 0;
-      const chars = Math.max(brandText.length, 1);
-
-      if (targetWidth <= 0 || naturalWidth <= 0 || chars <= 1) {
-        setBrandGap(0);
-        return;
-      }
-
-      const nextGap = (targetWidth - naturalWidth) / (chars - 1);
-      setBrandGap(Number.isFinite(nextGap) ? Math.max(-1.5, nextGap) : 0);
-    };
-
-    computeBrandGap();
-
-    if (typeof document !== "undefined" && "fonts" in document) {
-      document.fonts.ready.then(computeBrandGap).catch(() => {});
-    }
-
-    if (typeof ResizeObserver !== "undefined") {
-      const observer = new ResizeObserver(computeBrandGap);
-      if (brandFitRef.current) observer.observe(brandFitRef.current);
-      if (brandMeasureRef.current) observer.observe(brandMeasureRef.current);
-      return () => observer.disconnect();
-    }
-
-    window.addEventListener("resize", computeBrandGap);
-    return () => window.removeEventListener("resize", computeBrandGap);
-  }, [brandText]);
+      {/* The wordmark itself is the logo artwork above; this names it for readers. */}
+      <h1 className="sr-only">{brandText}</h1>
+    </motion.div>
+  );
 
   return (
-    <div className="bg-background min-h-screen relative">
+    <div className="bg-background h-[100svh] overflow-hidden relative">
       <Navbar enterDelay={isOgPreview ? 0 : 2.4} />
 
-      {/* ═══ HERO ═══ */}
       <main className="h-[100svh] flex items-center justify-center relative overflow-hidden">
         {/* Circle */}
         <motion.div
@@ -172,131 +255,22 @@ const Index = () => {
           }}
           style={{ perspective: "800px" }}
         >
-          <a
-            href={heroLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block rounded-full cursor-pointer"
-          >
-            <motion.div
-              className="circle-media w-[80vw] sm:w-[75vw] md:w-[55vw] lg:w-[45vw] aspect-square rounded-full relative overflow-hidden"
-              animate={enabled && sectionEnabled && !instant ? { rotateX: [0, 1.5, -1, 0], rotateY: [0, -2, 1.5, 0] } : { rotateX: 0, rotateY: 0 }}
-              transition={enabled && sectionEnabled && !instant ? { duration: getSectionDuration("homeHero", 10), ease: "easeInOut", repeat: Infinity, repeatType: "mirror" } : { duration: 0 }}
-              style={{
-                transformStyle: "preserve-3d",
-                background: "hsl(0 0% 10%)",
-                boxShadow: "0 0 0 1px rgba(255,255,255,0.05), 0 0 80px rgba(0,0,0,0.4), 0 30px 80px rgba(0,0,0,0.35)",
-                maxWidth: `calc(100svh - ${HERO_VERTICAL_RESERVE}px)`,
-              }}
+          {isExternalHeroLink ? (
+            <a
+              href={heroLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block rounded-full cursor-pointer"
             >
-              {canPlayHeroVideo && (
-                <video
-                  ref={videoRef}
-                  className="absolute inset-0 w-full h-full rounded-full"
-                  src={videoUrl}
-                  muted
-                  playsInline
-                  style={{
-                    objectFit: "cover",
-                    opacity: phase === "video" ? 1 : 0,
-                    transition: "opacity 0.3s linear",
-                  }}
-                />
-              )}
-              {phase === "image" && (
-                <div className="absolute inset-0 rounded-full overflow-hidden">
-                  {isOgPreview ? (
-                    <>
-                      <img className="w-full h-full object-cover" src={heroImage} alt={brandText} />
-                      <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.15)" }} />
-                    </>
-                  ) : (
-                    <>
-                      <motion.div
-                        className="absolute inset-0"
-                        initial={instant ? {
-                          clipPath: "polygon(0% 0%, 115% 0%, 111% 15%, 107% 30%, 105% 50%, 107% 70%, 111% 85%, 115% 100%, 0% 100%)",
-                        } : {
-                          clipPath: "polygon(0% 0%, 0% 0%, -4% 15%, -8% 30%, -10% 50%, -8% 70%, -4% 85%, 0% 100%, 0% 100%)",
-                        }}
-                        animate={{
-                          clipPath: "polygon(0% 0%, 115% 0%, 111% 15%, 107% 30%, 105% 50%, 107% 70%, 111% 85%, 115% 100%, 0% 100%)",
-                        }}
-                        transition={{ duration: instant ? 0 : getSectionDuration("homeHero", 1.4), delay: instant ? 0 : getSectionDelay("homeHero", 0.15), ease: sectionEase }}
-                      >
-                        <img className="w-full h-full object-cover" src={heroImage} alt={brandText} />
-                        <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.15)" }} />
-                      </motion.div>
-                      <motion.div
-                        className="absolute pointer-events-none z-20"
-                        initial={{ left: instant ? "105%" : "-10%" }}
-                        animate={{ left: "105%" }}
-                        transition={{ duration: instant ? 0 : getSectionDuration("homeHero", 1.4), delay: instant ? 0 : getSectionDelay("homeHero", 0.15), ease: sectionEase }}
-                        style={{
-                          top: "-5%", width: "14%", height: "110%",
-                          background: "radial-gradient(ellipse 50% 45% at 50% 50%, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.12) 50%, transparent 100%)",
-                          filter: "blur(8px)", borderRadius: "50%",
-                        }}
-                      />
-                      <motion.div
-                        className="absolute pointer-events-none z-20"
-                        initial={{ left: instant ? "100%" : "-22%" }}
-                        animate={{ left: "100%" }}
-                        transition={{ duration: instant ? 0 : getSectionDuration("homeHero", 1.6), delay: instant ? 0 : getSectionDelay("homeHero", 0.15), ease: sectionEase }}
-                        style={{
-                          top: "-10%", width: "28%", height: "120%",
-                          background: "radial-gradient(ellipse 45% 40% at 50% 50%, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.04) 50%, transparent 100%)",
-                          filter: "blur(18px)", borderRadius: "50%",
-                        }}
-                      />
-                    </>
-                  )}
-                </div>
-              )}
-              <div
-                className="absolute pointer-events-none z-10 rounded-full"
-                style={{
-                  top: "5%", left: "12%", width: "40%", height: "20%",
-                  background: "radial-gradient(ellipse, rgba(255,255,255,0.07) 0%, transparent 70%)",
-                  filter: "blur(8px)", transform: "rotate(-12deg)",
-                }}
-              />
-
-              {/* DWINDIK text */}
-              <motion.h1
-                className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none"
-                variants={letterContainer}
-                initial={isOgPreview ? "visible" : "hidden"}
-                animate={showBrandText ? "visible" : "hidden"}
-                style={{ containerType: "inline-size" }}
-              >
-                <span ref={brandFitRef} className="w-[92%] text-center whitespace-nowrap overflow-hidden">
-                  <span
-                    className="inline-flex items-center"
-                    style={{ columnGap: `${brandGap}px` }}
-                  >
-                    {brandText.split("").map((letter, i) => (
-                      <span key={i} className="inline-block overflow-hidden align-middle">
-                      <motion.span
-                        variants={letterVariant}
-                        className="font-display text-[12.5cqw] sm:text-[12cqw] md:text-[11.45cqw] lg:text-[11.33cqw] font-light text-foreground leading-none uppercase select-none inline-block"
-                      >
-                        {letter}
-                      </motion.span>
-                      </span>
-                    ))}
-                  </span>
-                  <span
-                    ref={brandMeasureRef}
-                    aria-hidden
-                    className="absolute opacity-0 pointer-events-none whitespace-nowrap font-display text-[12.5cqw] sm:text-[12cqw] md:text-[11.45cqw] lg:text-[11.33cqw] font-light leading-none uppercase"
-                  >
-                    {brandText}
-                  </span>
-                </span>
-              </motion.h1>
-            </motion.div>
-          </a>
+              {heroCircle}
+            </a>
+          ) : heroLink ? (
+            <Link to={heroLink} className="block rounded-full cursor-pointer">
+              {heroCircle}
+            </Link>
+          ) : (
+            <div className="block rounded-full">{heroCircle}</div>
+          )}
         </motion.div>
 
         {/* Rotating arc */}

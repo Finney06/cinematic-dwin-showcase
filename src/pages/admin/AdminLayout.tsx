@@ -58,7 +58,7 @@ const AdminLayout = () => {
         >
           <MenuIcon className="h-4 w-4" />
         </button>
-        <div className="text-[10px] tracking-[0.35em] uppercase text-white/40">Dwindik</div>
+        <div className="text-[10px] tracking-[0.35em] uppercase text-white/40">CRA8</div>
         <button
           onClick={handleLogout}
           className="p-2 rounded-md bg-white/[0.04] text-white/60 hover:text-white/80"
@@ -85,7 +85,7 @@ const AdminLayout = () => {
         <div className="px-5 py-6 border-b border-white/[0.06] flex items-center justify-between">
           <Link to="/admin" className="block">
             <h1 className="text-[11px] tracking-[0.35em] uppercase text-white/40 font-medium">
-              Dwindik
+              CRA8
             </h1>
             <p className="text-[9px] tracking-[0.2em] uppercase text-white/15 mt-1">
               Admin Portal

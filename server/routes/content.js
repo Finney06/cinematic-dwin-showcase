@@ -28,11 +28,11 @@ router.get("/hero", async (req, res) => {
     const row = rows[0];
     if (!row) {
       return res.json({
-        brand_text: "DWINDIK",
-        tagline: "Cre8te",
-        video_url: "/dwindik/video1.mp4",
-        hero_image: "/dwindik/5.jpeg",
-        hero_link: "https://youtu.be/mPAZSvF5usk?si=IxaXZFE0nJZw0ypt",
+        brand_text: "CRA8",
+        tagline: "Spiritual Drama",
+        video_url: "/trillar-video.mp4",
+        hero_image: "",
+        hero_link: "",
       });
     }
     res.json(row);
@@ -133,7 +133,7 @@ router.put("/hero", authMiddleware, async (req, res) => {
       await pool.query(`
         INSERT INTO hero_content (brand_text, tagline, video_url, hero_image, hero_link)
         VALUES ($1, $2, $3, $4, $5)
-      `, [brand_text || "DWINDIK", tagline || "Cre8te", video_url || "", hero_image || "", hero_link || ""]);
+      `, [brand_text || "CRA8", tagline || "Spiritual Drama", video_url || "", hero_image || "", hero_link || ""]);
     }
 
     if (existing && previousVideoUrl && nextVideoUrl !== previousVideoUrl) {

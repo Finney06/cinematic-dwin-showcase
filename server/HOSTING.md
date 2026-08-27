@@ -34,11 +34,11 @@ Cloudinary (recommended):
 - `CLOUDINARY_CLOUD_NAME=<cloud name>`
 - `CLOUDINARY_API_KEY=<api key>`
 - `CLOUDINARY_API_SECRET=<api secret>`
-- `CLOUDINARY_FOLDER=dwindik`
+- `CLOUDINARY_FOLDER=cra8`
 
 Optional seed defaults:
 
-- `ADMIN_USERNAME=dwindik`
+- `ADMIN_USERNAME=cra8`
 - `ADMIN_PASSWORD=admin123`
 
 Important:

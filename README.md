@@ -1,6 +1,9 @@
-# DWINDIK — Filmmaker & Creative Director
+# CRA8 — Film Studio
 
-A cinematic portfolio website for Dwindik, featuring immersive animations, video playback, and a minimalist dark aesthetic.
+The website for CRA8, a Nigerian film studio working in spiritual drama and thriller.
+Cinematic motion, video-led hero, an admin-managed slate, and a minimalist dark aesthetic.
+
+Art direction and the founding slate are documented in [docs/CRA8-Creative-Direction-Final.md](docs/CRA8-Creative-Direction-Final.md).
 
 ## Tech Stack
 
@@ -11,7 +14,7 @@ A cinematic portfolio website for Dwindik, featuring immersive animations, video
 
 ## Backend CMS (Server)
 
-The project includes an Express + SQLite CMS backend in [server](server).
+The project includes an Express + Postgres CMS backend in [server](server).
 
 ### Run locally
 
@@ -22,6 +25,26 @@ cp .env.example .env
 npm run seed
 npm run dev
 ```
+
+### Rebranding an existing DWINDIK database
+
+The public site reads its identity, menu and About copy from the database, so a
+database seeded by the previous personal-portfolio site still holds DWINDIK-era
+rows. The frontend ignores those values and falls back to the CRA8 defaults, but
+the database should be migrated properly:
+
+```bash
+cd server
+npm run rebrand                # dry run — prints every change, writes nothing
+npm run rebrand -- --apply     # writes the changes
+```
+
+Add `--drop-legacy-projects` to also delete projects that are not on the CRA8
+slate (off by default — it deletes rows).
+
+Contact email and social links are intentionally left blank: set CRA8's own in
+**Admin → Settings**. Until a contact email is set, the site hides its contact
+links rather than showing a guessed address.
 
 ## Hosting backend + uploads
 
