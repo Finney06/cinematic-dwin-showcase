@@ -17,7 +17,7 @@ const AdminTeam = () => (
     publicPath={() => "/about"}
     blank={{ name: "", role: "", bio: "", image: "", links: [] }}
     fields={[
-      { key: "name", label: "Name", type: "text", half: true, placeholder: "DWINDIK" },
+      { key: "name", label: "Name", type: "text", half: true, placeholder: "Full name" },
       { key: "role", label: "Role", type: "text", half: true, placeholder: "Director of Photography" },
       { key: "bio", label: "Bio", type: "textarea", rows: 4 },
       { key: "image", label: "Portrait", type: "image" },

@@ -365,7 +365,7 @@ const AdminAbout = () => {
                 value={form.productionCompany.name}
                 onChange={(e) => setForm((p) => ({ ...p, productionCompany: { ...p.productionCompany, name: e.target.value } }))}
                 className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
-                placeholder="DWINDIK"
+                placeholder="Founder name"
               />
             </div>
             <div>

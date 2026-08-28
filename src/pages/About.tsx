@@ -8,13 +8,14 @@ import { readBlocks } from "@/lib/pageBlocks";
 import { BRAND, orEmpty } from "@/lib/brand";
 
 /**
- * The studio page. Every field comes from Admin → About and falls back to a
- * CRA8 default only when the CMS field is genuinely empty — whatever's saved
- * is trusted verbatim. Imagery defaults to real photos of DWINDIK, never the
- * slate's movie-poster thumbnails: those belong on /work.
+ * The studio page. Every field comes from Admin → About and is trusted
+ * verbatim once saved. Until the client fills it in, the page shows a clean,
+ * neutral placeholder — a text hero and a short statement, no invented lore,
+ * no imagery. Only /work is populated for launch; everything else here is the
+ * client's to write.
  *
- * The team grid is its own collection (Admin → Team) and simply doesn't render
- * while it's empty, so the page never shows placeholder seats.
+ * Optional sections (founder, gallery, team, extra sections) only render once
+ * they actually have content, so the placeholder never shows empty seats.
  */
 const About = () => {
   const { data: aboutData } = useAboutContent();
@@ -23,21 +24,20 @@ const About = () => {
 
   const content = aboutData?.content;
 
-  const heroImage = content?.heroImage || "/dwindik/4.jpeg";
+  const heroImage = content?.heroImage || "";
   const title = content?.title || BRAND.name;
   const subtitle = content?.subtitle || "Film Studio · Nigeria";
-  const bioIntro = content?.bioIntro || "A film studio working in spiritual drama and thriller.";
+  const bioIntro =
+    content?.bioIntro || "CRA8 is a film studio based in Nigeria.";
   const bioParagraphs = content?.bioParagraphs?.filter(Boolean) || [];
   const galleryImages = content?.galleryImages?.filter(Boolean) || [];
   const fullWidthImage = content?.fullWidthImage || "";
-  /** This block credits CRA8's founder — reuses the `productionCompany` fields from Admin → About. */
-  const founderName = content?.productionCompany?.name || "DWINDIK";
-  const founderBio =
-    content?.productionCompany?.description ||
-    "Founder of CRA8. Director of Photography, VFX Artist, and Editor across the studio's slate.";
-  const founderRole =
-    content?.productionCompany?.collaborator || `In collaboration with ${BRAND.collaborator}`;
-  const founderImage = content?.portraitImage || "/dwindik/5.jpeg";
+  /** Founder credit — reuses the `productionCompany` fields from Admin → About. Renders only once the client fills it in. */
+  const founderName = orEmpty(content?.productionCompany?.name);
+  const founderBio = orEmpty(content?.productionCompany?.description);
+  const founderRole = orEmpty(content?.productionCompany?.collaborator);
+  const founderImage = content?.portraitImage || "";
+  const hasFounder = Boolean(founderName || founderBio);
   const extraSections = content?.sections?.filter((section) => section?.heading || section?.body) || [];
   const blocks = readBlocks(content);
   const ctaLabel = content?.cta?.label || "";
@@ -146,7 +146,8 @@ const About = () => {
         </section>
       )}
 
-      {/* ═══ FOUNDER ═══ */}
+      {/* ═══ FOUNDER — only once the client fills it in ═══ */}
+      {hasFounder && (
       <section className="px-5 sm:px-8 md:px-12 pt-16 sm:pt-24">
         <Reveal className="border-t border-foreground/[0.06] pt-10 sm:pt-14">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20">
@@ -154,13 +155,19 @@ const About = () => {
               <span className="font-body text-[9px] sm:text-[10px] tracking-[0.3em] uppercase text-foreground/20 block mb-4">
                 Founder
               </span>
-              <p className="font-display text-3xl sm:text-4xl font-light text-foreground/80 tracking-[0.06em] uppercase">
-                {founderName}
-              </p>
-              <p className="mt-4 font-body text-sm leading-[1.8] text-foreground/40">{founderBio}</p>
-              <p className="mt-3 font-body text-[10px] tracking-[0.2em] uppercase text-foreground/25">
-                {founderRole}
-              </p>
+              {founderName && (
+                <p className="font-display text-3xl sm:text-4xl font-light text-foreground/80 tracking-[0.06em] uppercase">
+                  {founderName}
+                </p>
+              )}
+              {founderBio && (
+                <p className="mt-4 font-body text-sm leading-[1.8] text-foreground/40">{founderBio}</p>
+              )}
+              {founderRole && (
+                <p className="mt-3 font-body text-[10px] tracking-[0.2em] uppercase text-foreground/25">
+                  {founderRole}
+                </p>
+              )}
               {ctaLabel && ctaUrl && (
                 <a
                   href={ctaUrl}
@@ -174,11 +181,12 @@ const About = () => {
             </div>
 
             {founderImage && (
-              <MediaFrame src={founderImage} alt={founderName} aspect="aspect-[4/5]" />
+              <MediaFrame src={founderImage} alt={founderName || "Founder"} aspect="aspect-[4/5]" />
             )}
           </div>
         </Reveal>
       </section>
+      )}
 
       {/* ═══ TEAM — only once there is a team ═══ */}
       {team.length > 0 && (

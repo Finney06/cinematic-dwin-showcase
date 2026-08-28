@@ -287,19 +287,17 @@ describe("CRA8 defaults — shown only when the CMS is genuinely empty", () => {
     expect(logo?.className).toContain("object-contain");
   });
 
-  it("about falls back to the CRA8 studio copy and credits DWINDIK as founder on a fresh database", async () => {
+  it("about shows a clean neutral placeholder on a fresh database — no invented lore, no imagery", async () => {
     const About = (await import("@/pages/About")).default;
     const container = await renderPage(<About />);
     const text = container.textContent || "";
     const html = container.innerHTML;
 
-    expect(text).toContain("A film studio working in spiritual drama and thriller.");
-    expect(text).toContain("DWINDIK");
-    expect(text).toContain("Founder");
-    expect(text).toContain("The Winlos Media Ministry");
-    // Imagery defaults to real photos of DWINDIK, not slate thumbnails.
-    expect(html).toContain("/dwindik/4.jpeg");
-    expect(html).toContain("/dwindik/5.jpeg");
+    expect(text).toContain("CRA8 is a film studio based in Nigeria.");
+    // No founder block and no placeholder photos until the client fills them in.
+    expect(text).not.toContain("DWINDIK");
+    expect(text).not.toContain("Founder");
+    expect(html).not.toContain("/dwindik/");
     expect(html).not.toMatch(/img\.youtube\.com/);
   });
 

@@ -18,8 +18,9 @@ import type { ProjectData } from "@/lib/api";
  *   Ratio      Every thumbnail is 16:9 — the shape CRA8's posters already are,
  *              so nothing is cropped. Only the full-bleed feature is wider.
  *   Caption    Always below the image, never over it, always the same three
- *              lines: status, title, credits. The one exception is the feature,
- *              where the overlay is the point.
+ *              lines: status, title, year. No per-craft credits on the grid —
+ *              CRA8 is a studio, not a crew reel. The one exception is the
+ *              feature, where the overlay is the point.
  *   Type       Scales with the card's span and nothing else, so a project's
  *              size on the page is always legible as its importance.
  *   Spacing    Fixed column and row gaps; sections separated by a labelled rule.
@@ -61,9 +62,13 @@ const SIZES = {
 
 export type SlateSize = keyof typeof SIZES;
 
-/** Credits line — omits whatever the CMS hasn't filled in, never shows " · ". */
-const creditLine = (project: ProjectData) =>
-  [project.role, project.year].map((part) => (part || "").trim()).filter(Boolean).join(" · ");
+/**
+ * Caption line under a slate card. CRA8 is a studio, not a crew reel, so the
+ * grid deliberately doesn't carry per-craft titles (DoP, gaffer, editor) — it
+ * shows the year, and craft credits live on the project page for whoever wants
+ * them.
+ */
+const captionLine = (project: ProjectData) => (project.year || "").trim();
 
 const PlayGlyph = ({ large = false }: { large?: boolean }) => (
   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
@@ -113,9 +118,9 @@ export const SlateFeature = ({ project, eyebrow }: { project: ProjectData; eyebr
           <h2 className="font-display text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-light text-foreground tracking-[0.01em] leading-[0.95] max-w-[16ch] transition-transform duration-700 group-hover:-translate-y-1">
             {project.title}
           </h2>
-          {creditLine(project) && (
-            <p className="mt-4 font-body text-[10px] sm:text-xs tracking-[0.2em] uppercase text-foreground/40 max-w-2xl">
-              {creditLine(project)}
+          {captionLine(project) && (
+            <p className="mt-4 font-body text-[10px] sm:text-xs tracking-[0.2em] uppercase text-foreground/40 max-w-2xl line-clamp-1">
+              {captionLine(project)}
             </p>
           )}
         </div>
@@ -184,9 +189,9 @@ export const SlateCard = ({
           >
             {project.title}
           </h3>
-          {creditLine(project) && (
-            <p className="mt-2 font-body text-[10px] tracking-[0.2em] uppercase text-foreground/30 leading-relaxed">
-              {creditLine(project)}
+          {captionLine(project) && (
+            <p className="mt-2 font-body text-[10px] tracking-[0.2em] uppercase text-foreground/30 leading-relaxed truncate">
+              {captionLine(project)}
             </p>
           )}
           <span className="mt-4 block h-px w-full bg-foreground/[0.07] origin-left scale-x-100 group-hover:bg-foreground/25 transition-colors duration-500" />

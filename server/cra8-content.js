@@ -332,29 +332,27 @@ export const CRA8_SYSTEM_PAGES = [
 ];
 
 /**
- * Deliberately minimal, in the spirit of proximitymedia.com and a24films.com:
- * work speaks first, About stays short. DWINDIK edits this directly in
- * Admin → About once he has the exact copy he wants — nothing here should
- * read as final, invented company lore.
+ * A clean, neutral placeholder — a text hero and a one-line statement, nothing
+ * more. Only /work is populated for launch; the About page (and every other
+ * non-Work page) is the client's to write. Nothing here should read as final,
+ * invented company lore, and there is no placeholder imagery: optional sections
+ * (founder, gallery, extra sections) only render once they have real content.
  */
 export const CRA8_ABOUT_CONTENT = {
-  // A real photo of DWINDIK on set, not a slate movie-poster thumbnail — this
-  // is a founder page, and the work already has its own home on /work.
-  heroImage: "/dwindik/4.jpeg",
+  heroImage: "",
   title: "CRA8",
   subtitle: "Film Studio · Nigeria",
-  bioIntro: "A film studio working in spiritual drama and thriller.",
+  bioIntro: "CRA8 is a film studio based in Nigeria.",
   bioParagraphs: [],
   galleryImages: [],
   fullWidthImage: "",
-  /** Founder credit — rendered near the foot of the About page, beside a portrait. */
+  /** Founder credit — left empty; fill it in from Admin → About and the section appears. */
   productionCompany: {
-    name: "DWINDIK",
-    description:
-      "Founder of CRA8. Director of Photography, VFX Artist, and Editor across the studio's slate.",
-    collaborator: "In collaboration with The Winlos Media Ministry",
+    name: "",
+    description: "",
+    collaborator: "",
   },
-  portraitImage: "/dwindik/5.jpeg",
+  portraitImage: "",
 };
 
 /**

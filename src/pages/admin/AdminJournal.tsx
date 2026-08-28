@@ -39,7 +39,7 @@ const AdminJournal = () => (
         placeholder: "Behind the Scenes",
         hint: "Shown above the title, and used to group the Journal index.",
       },
-      { key: "author", label: "Author", type: "text", half: true, placeholder: "DWINDIK" },
+      { key: "author", label: "Author", type: "text", half: true, placeholder: "Author name" },
       { key: "published_at", label: "Date", type: "date", half: true },
       {
         key: "slug",
