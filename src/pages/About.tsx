@@ -51,14 +51,24 @@ const About = () => {
       image={aboutData?.seo_image || heroImage}
       bleed
     >
-      {/* ═══ HERO — Full-bleed still ═══ */}
-      <div className="relative w-full h-[70vh] sm:h-[80vh] overflow-hidden bg-secondary">
+      {/* ═══ HERO — full-bleed still, or a plain title block when no image is set ═══ */}
+      <div
+        className={`relative w-full overflow-hidden bg-secondary ${
+          heroImage ? "h-[70vh] sm:h-[80vh]" : "pt-32 sm:pt-40 md:pt-48"
+        }`}
+      >
         {heroImage && (
           <img src={heroImage} alt={`${title} — from the slate`} className="w-full h-full object-cover" />
         )}
         <div className="film-grain absolute inset-0 z-10 pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 px-5 sm:px-8 md:px-12 pb-10 sm:pb-14">
+        {heroImage && (
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+        )}
+        <div
+          className={`px-5 sm:px-8 md:px-12 pb-10 sm:pb-14 ${
+            heroImage ? "absolute bottom-0 left-0 right-0" : "relative"
+          }`}
+        >
           <h1 className="font-display text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-light text-foreground tracking-[0.04em] uppercase leading-[0.85]">
             {title}
           </h1>

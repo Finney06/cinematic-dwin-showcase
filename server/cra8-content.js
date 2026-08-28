@@ -280,6 +280,47 @@ export const CRA8_JOURNAL = [
 ];
 
 /**
+ * Placeholder team. These exist only so the client can see how the "The Studio"
+ * grid on the About page looks with people in it — every name, role, bio and
+ * portrait here is a stand-in. Replace or delete them in Admin → Team; the
+ * section hides itself again once the list is empty.
+ */
+export const CRA8_TEAM = [
+  {
+    slug: "placeholder-founder",
+    name: "Name Surname",
+    role: "Founder & Creative Director",
+    bio: "Placeholder bio — one or two sentences on what this person does at CRA8 and the work they're known for. Swap this out in Admin → Team.",
+    image: "/placeholder-portrait.svg",
+    links: [{ label: "Instagram", url: "https://instagram.com" }],
+  },
+  {
+    slug: "placeholder-producer",
+    name: "Name Surname",
+    role: "Producer",
+    bio: "Placeholder bio — a short line about this person's role on the slate. Replace with the real team member.",
+    image: "/placeholder-portrait.svg",
+    links: [],
+  },
+  {
+    slug: "placeholder-post",
+    name: "Name Surname",
+    role: "Head of Post",
+    bio: "Placeholder bio — editing, colour and finishing across CRA8's films. Edit or remove this entry in the admin.",
+    image: "/placeholder-portrait.svg",
+    links: [],
+  },
+  {
+    slug: "placeholder-cinematographer",
+    name: "Name Surname",
+    role: "Cinematographer",
+    bio: "Placeholder bio — this is only here to show the grid layout. Add the real people and delete the placeholders.",
+    image: "/placeholder-portrait.svg",
+    links: [],
+  },
+];
+
+/**
  * Opening copy for the pages the site renders with its own layout. Each is a
  * `page_content` row, so all of it is editable in Admin → Pages — these are
  * only the words the site launches with.

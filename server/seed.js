@@ -10,6 +10,7 @@ import {
   CRA8_PROJECTS,
   CRA8_SERVICES,
   CRA8_SYSTEM_PAGES,
+  CRA8_TEAM,
   cra8Settings,
 } from "./cra8-content.js";
 
@@ -196,6 +197,24 @@ for (const [index, entry] of CRA8_JOURNAL.entries()) {
   );
 }
 console.log(`  ✓ Seeded ${CRA8_JOURNAL.length} journal entry`);
+
+// ─── 11. Team (placeholder) ──────────────────────────────────
+for (const [index, member] of CRA8_TEAM.entries()) {
+  await pool.query(
+    `INSERT INTO team_members (slug, name, role, bio, image, links, sort_order, published)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, 1) ON CONFLICT (slug) DO NOTHING`,
+    [
+      member.slug,
+      member.name,
+      member.role || "",
+      member.bio || "",
+      member.image || "",
+      JSON.stringify(member.links || []),
+      index + 1,
+    ]
+  );
+}
+console.log(`  ✓ Seeded ${CRA8_TEAM.length} placeholder team members`);
 
 console.log("\n  ✅ Database seeded successfully!\n");
 console.log(`  Login credentials:`);
