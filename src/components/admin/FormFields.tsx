@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import ImageUpload from "@/components/admin/ImageUpload";
-import UndoRedo from "@/components/admin/UndoRedo";
 
 /**
  * The admin's form vocabulary. The public site is art-directed; the admin is
@@ -438,9 +437,6 @@ export const AdminHeader = ({
       <h1 className="text-xl tracking-[0.06em] text-white/80 font-light">{title}</h1>
       {description && <p className="text-xs text-white/25 tracking-wide mt-1 max-w-xl">{description}</p>}
     </div>
-    <div className="flex items-center gap-3">
-      <UndoRedo className="-ml-2" />
-      {children}
-    </div>
+    <div className="flex items-center gap-3">{children}</div>
   </div>
 );

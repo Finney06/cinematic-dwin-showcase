@@ -87,10 +87,14 @@ const AdminPages = () => {
     topics: [] as string[],
   });
   const savedRef = useRef("");
+  /** The server copy last loaded in, so an identical refetch is a no-op. */
+  const lastLoadedRef = useRef("");
+  /** Set right before a save, so the refetch it triggers resyncs quietly instead of wiping history. */
+  const justSavedRef = useRef(false);
   const [showCreate, setShowCreate] = useState(false);
   const [newPage, setNewPage] = useState({ title: "", slug: "", addToMenu: true, published: false });
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const { reset: resetHistory } = useUndoRedo(draft, setDraft);
+  const { reset: resetHistory, sync: syncHistory } = useUndoRedo(draft, setDraft);
 
   const { data: pages = [], isLoading: pagesLoading } = useQuery({
     queryKey: ["adminPages"],
@@ -156,8 +160,15 @@ const AdminPages = () => {
     enabled: showsProjects,
   });
 
+  // A background refetch hands back a new object even when nothing changed.
+  // Reloading on that would wipe unsaved edits and the undo history, so the
+  // server copy is only taken when it is genuinely different from the last one.
   useEffect(() => {
     if (!pageData) return;
+    const signature = JSON.stringify({ selected, pageData });
+    if (signature === lastLoadedRef.current) return;
+    lastLoadedRef.current = signature;
+
     const content = (pageData.content || {}) as Record<string, unknown>;
     const next = {
       title: pageData.title || "",
@@ -171,12 +182,19 @@ const AdminPages = () => {
       formEnabled: content.formEnabled !== false,
       topics: Array.isArray(content.topics) ? (content.topics as string[]) : [],
     };
-    setDraft(next);
     savedRef.current = JSON.stringify(next);
-    // History starts at what the server actually holds, so undo can never step
-    // back past the last save into another page's edits.
-    resetHistory(next);
-  }, [pageData, resetHistory]);
+    if (justSavedRef.current) {
+      // This is the server echoing back what was just saved — resync
+      // quietly so undo can still step back past the save.
+      justSavedRef.current = false;
+      syncHistory(next);
+    } else {
+      setDraft(next);
+      // A genuinely new page was loaded — history starts at what the server
+      // actually holds, so undo can never reach back into another page's edits.
+      resetHistory(next);
+    }
+  }, [pageData, selected, resetHistory, syncHistory]);
 
   const isDirty = savedRef.current !== JSON.stringify(draft);
   useUnsavedChanges(isDirty);
@@ -200,9 +218,9 @@ const AdminPages = () => {
         },
       }),
     onSuccess: () => {
+      justSavedRef.current = true;
       invalidateContent(queryClient);
       savedRef.current = JSON.stringify(draft);
-      resetHistory(draft);
       toast.success("Saved");
     },
     onError: (error: Error) => toast.error(error.message),

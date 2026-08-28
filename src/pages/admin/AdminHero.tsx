@@ -11,6 +11,10 @@ import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 const AdminHero = () => {
   const queryClient = useQueryClient();
   const initialFormRef = useRef("");
+  /** The server copy last loaded in, so an identical refetch is a no-op. */
+  const lastLoadedRef = useRef("");
+  /** Set right before a save, so the refetch it triggers resyncs quietly instead of wiping history. */
+  const justSavedRef = useRef(false);
   const [form, setForm] = useState({
     brand_text: "CRA8",
     tagline: "Spiritual Drama",
@@ -20,7 +24,7 @@ const AdminHero = () => {
     hero_atmosphere: "auto",
     hero_atmosphere_intensity: "1",
   });
-  const { reset: resetHistory } = useUndoRedo(form, setForm);
+  const { reset: resetHistory, sync: syncHistory } = useUndoRedo(form, setForm);
 
   const { data } = useQuery({
     queryKey: ["heroContent"],
@@ -28,7 +32,14 @@ const AdminHero = () => {
     ...ADMIN_QUERY,
   });
 
+  // A background refetch hands back a new object even when nothing changed.
+  // Reloading on that would wipe unsaved edits and the undo history, so the
+  // server copy is only taken when it is genuinely different from the last one.
   useEffect(() => {
+    const signature = JSON.stringify(data);
+    if (signature === lastLoadedRef.current) return;
+    lastLoadedRef.current = signature;
+
     if (data) {
       const next = {
         brand_text: data.brand_text || "CRA8",
@@ -39,11 +50,18 @@ const AdminHero = () => {
         hero_atmosphere: data.hero_atmosphere || "auto",
         hero_atmosphere_intensity: data.hero_atmosphere_intensity || "1",
       };
-      setForm(next);
-      resetHistory(next);
+      if (justSavedRef.current) {
+        // This is the server echoing back what was just saved — resync
+        // quietly so undo can still step back past the save.
+        justSavedRef.current = false;
+        syncHistory(next);
+      } else {
+        setForm(next);
+        resetHistory(next);
+      }
       initialFormRef.current = JSON.stringify(next);
     }
-  }, [data, resetHistory]);
+  }, [data, resetHistory, syncHistory]);
 
   const isDirty = initialFormRef.current !== JSON.stringify(form);
   useUnsavedChanges(isDirty);
@@ -51,6 +69,7 @@ const AdminHero = () => {
   const saveMutation = useMutation({
     mutationFn: () => updateHeroContent(form),
     onSuccess: () => {
+      justSavedRef.current = true;
       queryClient.invalidateQueries({ queryKey: ["heroContent"] });
       initialFormRef.current = JSON.stringify(form);
       toast.success("Hero section saved!");

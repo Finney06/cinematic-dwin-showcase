@@ -59,6 +59,10 @@ const buildLegacySocials = (links: SocialLink[]) => {
 const AdminSettings = () => {
   const queryClient = useQueryClient();
   const initialSettingsRef = useRef("");
+  /** The server copy last loaded in, so an identical refetch is a no-op. */
+  const lastLoadedRef = useRef("");
+  /** Set right before a save, so the refetch it triggers resyncs quietly instead of wiping history. */
+  const justSavedRef = useRef(false);
   const [form, setForm] = useState({
     contact_email: "",
     social_instagram: "",
@@ -116,7 +120,7 @@ const AdminSettings = () => {
     setForm(next.form);
     setSocialLinks(next.socialLinks);
   }, []);
-  const { reset: resetHistory } = useUndoRedo(editable, applyEditable);
+  const { reset: resetHistory, sync: syncHistory } = useUndoRedo(editable, applyEditable);
 
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -130,7 +134,14 @@ const AdminSettings = () => {
     ...ADMIN_QUERY,
   });
 
+  // A background refetch hands back a new object even when nothing changed.
+  // Reloading on that would wipe unsaved edits and the undo history, so the
+  // server copy is only taken when it is genuinely different from the last one.
   useEffect(() => {
+    const signature = JSON.stringify(data);
+    if (signature === lastLoadedRef.current) return;
+    lastLoadedRef.current = signature;
+
     if (data) {
       const nextForm = {
         contact_email: data.contact_email || "",
@@ -179,26 +190,33 @@ const AdminSettings = () => {
         contact_phone: data.contact_phone || "",
         contact_location: data.contact_location || "",
       };
-      setForm(nextForm);
-
       const parsedLinks = parseSocialLinks(data.social_links);
+      let nextLinks: SocialLink[];
       if (parsedLinks.length) {
-        setSocialLinks(parsedLinks);
-        initialSettingsRef.current = JSON.stringify({ form: nextForm, socialLinks: parsedLinks });
-        resetHistory({ form: nextForm, socialLinks: parsedLinks });
+        nextLinks = parsedLinks;
       } else {
         const legacyLinks = [
           { label: "Instagram", url: data.social_instagram || "" },
           { label: "YouTube", url: data.social_youtube || "" },
           { label: "Twitter", url: data.social_twitter || "" },
         ].filter((link) => link.url);
-        const fallbackLinks = legacyLinks.length ? legacyLinks : [{ label: "", url: "" }];
-        setSocialLinks(fallbackLinks);
-        initialSettingsRef.current = JSON.stringify({ form: nextForm, socialLinks: fallbackLinks });
-        resetHistory({ form: nextForm, socialLinks: fallbackLinks });
+        nextLinks = legacyLinks.length ? legacyLinks : [{ label: "", url: "" }];
       }
+
+      const next = { form: nextForm, socialLinks: nextLinks };
+      if (justSavedRef.current) {
+        // This is the server echoing back what was just saved — resync
+        // quietly so undo can still step back past the save.
+        justSavedRef.current = false;
+        syncHistory(next);
+      } else {
+        setForm(nextForm);
+        setSocialLinks(nextLinks);
+        resetHistory(next);
+      }
+      initialSettingsRef.current = JSON.stringify(next);
     }
-  }, [data, resetHistory]);
+  }, [data, resetHistory, syncHistory]);
 
   const isDirty =
     initialSettingsRef.current !== JSON.stringify({ form, socialLinks });
@@ -215,6 +233,7 @@ const AdminSettings = () => {
       });
     },
     onSuccess: () => {
+      justSavedRef.current = true;
       queryClient.invalidateQueries({ queryKey: ["siteSettings"] });
       initialSettingsRef.current = JSON.stringify({ form, socialLinks });
       toast.success("Settings saved!");

@@ -8,9 +8,52 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { toast } from "sonner";
 
 /** How many steps back the admin can go. Ten is plenty and keeps memory flat. */
 export const HISTORY_LIMIT = 10;
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+/** "hero_atmosphere_intensity" / "someCamelKey" -> "Hero Atmosphere Intensity". */
+const humanizeKey = (key: string) =>
+  key
+    .replace(/_/g, " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+
+/**
+ * Names what changed between two snapshots, for the undo/redo toast. Diffs one
+ * level, then — since a lot of editors nest their real fields inside one
+ * `form` object — one level deeper so "reverted Form" becomes "reverted Tagline".
+ * Returns null when it can't name a single field (a brand-new/deleted record,
+ * or a burst that touched more than one), so the caller falls back to a plain
+ * "Undone"/"Redone".
+ */
+function changedFieldLabel(before: unknown, after: unknown, depth = 0): string | null {
+  if (!isPlainObject(before) || !isPlainObject(after)) return null;
+
+  const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
+  const changed: string[] = [];
+  for (const key of keys) {
+    if (JSON.stringify(before[key]) !== JSON.stringify(after[key])) changed.push(key);
+  }
+  if (changed.length !== 1) return null;
+
+  const [key] = changed;
+  if (depth < 1) {
+    const nested = changedFieldLabel(before[key], after[key], depth + 1);
+    if (nested) return nested;
+  }
+  return humanizeKey(key);
+}
+
+const notifyStep = (direction: "undo" | "redo", before: unknown, after: unknown) => {
+  const label = changedFieldLabel(before, after);
+  const verb = direction === "undo" ? "Undone" : "Redone";
+  toast(label ? `${verb} — ${direction === "undo" ? "reverted" : "restored"} ${label}` : verb);
+};
 
 /** Edits made within this window collapse into one step, so typing a sentence
  *  undoes as a sentence rather than a letter at a time. */
@@ -137,10 +180,12 @@ export function useUndoRedo<T>(value: T, apply: (next: T) => void) {
           ? [latest.current, ...to.current].slice(0, HISTORY_LIMIT)
           : [...to.current, latest.current].slice(-HISTORY_LIMIT);
 
+      const before = latest.current;
       applying.current = true;
       latest.current = target;
       apply(target);
       bump((n) => n + 1);
+      notifyStep(direction, before, target);
     },
     [apply, commitBurst]
   );
@@ -157,6 +202,21 @@ export function useUndoRedo<T>(value: T, apply: (next: T) => void) {
     burstBase.current = next;
     bump((n) => n + 1);
   }, []);
+
+  /**
+   * Re-points the draft at a fresh object — typically the server's own echo of
+   * what was just saved — without treating it as an edit or a reload: the
+   * history stays exactly as it was, so undo can still step back past a save.
+   * Use this instead of `reset` when the value changing isn't the user's doing.
+   */
+  const sync = useCallback(
+    (next: T) => {
+      applying.current = true;
+      latest.current = next;
+      apply(next);
+    },
+    [apply]
+  );
 
   const canUndo = past.current.length > 0 || burstTimer.current !== null;
   const canRedo = future.current.length > 0;
@@ -179,5 +239,5 @@ export function useUndoRedo<T>(value: T, apply: (next: T) => void) {
     []
   );
 
-  return { reset, canUndo, canRedo };
+  return { reset, sync, canUndo, canRedo };
 }

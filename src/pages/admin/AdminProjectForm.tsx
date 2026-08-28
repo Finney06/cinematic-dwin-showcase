@@ -109,6 +109,8 @@ const AdminProjectForm = () => {
   const queryClient = useQueryClient();
   const isEditing = !!id;
   const savedRef = useRef(JSON.stringify(emptyForm));
+  /** The server copy last loaded in, so an identical refetch is a no-op. */
+  const lastLoadedRef = useRef("");
 
   const [form, setForm] = useState<FormData>(emptyForm);
   const { reset: resetHistory } = useUndoRedo(form, setForm);
@@ -126,8 +128,15 @@ const AdminProjectForm = () => {
     ...ADMIN_QUERY,
   });
 
+  // A background refetch hands back a new object even when nothing changed.
+  // Reloading on that would wipe unsaved edits and the undo history, so the
+  // server copy is only taken when it is genuinely different from the last one.
   useEffect(() => {
     if (!existing) return;
+    const signature = JSON.stringify(existing);
+    if (signature === lastLoadedRef.current) return;
+    lastLoadedRef.current = signature;
+
     const next: FormData = {
       ...emptyForm,
       ...existing,
@@ -155,7 +164,8 @@ const AdminProjectForm = () => {
     onSuccess: () => {
       invalidateContent(queryClient);
       savedRef.current = JSON.stringify(form);
-      resetHistory(form);
+      // No resetHistory here: the editor navigates away immediately below, so
+      // there is nothing left on screen for a wiped history to matter to.
       toast.success(isEditing ? "Project updated" : "Project created");
       navigate("/admin/projects");
     },

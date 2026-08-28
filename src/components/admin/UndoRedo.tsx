@@ -6,8 +6,9 @@ const button =
 
 /**
  * Undo / redo for whatever is being edited. Lives in every screen's header, so
- * the controls are in the same place no matter what Dwindik is working on, and
- * greys out on screens where there is nothing to undo.
+ * the controls are always in the same place — greyed out wherever there is
+ * nothing to step through yet (a screen with no editor, or a freshly loaded
+ * one), active the moment there is.
  */
 const UndoRedo = ({ className = "" }: { className?: string }) => {
   const { controls } = useEditHistory();

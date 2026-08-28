@@ -172,7 +172,10 @@ const CollectionAdmin = ({
     onSuccess: (saved) => {
       invalidate();
       savedRef.current = JSON.stringify(draft);
-      resetHistory(draft);
+      // No resetHistory for an existing record: editingId doesn't change, so
+      // undo can still step back past the save. (A brand-new record's id does
+      // change below, which starts fresh history for it via the load effect —
+      // there is nothing before its first save to undo into anyway.)
       setEditingId(saved.id);
       toast.success(`${singular} saved`);
     },

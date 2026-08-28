@@ -126,6 +126,9 @@ const AdminLayout = () => {
               Admin Portal
             </p>
           </Link>
+          {/* The mobile top bar carries its own copy below; this is the desktop-only one,
+              so exactly one is ever on screen at a given width, on every admin page. */}
+          <UndoRedo className="hidden md:flex" />
           <button
             onClick={() => setSidebarOpen(false)}
             className="md:hidden p-2 rounded-md text-white/40 hover:text-white/70"
