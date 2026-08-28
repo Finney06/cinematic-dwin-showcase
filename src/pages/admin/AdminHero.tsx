@@ -17,6 +17,8 @@ const AdminHero = () => {
     video_url: "",
     hero_image: "",
     hero_link: "",
+    hero_atmosphere: "flow",
+    hero_atmosphere_intensity: "1",
   });
   const { reset: resetHistory } = useUndoRedo(form, setForm);
 
@@ -34,6 +36,8 @@ const AdminHero = () => {
         video_url: data.video_url || "",
         hero_image: data.hero_image || "",
         hero_link: data.hero_link || "",
+        hero_atmosphere: data.hero_atmosphere || "flow",
+        hero_atmosphere_intensity: data.hero_atmosphere_intensity || "1",
       };
       setForm(next);
       resetHistory(next);
@@ -180,6 +184,50 @@ const AdminHero = () => {
               <p className="mt-1 text-[10px] text-white/15">
                 Where the whole circle links to when clicked — an internal page or an
                 external URL. Defaults to the latest project if left empty.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Atmosphere */}
+        <section className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6">
+          <h2 className="text-xs tracking-[0.15em] uppercase text-white/30 font-medium mb-1">
+            Atmosphere
+          </h2>
+          <p className="text-[10px] text-white/20 mb-5">
+            Light behind the circle, once the opening clip has finished.
+          </p>
+          <div className="space-y-5">
+            <div>
+              <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
+                Hero Atmosphere
+              </label>
+              <select
+                value={form.hero_atmosphere}
+                onChange={(e) => setForm((p) => ({ ...p, hero_atmosphere: e.target.value }))}
+                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 focus:outline-none focus:border-white/20 transition-colors"
+              >
+                <option value="flow" className="bg-[#141414]">Atmospheric Flow</option>
+                <option value="halo" className="bg-[#141414]">Breathing Halo</option>
+                <option value="off" className="bg-[#141414]">Off</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
+                Glow Brightness ({Number(form.hero_atmosphere_intensity).toFixed(1)}x)
+              </label>
+              <input
+                type="range"
+                min="0.4"
+                max="3"
+                step="0.1"
+                value={form.hero_atmosphere_intensity}
+                onChange={(e) => setForm((p) => ({ ...p, hero_atmosphere_intensity: e.target.value }))}
+                disabled={form.hero_atmosphere === "off"}
+                className="w-full accent-white/80 disabled:opacity-30"
+              />
+              <p className="mt-2 text-[10px] text-white/20">
+                How strongly the glow reads against the black background.
               </p>
             </div>
           </div>

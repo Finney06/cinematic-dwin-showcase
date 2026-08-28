@@ -192,6 +192,10 @@ export interface HeroContent {
   video_url: string;
   hero_image: string;
   hero_link: string;
+  /** "flow" | "halo" | "off" — which light treatment plays behind the circle. */
+  hero_atmosphere?: string;
+  /** Brightness multiplier for that treatment's glow, as a string (e.g. "1.4"). */
+  hero_atmosphere_intensity?: string;
 }
 
 export interface AboutContent {

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import Navbar from "@/components/Navbar";
 import { useHeroContent } from "@/hooks/useContent";
+import HeroAtmosphere, { parseHeroAtmosphere, parseHeroAtmosphereIntensity } from "@/components/site/HeroAtmosphere";
 import { useAnimationSettings } from "@/hooks/useAnimationSettings";
 import { BRAND, orEmpty } from "@/lib/brand";
 
@@ -72,6 +73,8 @@ const Index = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const { data: heroData } = useHeroContent();
+  const atmosphere = parseHeroAtmosphere(heroData?.hero_atmosphere);
+  const atmosphereIntensity = parseHeroAtmosphereIntensity(heroData?.hero_atmosphere_intensity);
 
   const brandText = orEmpty(heroData?.brand_text) || BRAND.name;
   const tagline = orEmpty(heroData?.tagline) || BRAND.tagline;
@@ -243,6 +246,14 @@ const Index = () => {
       <Navbar enterDelay={isOgPreview ? 0 : 2.4} />
 
       <main className="h-[100svh] flex items-center justify-center relative overflow-hidden">
+        {/* Atmosphere — light behind the circle, once the opening has played out */}
+        <HeroAtmosphere
+          variant={isOgPreview ? "off" : atmosphere}
+          circleMaxWidth={`calc(100svh - ${HERO_VERTICAL_RESERVE}px)`}
+          visible={phase === "image"}
+          intensity={atmosphereIntensity}
+        />
+
         {/* Circle */}
         <motion.div
           className="absolute z-0 translate-x-4 sm:translate-x-6 md:translate-x-10 lg:translate-x-14"

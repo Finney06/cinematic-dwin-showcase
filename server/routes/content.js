@@ -83,6 +83,8 @@ router.get("/hero", async (req, res) => {
         video_url: "/trillar-video.mp4",
         hero_image: "",
         hero_link: "",
+        hero_atmosphere: "flow",
+        hero_atmosphere_intensity: "1",
       });
     }
     res.json(row);
@@ -154,7 +156,7 @@ router.put("/about", authMiddleware, async (req, res) => {
 // PUT /api/admin/content/hero
 router.put("/hero", authMiddleware, async (req, res) => {
   try {
-    const { brand_text, tagline, video_url, hero_image, hero_link } = req.body;
+    const { brand_text, tagline, video_url, hero_image, hero_link, hero_atmosphere, hero_atmosphere_intensity } = req.body;
 
     const { rows } = await pool.query("SELECT * FROM hero_content LIMIT 1");
     const existing = rows[0];
@@ -166,22 +168,33 @@ router.put("/hero", authMiddleware, async (req, res) => {
       await pool.query(
         `UPDATE hero_content SET
            brand_text = $1, tagline = $2, video_url = $3, hero_image = $4, hero_link = $5,
+           hero_atmosphere = $6, hero_atmosphere_intensity = $7,
            updated_at = CURRENT_TIMESTAMP
-         WHERE id = $6`,
+         WHERE id = $8`,
         [
           brand_text ?? existing.brand_text,
           tagline ?? existing.tagline,
           nextVideoUrl,
           hero_image ?? existing.hero_image,
           hero_link ?? existing.hero_link,
+          hero_atmosphere ?? existing.hero_atmosphere,
+          hero_atmosphere_intensity ?? existing.hero_atmosphere_intensity,
           existing.id,
         ]
       );
     } else {
       await pool.query(
-        `INSERT INTO hero_content (brand_text, tagline, video_url, hero_image, hero_link)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [brand_text || "CRA8", tagline || "Spiritual Drama", video_url || "", hero_image || "", hero_link || ""]
+        `INSERT INTO hero_content (brand_text, tagline, video_url, hero_image, hero_link, hero_atmosphere, hero_atmosphere_intensity)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          brand_text || "CRA8",
+          tagline || "Spiritual Drama",
+          video_url || "",
+          hero_image || "",
+          hero_link || "",
+          hero_atmosphere || "flow",
+          hero_atmosphere_intensity || "1",
+        ]
       );
     }
 
