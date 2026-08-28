@@ -3,8 +3,13 @@ import { Link } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import Navbar from "@/components/Navbar";
 import { useHeroContent } from "@/hooks/useContent";
-import HeroAtmosphere, { parseHeroAtmosphere, parseHeroAtmosphereIntensity } from "@/components/site/HeroAtmosphere";
+import HeroAtmosphere, {
+  parseHeroAtmospherePreference,
+  parseHeroAtmosphereIntensity,
+  resolveHeroAtmosphere,
+} from "@/components/site/HeroAtmosphere";
 import { useAnimationSettings } from "@/hooks/useAnimationSettings";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { BRAND, orEmpty } from "@/lib/brand";
 
 const VIDEO_START_DELAY = 1800;
@@ -73,7 +78,9 @@ const Index = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const { data: heroData } = useHeroContent();
-  const atmosphere = parseHeroAtmosphere(heroData?.hero_atmosphere);
+  const isMobile = useIsMobile();
+  const atmospherePreference = parseHeroAtmospherePreference(heroData?.hero_atmosphere);
+  const atmosphere = resolveHeroAtmosphere(atmospherePreference, isMobile);
   const atmosphereIntensity = parseHeroAtmosphereIntensity(heroData?.hero_atmosphere_intensity);
 
   const brandText = orEmpty(heroData?.brand_text) || BRAND.name;
@@ -243,6 +250,21 @@ const Index = () => {
 
   return (
     <div className="bg-background h-[100svh] overflow-hidden relative">
+      {/*
+        Below md, the circle is width- not height-constrained (a tall phone has
+        far more vertical room than an 80vw circle needs), so pinning the
+        tagline to the screen bottom leaves a gap. Anchor it to the circle's
+        own rendered edge there instead; a Tailwind arbitrary-value class
+        silently failed to parse the nested calc()/min(), so this is real CSS.
+      */}
+      <style>{`
+        .hero-tagline {
+          top: calc(50% + min(80vw, calc(100svh - ${HERO_VERTICAL_RESERVE}px)) / 2 + 1.5rem);
+        }
+        @media (min-width: 768px) {
+          .hero-tagline { top: auto; bottom: 3.5rem; }
+        }
+      `}</style>
       <Navbar enterDelay={isOgPreview ? 0 : 2.4} />
 
       <main className="h-[100svh] flex items-center justify-center relative overflow-hidden">
@@ -319,7 +341,11 @@ const Index = () => {
           initial={{ opacity: instant ? 1 : 0, y: instant ? 0 : 16 }}
           animate={{ opacity: 0.2, y: 0 }}
           transition={{ duration: isOgPreview || instant ? 0 : getSectionDuration("homeHero", 1.2), delay: isOgPreview || instant ? 0 : getSectionDelay("homeHero", 2.6), ease: sectionEase }}
-          className="absolute bottom-10 sm:bottom-14 left-0 right-0 text-center px-4 font-body text-[11px] sm:text-[12px] tracking-[0.35em] sm:tracking-[0.6em] uppercase text-foreground"
+          // Below md, the circle is width- not height-constrained (a tall phone
+          // has far more vertical room than an 80vw circle needs), so pinning the
+          // tagline to the screen bottom leaves a gap. Anchor it to the circle's
+          // own rendered edge there instead; md+ keeps the original bottom anchor.
+          className="hero-tagline absolute left-0 right-0 text-center px-4 font-body text-[11px] sm:text-[12px] tracking-[0.35em] sm:tracking-[0.6em] uppercase text-foreground"
         >
           {tagline}
         </motion.p>

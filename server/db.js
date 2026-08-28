@@ -199,7 +199,7 @@ const ADD_COLUMNS = [
   // The one project that opens Work and its own category page.
   `ALTER TABLE projects ADD COLUMN IF NOT EXISTS featured INTEGER DEFAULT 0`,
   // The hero circle gained a selectable light treatment and its brightness.
-  `ALTER TABLE hero_content ADD COLUMN IF NOT EXISTS hero_atmosphere VARCHAR(32) NOT NULL DEFAULT 'flow'`,
+  `ALTER TABLE hero_content ADD COLUMN IF NOT EXISTS hero_atmosphere VARCHAR(32) NOT NULL DEFAULT 'auto'`,
   `ALTER TABLE hero_content ADD COLUMN IF NOT EXISTS hero_atmosphere_intensity VARCHAR(16) NOT NULL DEFAULT '1'`,
 ];
 

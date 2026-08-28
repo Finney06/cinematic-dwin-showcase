@@ -17,7 +17,7 @@ const AdminHero = () => {
     video_url: "",
     hero_image: "",
     hero_link: "",
-    hero_atmosphere: "flow",
+    hero_atmosphere: "auto",
     hero_atmosphere_intensity: "1",
   });
   const { reset: resetHistory } = useUndoRedo(form, setForm);
@@ -36,7 +36,7 @@ const AdminHero = () => {
         video_url: data.video_url || "",
         hero_image: data.hero_image || "",
         hero_link: data.hero_link || "",
-        hero_atmosphere: data.hero_atmosphere || "flow",
+        hero_atmosphere: data.hero_atmosphere || "auto",
         hero_atmosphere_intensity: data.hero_atmosphere_intensity || "1",
       };
       setForm(next);
@@ -207,10 +207,15 @@ const AdminHero = () => {
                 onChange={(e) => setForm((p) => ({ ...p, hero_atmosphere: e.target.value }))}
                 className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 focus:outline-none focus:border-white/20 transition-colors"
               >
+                <option value="auto" className="bg-[#141414]">Automatic (Halo on phones, Flow elsewhere)</option>
                 <option value="flow" className="bg-[#141414]">Atmospheric Flow</option>
                 <option value="halo" className="bg-[#141414]">Breathing Halo</option>
                 <option value="off" className="bg-[#141414]">Off</option>
               </select>
+              <p className="mt-2 text-[10px] text-white/20">
+                Automatic switches by screen size; the other three options are fixed
+                everywhere.
+              </p>
             </div>
             <div>
               <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">

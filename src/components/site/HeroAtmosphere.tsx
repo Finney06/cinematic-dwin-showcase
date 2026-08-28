@@ -1,12 +1,20 @@
 import { motion, useReducedMotion } from "framer-motion";
 
 export type HeroAtmosphereVariant = "off" | "flow" | "halo";
+/** What's actually stored/selected — "auto" picks a variant by viewport. */
+export type HeroAtmospherePreference = "auto" | HeroAtmosphereVariant;
 
-/** Unset falls back to the flow — "off" has to be chosen deliberately. */
-export function parseHeroAtmosphere(raw?: string): HeroAtmosphereVariant {
+/** Unset falls back to "auto" — "off"/"flow"/"halo" have to be chosen deliberately. */
+export function parseHeroAtmospherePreference(raw?: string): HeroAtmospherePreference {
   const value = (raw || "").trim().toLowerCase();
-  if (value === "off" || value === "halo") return value;
-  return "flow";
+  if (value === "off" || value === "flow" || value === "halo") return value;
+  return "auto";
+}
+
+/** Resolves "auto" to halo on phones and flow everywhere else; explicit choices pass through. */
+export function resolveHeroAtmosphere(preference: HeroAtmospherePreference, isMobile: boolean): HeroAtmosphereVariant {
+  if (preference !== "auto") return preference;
+  return isMobile ? "halo" : "flow";
 }
 
 /** Brightness multiplier for the glow. 1 is the authored default. */

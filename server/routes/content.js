@@ -83,7 +83,7 @@ router.get("/hero", async (req, res) => {
         video_url: "/trillar-video.mp4",
         hero_image: "",
         hero_link: "",
-        hero_atmosphere: "flow",
+        hero_atmosphere: "auto",
         hero_atmosphere_intensity: "1",
       });
     }
@@ -192,7 +192,7 @@ router.put("/hero", authMiddleware, async (req, res) => {
           video_url || "",
           hero_image || "",
           hero_link || "",
-          hero_atmosphere || "flow",
+          hero_atmosphere || "auto",
           hero_atmosphere_intensity || "1",
         ]
       );
