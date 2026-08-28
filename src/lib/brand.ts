@@ -35,8 +35,10 @@ export const BRAND = {
  */
 export const DEFAULT_MENU: MenuItem[] = [
   { id: -1, label: "Work", path: "/work", page_type: "page", sort_order: 1, visible: 1 },
-  { id: -2, label: "About", path: "/about", page_type: "page", sort_order: 2, visible: 1 },
-  { id: -3, label: "News", path: "/news", page_type: "page", sort_order: 3, visible: 1 },
+  { id: -2, label: "Services", path: "/services", page_type: "page", sort_order: 2, visible: 1 },
+  { id: -3, label: "Journal", path: "/journal", page_type: "page", sort_order: 3, visible: 1 },
+  { id: -4, label: "About", path: "/about", page_type: "page", sort_order: 4, visible: 1 },
+  { id: -5, label: "Contact", path: "/contact", page_type: "page", sort_order: 5, visible: 1 },
 ];
 
 /**

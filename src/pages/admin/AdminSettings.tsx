@@ -1,9 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useUndoRedo } from "@/hooks/useEditHistory";
+import { ADMIN_QUERY } from "@/lib/adminQueries";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchSiteSettings } from "@/lib/api";
 import { updateSettings, changePassword } from "@/lib/adminApi";
 import { toast } from "sonner";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 type SocialLink = { label: string; url: string };
 
@@ -98,8 +101,22 @@ const AdminSettings = () => {
     animation_section_project_detail_distance: "1",
     copyright_text: "",
     site_title: "",
+    // Used by the Contact page and by every page's link preview.
+    site_description: "",
+    social_share_image: "",
+    contact_phone: "",
+    contact_location: "",
   });
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
+
+  // Settings is two pieces of state; undo treats them as one so stepping back
+  // restores a removed social link along with everything else.
+  const editable = useMemo(() => ({ form, socialLinks }), [form, socialLinks]);
+  const applyEditable = useCallback((next: typeof editable) => {
+    setForm(next.form);
+    setSocialLinks(next.socialLinks);
+  }, []);
+  const { reset: resetHistory } = useUndoRedo(editable, applyEditable);
 
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -110,6 +127,7 @@ const AdminSettings = () => {
   const { data } = useQuery({
     queryKey: ["siteSettings"],
     queryFn: fetchSiteSettings,
+    ...ADMIN_QUERY,
   });
 
   useEffect(() => {
@@ -156,6 +174,10 @@ const AdminSettings = () => {
         animation_section_project_detail_distance: data.animation_section_project_detail_distance || "1",
         copyright_text: data.copyright_text || "",
         site_title: data.site_title || "",
+        site_description: data.site_description || "",
+        social_share_image: data.social_share_image || "",
+        contact_phone: data.contact_phone || "",
+        contact_location: data.contact_location || "",
       };
       setForm(nextForm);
 
@@ -163,6 +185,7 @@ const AdminSettings = () => {
       if (parsedLinks.length) {
         setSocialLinks(parsedLinks);
         initialSettingsRef.current = JSON.stringify({ form: nextForm, socialLinks: parsedLinks });
+        resetHistory({ form: nextForm, socialLinks: parsedLinks });
       } else {
         const legacyLinks = [
           { label: "Instagram", url: data.social_instagram || "" },
@@ -172,9 +195,10 @@ const AdminSettings = () => {
         const fallbackLinks = legacyLinks.length ? legacyLinks : [{ label: "", url: "" }];
         setSocialLinks(fallbackLinks);
         initialSettingsRef.current = JSON.stringify({ form: nextForm, socialLinks: fallbackLinks });
+        resetHistory({ form: nextForm, socialLinks: fallbackLinks });
       }
     }
-  }, [data]);
+  }, [data, resetHistory]);
 
   const isDirty =
     initialSettingsRef.current !== JSON.stringify({ form, socialLinks });
@@ -506,6 +530,31 @@ const AdminSettings = () => {
               </div>
               <div>
                 <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
+                  Site Description
+                </label>
+                <textarea
+                  rows={2}
+                  value={form.site_description}
+                  onChange={(e) => setForm((p) => ({ ...p, site_description: e.target.value }))}
+                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors resize-y"
+                  placeholder="CRA8 is a Nigerian film studio working in spiritual drama and thriller."
+                />
+                <p className="mt-2 text-[10px] text-white/20">
+                  The fallback description for search results and link previews, used on any page without its own.
+                </p>
+              </div>
+              <div>
+                <ImageUpload
+                  value={form.social_share_image}
+                  onChange={(url) => setForm((p) => ({ ...p, social_share_image: url }))}
+                  label="Default share image"
+                />
+                <p className="mt-2 text-[10px] text-white/20">
+                  Shown when a page with no image of its own is shared. 1200×630 works best.
+                </p>
+              </div>
+              <div>
+                <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
                   Contact Email
                 </label>
                 <input
@@ -515,6 +564,35 @@ const AdminSettings = () => {
                   className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
                   placeholder="hello@yourdomain.com"
                 />
+                <p className="mt-2 text-[10px] text-white/20">
+                  Shown as the large line of type on the Contact page, and in the menu.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    value={form.contact_phone}
+                    onChange={(e) => setForm((p) => ({ ...p, contact_phone: e.target.value }))}
+                    className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
+                    placeholder="Optional"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
+                    Studio location
+                  </label>
+                  <input
+                    type="text"
+                    value={form.contact_location}
+                    onChange={(e) => setForm((p) => ({ ...p, contact_location: e.target.value }))}
+                    className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
+                    placeholder="Optional"
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">

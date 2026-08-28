@@ -12,6 +12,12 @@ import contentRoutes from "./routes/content.js";
 import menuRoutes from "./routes/menu.js";
 import uploadRoutes from "./routes/upload.js";
 import auditRoutes from "./routes/audit.js";
+import categoryRoutes from "./routes/categories.js";
+import journalRoutes from "./routes/journal.js";
+import serviceRoutes from "./routes/services.js";
+import teamRoutes from "./routes/team.js";
+import contactRoutes from "./routes/contact.js";
+import sitemapRoutes from "./routes/sitemap.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -111,8 +117,22 @@ app.use("/api/content", contentRoutes);
 app.use("/api/admin/content", contentRoutes);
 app.use("/api/menu", menuRoutes);
 app.use("/api/admin/menu", menuRoutes);
+// Each collection is mounted twice: the public path serves published records,
+// the /admin path is the same router with the token-guarded writes on it.
+app.use("/api/categories", categoryRoutes);
+app.use("/api/admin/categories", categoryRoutes);
+app.use("/api/journal", journalRoutes);
+app.use("/api/admin/journal", journalRoutes);
+app.use("/api/services", serviceRoutes);
+app.use("/api/admin/services", serviceRoutes);
+app.use("/api/team", teamRoutes);
+app.use("/api/admin/team", teamRoutes);
+app.use("/api/contact", contactRoutes);
+app.use("/api/admin/contact", contactRoutes);
 app.use("/api/admin/upload", uploadRoutes);
 app.use("/api/admin/audit", auditRoutes);
+// Built from live content, so new pages are indexable with no extra step.
+app.use("/sitemap.xml", sitemapRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {

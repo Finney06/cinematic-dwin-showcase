@@ -1,47 +1,84 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchMenuItems, fetchProject } from "@/lib/api";
-import { createProject, updateProject } from "@/lib/adminApi";
-import ImageUpload from "@/components/admin/ImageUpload";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import {
+  AdminHeader,
+  Field,
+  ImageField,
+  PairListField,
+  PrimaryButton,
+  SecondaryButton,
+  StringListField,
+  TextField,
+  TextareaField,
+  Toggle,
+  inputClass,
+} from "@/components/admin/FormFields";
+import BlockListEditor from "@/components/admin/BlockListEditor";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
+import { useUndoRedo } from "@/hooks/useEditHistory";
+import {
+  createProject,
+  fetchAdminCategories,
+  fetchAdminProject,
+  updateProject,
+} from "@/lib/adminApi";
+import { ADMIN_QUERY, invalidateContent } from "@/lib/adminQueries";
+import type { PageBlock } from "@/lib/pageBlocks";
+import type { ProjectCredit, ProjectData } from "@/lib/api";
 
-const getCategoryKeyFromPath = (path: string) =>
-  path.replace(/^\//, "").split("/")[0] || path;
-
-interface FormData {
-  title: string;
-  category: string;
-  category_label: string;
-  year: string;
-  role: string;
-  description: string;
-  synopsis: string;
-  thumbnail: string;
-  youtube_id: string;
-  director: string;
-  producers: string;
-  cast_info: string;
-  status: string;
-}
+type FormData = Pick<
+  ProjectData,
+  | "title"
+  | "category"
+  | "category_label"
+  | "year"
+  | "role"
+  | "description"
+  | "synopsis"
+  | "logline"
+  | "thumbnail"
+  | "youtube_id"
+  | "trailer_youtube_id"
+  | "director"
+  | "producers"
+  | "cast_info"
+  | "status"
+  | "seo_description"
+> & {
+  credits: ProjectCredit[];
+  gallery: string[];
+  blocks: PageBlock[];
+  published: number;
+  featured: number;
+};
 
 const emptyForm: FormData = {
   title: "",
-  category: "film",
-  category_label: "Film",
+  category: "",
+  category_label: "",
   year: new Date().getFullYear().toString(),
   role: "",
   description: "",
   synopsis: "",
+  logline: "",
   thumbnail: "",
   youtube_id: "",
+  trailer_youtube_id: "",
   director: "",
   producers: "",
   cast_info: "",
   status: "",
+  seo_description: "",
+  credits: [],
+  gallery: [],
+  blocks: [],
+  published: 1,
+  featured: 0,
 };
 
+/** Accepts a full YouTube link in any of its shapes, or a bare ID. */
 const extractYouTubeId = (value: string) => {
   const trimmed = value.trim();
   if (!trimmed) return "";
@@ -50,14 +87,12 @@ const extractYouTubeId = (value: string) => {
   try {
     const url = new URL(trimmed);
     const host = url.hostname.replace("www.", "");
-    if (host === "youtu.be") {
-      return url.pathname.replace("/", "").slice(0, 11);
-    }
+    if (host === "youtu.be") return url.pathname.replace("/", "").slice(0, 11);
     if (host === "youtube.com" || host === "m.youtube.com") {
       const v = url.searchParams.get("v");
       if (v) return v.slice(0, 11);
-      const match = url.pathname.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
-      if (match) return match[1];
+      const shorts = url.pathname.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
+      if (shorts) return shorts[1];
       const embed = url.pathname.match(/\/embed\/([a-zA-Z0-9_-]{11})/);
       if (embed) return embed[1];
     }
@@ -73,280 +108,215 @@ const AdminProjectForm = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isEditing = !!id;
-  const initialFormRef = useRef(JSON.stringify(emptyForm));
+  const savedRef = useRef(JSON.stringify(emptyForm));
 
   const [form, setForm] = useState<FormData>(emptyForm);
+  const { reset: resetHistory } = useUndoRedo(form, setForm);
 
-  const { data: existingProject } = useQuery({
-    queryKey: ["project", id],
-    queryFn: () => fetchProject(id!),
+  const { data: existing } = useQuery({
+    queryKey: ["adminProject", id],
+    queryFn: () => fetchAdminProject(id!),
+    ...ADMIN_QUERY,
     enabled: isEditing,
   });
 
-  const { data: menuItems = [] } = useQuery({
-    queryKey: ["adminMenuItems"],
-    queryFn: () => fetchMenuItems(true),
+  const { data: categories = [] } = useQuery({
+    queryKey: ["adminCategories"],
+    queryFn: fetchAdminCategories,
+    ...ADMIN_QUERY,
   });
 
-  const dynamicCategories = menuItems
-    .filter((item) => item.page_type === "category" && item.visible === 1)
-    .map((item) => ({
-      key: getCategoryKeyFromPath(item.path),
-      label: item.label,
+  useEffect(() => {
+    if (!existing) return;
+    const next: FormData = {
+      ...emptyForm,
+      ...existing,
+      credits: Array.isArray(existing.credits) ? existing.credits : [],
+      gallery: Array.isArray(existing.gallery) ? existing.gallery : [],
+      blocks: Array.isArray(existing.blocks) ? existing.blocks : [],
+      published: existing.published ?? 1,
+      featured: existing.featured ?? 0,
+    };
+    setForm(next);
+    savedRef.current = JSON.stringify(next);
+    resetHistory(next);
+  }, [existing, resetHistory]);
+
+  // A new project defaults to the first category rather than an empty value,
+  // which the server would reject.
+  useEffect(() => {
+    if (isEditing || !categories.length || form.category) return;
+    const first = categories[0];
+    setForm((prev) => ({ ...prev, category: first.slug, category_label: first.label }));
+  }, [categories, form.category, isEditing]);
+
+  const save = useMutation({
+    mutationFn: (data: FormData) => (isEditing ? updateProject(id!, data) : createProject(data)),
+    onSuccess: () => {
+      invalidateContent(queryClient);
+      savedRef.current = JSON.stringify(form);
+      resetHistory(form);
+      toast.success(isEditing ? "Project updated" : "Project created");
+      navigate("/admin/projects");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const setField = <K extends keyof FormData>(key: K, value: FormData[K]) =>
+    setForm((prev) => ({ ...prev, [key]: value }));
+
+  const setCategory = (slug: string) => {
+    const category = categories.find((item) => item.slug === slug);
+    setForm((prev) => ({
+      ...prev,
+      category: slug,
+      category_label: category?.label || prev.category_label,
     }));
-
-  const categoryOptions = dynamicCategories.length ? dynamicCategories : [];
-
-  useEffect(() => {
-    if (existingProject) {
-      const next = {
-        title: existingProject.title,
-        category: existingProject.category,
-        category_label: existingProject.category_label,
-        year: existingProject.year,
-        role: existingProject.role,
-        description: existingProject.description,
-        synopsis: existingProject.synopsis,
-        thumbnail: existingProject.thumbnail,
-        youtube_id: existingProject.youtube_id,
-        director: existingProject.director,
-        producers: existingProject.producers,
-        cast_info: existingProject.cast_info,
-        status: existingProject.status,
-      };
-      setForm(next);
-      initialFormRef.current = JSON.stringify(next);
-    }
-  }, [existingProject]);
-
-  useEffect(() => {
-    if (isEditing) return;
-    if (!categoryOptions.length) return;
-    const exists = categoryOptions.some((cat) => cat.key === form.category);
-    if (!exists) {
-      const first = categoryOptions[0];
-      setForm((prev) => ({
-        ...prev,
-        category: first.key,
-        category_label: first.label,
-      }));
-    }
-  }, [categoryOptions, form.category, isEditing]);
-
-  const createMutation = useMutation({
-    mutationFn: (data: FormData) => createProject(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-projects"] });
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
-      initialFormRef.current = JSON.stringify(form);
-      toast.success("Project created!");
-      navigate("/admin/projects");
-    },
-    onError: (err: Error) => toast.error(err.message),
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: (data: FormData) => updateProject(id!, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-projects"] });
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
-      queryClient.invalidateQueries({ queryKey: ["project", id] });
-      initialFormRef.current = JSON.stringify(form);
-      toast.success("Project updated!");
-      navigate("/admin/projects");
-    },
-    onError: (err: Error) => toast.error(err.message),
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.title.trim()) {
-      toast.error("Title is required");
-      return;
-    }
-    if (isEditing) {
-      updateMutation.mutate(form);
-    } else {
-      createMutation.mutate(form);
-    }
   };
 
-  const setField = (field: keyof FormData, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-    // Auto-set category_label when category changes
-    if (field === "category") {
-      const cat = categoryOptions.find((c) => c.key === value);
-      if (cat) {
-        setForm((prev) => ({ ...prev, category: value, category_label: cat.label }));
-      }
-    }
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!form.title.trim()) return toast.error("Give the project a title");
+    if (!form.category) return toast.error("Choose a category");
+    if (!form.year.trim()) return toast.error("Add a year");
+    save.mutate(form);
   };
+
+  const isDirty = savedRef.current !== JSON.stringify(form);
+  useUnsavedChanges(isDirty);
 
   const ytThumb = form.youtube_id
     ? `https://img.youtube.com/vi/${form.youtube_id}/maxresdefault.jpg`
     : "";
 
-  const isPending = createMutation.isPending || updateMutation.isPending;
-  const isDirty = initialFormRef.current !== JSON.stringify(form);
-  useUnsavedChanges(isDirty);
-
   return (
     <div>
-      {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <button
-          onClick={() => navigate("/admin/projects")}
-          className="text-white/20 hover:text-white/50 transition-colors text-sm cursor-pointer"
-        >
-          ← Back
-        </button>
-        <div>
-          <h1 className="text-xl tracking-[0.06em] text-white/80 font-light">
-            {isEditing ? "Edit Project" : "New Project"}
-          </h1>
-        </div>
-      </div>
+      <AdminHeader
+        title={isEditing ? "Edit Project" : "New Project"}
+        description="Everything here appears on the project's own page and in the slate."
+      >
+        <SecondaryButton onClick={() => navigate("/admin/projects")}>Back</SecondaryButton>
+      </AdminHeader>
 
-      <form onSubmit={handleSubmit} className="space-y-8 max-w-2xl">
-        {/* Title & Category */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <div>
-            <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
-              Title *
-            </label>
-            <input
-              type="text"
-              value={form.title}
-              onChange={(e) => setField("title", e.target.value)}
-              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
-              placeholder="Project title"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
-              Category *
-            </label>
-            <select
-              value={form.category}
-              onChange={(e) => setField("category", e.target.value)}
-              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 focus:outline-none focus:border-white/20 transition-colors"
-              disabled={!categoryOptions.length}
+      <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
+        {/* ─── Status ─── */}
+        <section className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6 space-y-5">
+          <Toggle
+            checked={Boolean(form.published)}
+            onChange={(checked) => setField("published", checked ? 1 : 0)}
+            label={form.published ? "Published" : "Draft"}
+            hint="A draft is invisible on the site — its page shows “not found” to visitors. Save to apply."
+          />
+          <Toggle
+            checked={Boolean(form.featured)}
+            onChange={(checked) => setField("featured", checked ? 1 : 0)}
+            label="Feature this project"
+            hint="Opens the Work page and its own section, full width. Only one project can be featured — turning this on retires the last."
+          />
+        </section>
+
+        {/* ─── The basics ─── */}
+        <section className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6 space-y-5">
+          <TextField
+            label="Title"
+            value={form.title}
+            onChange={(value) => setField("title", value)}
+            placeholder="Prophet Suddenly 4"
+          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <Field
+              label="Category"
+              hint={
+                categories.length
+                  ? "Sections are managed in Categories."
+                  : "No categories yet — create one in Categories first."
+              }
             >
-              {!categoryOptions.length && (
-                <option value="" className="bg-[#141414] text-white">
-                  No categories set — add one in Menu
-                </option>
-              )}
-              {categoryOptions.map((cat) => (
-                <option key={cat.key} value={cat.key} className="bg-[#141414] text-white">
-                  {cat.label}
-                </option>
-              ))}
-            </select>
-            {!categoryOptions.length && (
-              <p className="mt-2 text-[10px] text-white/20">
-                Go to Menu and create items with type “category” to populate this list.
-              </p>
-            )}
+              <select
+                value={form.category}
+                onChange={(event) => setCategory(event.target.value)}
+                className={inputClass}
+                disabled={!categories.length}
+              >
+                {!categories.length && (
+                  <option value="" className="bg-[#141414]">
+                    No categories yet
+                  </option>
+                )}
+                {categories.map((category) => (
+                  <option key={category.slug} value={category.slug} className="bg-[#141414]">
+                    {category.label}
+                    {category.published ? "" : " (hidden)"}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <TextField label="Year" value={form.year} onChange={(value) => setField("year", value)} />
           </div>
-        </div>
 
-        {/* Year & Status */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <div>
-            <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
-              Year *
-            </label>
-            <input
-              type="text"
-              value={form.year}
-              onChange={(e) => setField("year", e.target.value)}
-              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
-              placeholder="2025"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
-              Status
-            </label>
-            <input
-              type="text"
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <TextField
+              label="Status"
               value={form.status}
-              onChange={(e) => setField("status", e.target.value)}
-              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
-              placeholder="e.g. Now Streaming, Coming Soon"
+              onChange={(value) => setField("status", value)}
+              placeholder="Now Streaming"
+            />
+            <TextField
+              label="CRA8 credits"
+              value={form.role}
+              onChange={(value) => setField("role", value)}
+              placeholder="Director of Photography, Editor, VFX"
+              hint="Shown beside the title across the site."
             />
           </div>
-        </div>
 
-        {/* Role */}
-        <div>
-          <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
-            Role
-          </label>
-          <input
-            type="text"
-            value={form.role}
-            onChange={(e) => setField("role", e.target.value)}
-            className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
-            placeholder="e.g. Director of Photography, Editor, VFX"
+          <TextareaField
+            label="Logline"
+            rows={2}
+            value={form.logline}
+            onChange={(value) => setField("logline", value)}
+            hint="One sentence, set large at the top of the project page."
           />
-        </div>
-
-        {/* Description */}
-        <div>
-          <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
-            Short Description
-          </label>
-          <textarea
-            value={form.description}
-            onChange={(e) => setField("description", e.target.value)}
+          <TextareaField
+            label="Short description"
             rows={3}
-            className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors resize-none"
-            placeholder="Brief project description..."
+            value={form.description}
+            onChange={(value) => setField("description", value)}
+            hint="Used wherever there's no room for the full synopsis."
           />
-        </div>
-
-        {/* Synopsis */}
-        <div>
-          <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
-            Full Synopsis
-          </label>
-          <textarea
+          <TextareaField
+            label="Synopsis"
+            rows={6}
             value={form.synopsis}
-            onChange={(e) => setField("synopsis", e.target.value)}
-            rows={5}
-            className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors resize-none"
-            placeholder="Full project synopsis..."
+            onChange={(value) => setField("synopsis", value)}
           />
-        </div>
+        </section>
 
-        {/* YouTube ID */}
-        <div>
-          <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
-            YouTube Video (ID or link)
-          </label>
-          <input
-            type="text"
+        {/* ─── Media ─── */}
+        <section className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6 space-y-5">
+          <h2 className="text-xs tracking-[0.15em] uppercase text-white/35 font-medium">Media</h2>
+
+          <TextField
+            label="Full film (YouTube)"
             value={form.youtube_id}
-            onChange={(e) => setField("youtube_id", extractYouTubeId(e.target.value))}
-            className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
+            onChange={(value) => setField("youtube_id", extractYouTubeId(value))}
             placeholder="Paste a YouTube link or ID"
+            hint="Shown as an embedded player, and as the 'Watch the full film' link."
           />
-          <p className="mt-2 text-[10px] text-white/20">
-            Example: https://youtu.be/QIoUmnSkOXE or QIoUmnSkOXE
-          </p>
-          {form.youtube_id && (
-            <div className="mt-3 flex items-center gap-3">
-              <img
-                src={ytThumb}
-                alt="YouTube thumbnail"
-                className="w-32 h-20 rounded object-cover bg-white/5"
-              />
+          <TextField
+            label="Trailer (YouTube)"
+            value={form.trailer_youtube_id}
+            onChange={(value) => setField("trailer_youtube_id", extractYouTubeId(value))}
+            placeholder="Optional — a short trailer only"
+            hint="A trailer plays silently behind the title. Leave empty and the still holds the frame instead — never put a full film here."
+          />
+
+          {ytThumb && (
+            <div className="flex items-center gap-3">
+              <img src={ytThumb} alt="" className="w-32 h-20 rounded object-cover bg-white/5" />
               <div>
-                <p className="text-[10px] text-white/25">Thumbnail preview</p>
+                <p className="text-[10px] text-white/25">YouTube thumbnail</p>
                 <button
                   type="button"
                   onClick={() => setField("thumbnail", ytThumb)}
@@ -357,78 +327,77 @@ const AdminProjectForm = () => {
               </div>
             </div>
           )}
-        </div>
 
-        {/* Thumbnail */}
-        <ImageUpload
-          value={form.thumbnail}
-          onChange={(url) => setField("thumbnail", url)}
-          label="Thumbnail Image"
-        />
+          <ImageField
+            label="Thumbnail"
+            value={form.thumbnail}
+            onChange={(value) => setField("thumbnail", value)}
+            hint="The key image, used across the slate and as the link preview."
+          />
+          <StringListField
+            label="Stills"
+            values={form.gallery}
+            onChange={(gallery) => setField("gallery", gallery)}
+            addLabel="Still"
+            asImages
+            hint="Optional. Shown as a gallery on the project page."
+          />
+        </section>
 
-        {/* Credits section */}
-        <div className="border-t border-white/[0.06] pt-6">
-          <h2 className="text-xs tracking-[0.15em] uppercase text-white/25 font-medium mb-5">
-            Credits
-          </h2>
+        {/* ─── Credits ─── */}
+        <section className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6 space-y-5">
+          <h2 className="text-xs tracking-[0.15em] uppercase text-white/35 font-medium">Credits</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
-                Director
-              </label>
-              <input
-                type="text"
-                value={form.director}
-                onChange={(e) => setField("director", e.target.value)}
-                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
-                placeholder="Director name"
-              />
-            </div>
-            <div>
-              <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
-                Producers
-              </label>
-              <input
-                type="text"
-                value={form.producers}
-                onChange={(e) => setField("producers", e.target.value)}
-                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
-                placeholder="Producer name(s)"
-              />
-            </div>
-          </div>
-          <div className="mt-5">
-            <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
-              Cast
-            </label>
-            <input
-              type="text"
-              value={form.cast_info}
-              onChange={(e) => setField("cast_info", e.target.value)}
-              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
-              placeholder="Cast members"
+            <TextField
+              label="Director"
+              value={form.director}
+              onChange={(value) => setField("director", value)}
+            />
+            <TextField
+              label="Producers"
+              value={form.producers}
+              onChange={(value) => setField("producers", value)}
             />
           </div>
-        </div>
+          <TextField label="Cast" value={form.cast_info} onChange={(value) => setField("cast_info", value)} />
+          <PairListField
+            label="Other credits"
+            values={form.credits as unknown as Record<string, string>[]}
+            onChange={(credits) => setField("credits", credits as unknown as ProjectCredit[])}
+            keyName="role"
+            valueName="name"
+            keyPlaceholder="Colourist"
+            valuePlaceholder="Name"
+            addLabel="Credit"
+            hint="Any role at all — these are listed after the four above."
+          />
+        </section>
 
-        {/* Submit */}
-        <div className="flex gap-3 pt-4">
-          <button
-            type="submit"
-            disabled={isPending}
-            className="bg-white/90 text-black px-6 py-3 rounded-lg text-xs tracking-[0.1em] uppercase font-medium hover:bg-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-          >
-            {isPending
-              ? isEditing ? "Saving..." : "Creating..."
-              : isEditing ? "Save Changes" : "Create Project"}
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate("/admin/projects")}
-            className="bg-white/[0.06] text-white/40 px-6 py-3 rounded-lg text-xs tracking-[0.1em] uppercase hover:bg-white/[0.1] hover:text-white/60 transition-colors cursor-pointer"
-          >
-            Cancel
-          </button>
+        {/* ─── Extra content ─── */}
+        <section className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6">
+          <BlockListEditor
+            blocks={form.blocks}
+            onChange={(blocks) => setField("blocks", blocks)}
+            label="Extra content"
+          />
+        </section>
+
+        {/* ─── How this project appears when shared ─── */}
+        <section className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6">
+          <TextareaField
+            label="Preview description"
+            rows={2}
+            value={form.seo_description}
+            onChange={(value) => setField("seo_description", value)}
+            hint="What shows up in a Google search result or a shared link. Optional — defaults to the logline, then the short description."
+          />
+        </section>
+
+        <div className="flex gap-3 pt-2 pb-8">
+          <PrimaryButton type="submit" disabled={save.isPending}>
+            {save.isPending ? "Saving…" : isEditing ? "Save changes" : "Create project"}
+          </PrimaryButton>
+          <SecondaryButton onClick={() => navigate("/admin/projects")}>Cancel</SecondaryButton>
         </div>
       </form>
     </div>

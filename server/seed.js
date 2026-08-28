@@ -3,9 +3,13 @@ import bcrypt from "bcryptjs";
 import pool, { initPromise } from "./db.js";
 import {
   CRA8_ABOUT_CONTENT,
+  CRA8_CATEGORIES,
   CRA8_HERO,
+  CRA8_JOURNAL,
   CRA8_MENU_ITEMS,
   CRA8_PROJECTS,
+  CRA8_SERVICES,
+  CRA8_SYSTEM_PAGES,
   cra8Settings,
 } from "./cra8-content.js";
 
@@ -130,6 +134,68 @@ if (!existingAboutRes.rows[0]) {
 } else {
   console.log("  ○ About page content already exists");
 }
+
+// ─── 7. Categories ───────────────────────────────────────────
+for (const [index, category] of CRA8_CATEGORIES.entries()) {
+  await pool.query(
+    `INSERT INTO categories (slug, label, description, sort_order, published)
+     VALUES ($1, $2, $3, $4, $5) ON CONFLICT (slug) DO NOTHING`,
+    [category.slug, category.label, category.description || "", index + 1, category.published]
+  );
+}
+console.log(`  ✓ Seeded ${CRA8_CATEGORIES.length} categories`);
+
+// ─── 8. Services ─────────────────────────────────────────────
+for (const [index, service] of CRA8_SERVICES.entries()) {
+  await pool.query(
+    `INSERT INTO services (slug, title, summary, description, capabilities, sort_order, published)
+     VALUES ($1, $2, $3, $4, $5, $6, 1) ON CONFLICT (slug) DO NOTHING`,
+    [
+      service.slug,
+      service.title,
+      service.summary || "",
+      service.description || "",
+      JSON.stringify(service.capabilities || []),
+      index + 1,
+    ]
+  );
+}
+console.log(`  ✓ Seeded ${CRA8_SERVICES.length} services`);
+
+// ─── 9. System page copy ─────────────────────────────────────
+for (const page of CRA8_SYSTEM_PAGES) {
+  await pool.query(
+    `INSERT INTO page_content (page_slug, title, content, published, is_system, seo_description)
+     VALUES ($1, $2, $3, 1, 1, $4) ON CONFLICT (page_slug) DO NOTHING`,
+    [page.slug, page.title, JSON.stringify(page.content || {}), page.seo_description || ""]
+  );
+}
+await pool.query(
+  `UPDATE page_content SET is_system = 1
+   WHERE page_slug IN ('home', 'work', 'about', 'services', 'journal', 'contact')`
+);
+console.log(`  ✓ Seeded ${CRA8_SYSTEM_PAGES.length} system pages`);
+
+// ─── 10. Journal ─────────────────────────────────────────────
+for (const [index, entry] of CRA8_JOURNAL.entries()) {
+  await pool.query(
+    `INSERT INTO articles (slug, title, kicker, excerpt, author, published_at, blocks, featured, sort_order, published, seo_description)
+     VALUES ($1, $2, $3, $4, $5, CURRENT_DATE, $6, $7, $8, $9, $10) ON CONFLICT (slug) DO NOTHING`,
+    [
+      entry.slug,
+      entry.title,
+      entry.kicker || "",
+      entry.excerpt || "",
+      entry.author || "",
+      JSON.stringify(entry.blocks || []),
+      entry.featured || 0,
+      index + 1,
+      entry.published || 0,
+      entry.seo_description || "",
+    ]
+  );
+}
+console.log(`  ✓ Seeded ${CRA8_JOURNAL.length} journal entry`);
 
 console.log("\n  ✅ Database seeded successfully!\n");
 console.log(`  Login credentials:`);
