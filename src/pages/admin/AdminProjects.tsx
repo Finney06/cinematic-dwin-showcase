@@ -31,9 +31,9 @@ import { ADMIN_QUERY, invalidateContent } from "@/lib/adminQueries";
 import type { ProjectData } from "@/lib/api";
 
 /**
- * The slate. Drag-to-reorder is available once a category is selected — the
- * order stored is the order the public pages render, and reordering across all
- * sections at once would be ambiguous.
+ * The slate. Drag-to-reorder is available whenever a search isn't active — the
+ * order stored is a single global sort_order, and it's the order the public
+ * pages render in, both on Work and within each category.
  */
 const AdminProjects = () => {
   const queryClient = useQueryClient();
@@ -68,7 +68,11 @@ const AdminProjects = () => {
 
   useEffect(() => setOrdered(filtered), [filtered]);
 
-  const canReorder = Boolean(categoryFilter) && !search.trim();
+  // Reordering writes a single global sort_order, which is what every public
+  // query sorts by — so it works in the "All" view and within a category alike.
+  // Search is the only thing that disables it, since a filtered list can't
+  // express a complete order.
+  const canReorder = !search.trim();
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -169,8 +173,8 @@ const AdminProjects = () => {
 
       <p className="text-[11px] text-white/25 mb-6">
         {canReorder
-          ? "Drag to set the order this section appears in on the site."
-          : "Pick a single category to drag projects into order."}{" "}
+          ? "Drag to set the order projects appear in on the site."
+          : "Clear the search to drag projects into order."}{" "}
         The ★ project opens Work and its own section full width.
       </p>
 
