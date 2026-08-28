@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
+import { ADMIN_QUERY } from "@/lib/adminQueries";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchMenuItems } from "@/lib/api";
 import {
+  fetchAdminCategories,
   updateMenuItem,
   createMenuItem,
   deleteMenuItem,
@@ -15,6 +17,7 @@ import {
   KeyboardSensor,
   useSensor,
   useSensors,
+  type DragEndEvent,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -28,13 +31,20 @@ import { CSS } from "@dnd-kit/utilities";
 const AdminMenu = () => {
   const queryClient = useQueryClient();
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newItem, setNewItem] = useState({ label: "", path: "/", page_type: "category" });
+  const [newItem, setNewItem] = useState({ label: "", path: "/", page_type: "page" });
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const [orderedItems, setOrderedItems] = useState<typeof menuItems>([] as never);
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ["adminCategories"],
+    queryFn: fetchAdminCategories,
+    ...ADMIN_QUERY,
+  });
 
   const { data: menuItems = [], isLoading } = useQuery({
     queryKey: ["adminMenuItems"],
     queryFn: () => fetchMenuItems(true),
+    ...ADMIN_QUERY,
   });
 
   useEffect(() => {
@@ -72,7 +82,7 @@ const AdminMenu = () => {
       queryClient.invalidateQueries({ queryKey: ["adminMenuItems"] });
       toast.success("Menu item added");
       setShowAddForm(false);
-      setNewItem({ label: "", path: "/", page_type: "category" });
+      setNewItem({ label: "", path: "/", page_type: "page" });
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -92,7 +102,7 @@ const AdminMenu = () => {
 
   const itemIds = useMemo(() => orderedItems.map((item) => item.id), [orderedItems]);
 
-  const handleDragEnd = (event: { active: { id: number }; over: { id: number } | null }) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
     const oldIndex = orderedItems.findIndex((item) => item.id === active.id);
@@ -115,7 +125,11 @@ const AdminMenu = () => {
       .catch((err) => toast.error(err.message));
   };
 
+  /** Slate sections no longer have pages of their own — they redirect to Work. */
+  const categorySlugs = new Set(categories.map((category) => category.slug));
+
   const SortableRow = ({ item, index }: { item: (typeof orderedItems)[number]; index: number }) => {
+    const redirectsToWork = categorySlugs.has(item.path.replace(/^\//, ""));
     const {
       attributes,
       listeners,
@@ -195,7 +209,10 @@ const AdminMenu = () => {
           <div className="flex-1 min-w-0">
             <p className="text-[15px] text-white/70">{item.label}</p>
             <p className="text-[11px] text-white/25 mt-0.5">
-              {item.path} · {item.page_type}
+              {item.path}
+              {redirectsToWork && (
+                <span className="text-white/20"> · redirects to Work, filtered to this section</span>
+              )}
             </p>
           </div>
         )}
@@ -229,6 +246,8 @@ const AdminMenu = () => {
               visible: !item.visible,
             })
           }
+          aria-label={item.visible ? "Hide from the menu" : "Show in the menu"}
+          title={item.visible ? "Shown in the menu" : "Hidden from the menu"}
           className={`w-10 h-5 rounded-full relative transition-colors cursor-pointer ${
             item.visible ? "bg-white/20" : "bg-white/[0.06]"
           }`}
@@ -250,8 +269,9 @@ const AdminMenu = () => {
           <h1 className="text-xl tracking-[0.06em] text-white/80 font-light">
             Menu & Navigation
           </h1>
-          <p className="text-xs text-white/25 tracking-wide mt-1">
-            Manage navigation items, order, and visibility
+          <p className="text-xs text-white/25 tracking-wide mt-1 max-w-lg">
+            The links in the site's menu. Drag to reorder; the switch shows or hides an item without
+            deleting it. This only controls the menu — hiding a link here doesn't unpublish the page.
           </p>
         </div>
         <button
@@ -320,19 +340,10 @@ const AdminMenu = () => {
                   placeholder="/path"
                 />
               </div>
-              <div>
-                <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
-                  Type
-                </label>
-                <select
-                  value={newItem.page_type}
-                  onChange={(e) => setNewItem((p) => ({ ...p, page_type: e.target.value }))}
-                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-2.5 text-sm text-white/80 focus:outline-none focus:border-white/20"
-                >
-                  <option value="category" className="bg-[#141414]">Category (shows projects)</option>
-                  <option value="page" className="bg-[#141414]">Page (custom content)</option>
-                </select>
-              </div>
+              <p className="text-[11px] text-white/25 leading-relaxed">
+                A menu item can point at any address on the site — <code className="text-white/40">/work</code>,{" "}
+                <code className="text-white/40">/film</code>, or a page you created.
+              </p>
             </div>
             <div className="flex gap-3 justify-end mt-6">
               <button

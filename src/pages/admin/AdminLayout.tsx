@@ -5,15 +5,29 @@ import {
   FolderKanban,
   FileText,
   Info,
+  Inbox,
+  Layers,
+  Newspaper,
   Sparkles,
+  Users,
+  Wrench,
   Menu as MenuIcon,
   Settings as SettingsIcon,
   ExternalLink,
   LogOut,
   X,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { fetchMessages } from "@/lib/adminApi";
+import { ADMIN_QUERY } from "@/lib/adminQueries";
+import { EditHistoryProvider } from "@/hooks/useEditHistory";
+import UndoRedo from "@/components/admin/UndoRedo";
 
+/**
+ * The admin's shape mirrors the site's: the things a visitor sees are grouped
+ * under Content, everything that shapes the site itself under Structure.
+ */
 const navSections = [
   {
     title: "Overview",
@@ -22,19 +36,28 @@ const navSections = [
   {
     title: "Content",
     items: [
-      { label: "Pages", path: "/admin/pages", icon: FileText },
       { label: "Projects", path: "/admin/projects", icon: FolderKanban },
+      { label: "Journal", path: "/admin/journal", icon: Newspaper },
+      { label: "Services", path: "/admin/services", icon: Wrench },
+      { label: "Team", path: "/admin/team", icon: Users },
       { label: "About", path: "/admin/about", icon: Info },
       { label: "Hero", path: "/admin/hero", icon: Sparkles },
     ],
   },
   {
-    title: "Navigation",
-    items: [{ label: "Menu", path: "/admin/menu", icon: MenuIcon }],
+    title: "Structure",
+    items: [
+      { label: "Pages", path: "/admin/pages", icon: FileText },
+      { label: "Categories", path: "/admin/categories", icon: Layers },
+      { label: "Menu", path: "/admin/menu", icon: MenuIcon },
+    ],
   },
   {
     title: "System",
-    items: [{ label: "Settings", path: "/admin/settings", icon: SettingsIcon }],
+    items: [
+      { label: "Messages", path: "/admin/messages", icon: Inbox, badge: "messages" },
+      { label: "Settings", path: "/admin/settings", icon: SettingsIcon },
+    ],
   },
 ];
 
@@ -43,12 +66,21 @@ const AdminLayout = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Unread enquiries surface in the sidebar so they aren't missed.
+  const { data: messages } = useQuery({
+    queryKey: ["adminMessages"],
+    queryFn: fetchMessages,
+    ...ADMIN_QUERY,
+    refetchInterval: 5 * 60 * 1000,
+  });
+
   const handleLogout = () => {
     clearToken();
     navigate("/admin/login");
   };
 
   return (
+    <EditHistoryProvider>
     <div className="min-h-screen bg-[#0a0a0a] flex">
       {/* Mobile Top Bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 border-b border-white/[0.06] bg-[#0a0a0a]">
@@ -59,12 +91,15 @@ const AdminLayout = () => {
           <MenuIcon className="h-4 w-4" />
         </button>
         <div className="text-[10px] tracking-[0.35em] uppercase text-white/40">CRA8</div>
-        <button
-          onClick={handleLogout}
-          className="p-2 rounded-md bg-white/[0.04] text-white/60 hover:text-white/80"
-        >
-          <LogOut className="h-4 w-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          <UndoRedo />
+          <button
+            onClick={handleLogout}
+            className="p-2 rounded-md bg-white/[0.04] text-white/60 hover:text-white/80"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       {/* Mobile Overlay */}
@@ -129,7 +164,12 @@ const AdminLayout = () => {
                           isActive ? "text-white/60" : "text-white/25 group-hover:text-white/50"
                         }`}
                       />
-                      {item.label}
+                      <span className="flex-1">{item.label}</span>
+                      {"badge" in item && item.badge === "messages" && (messages?.unread || 0) > 0 && (
+                        <span className="px-1.5 py-0.5 rounded-full bg-emerald-400/15 text-emerald-300/70 text-[9px] tabular-nums">
+                          {messages?.unread}
+                        </span>
+                      )}
                     </Link>
                   );
                 })}
@@ -165,6 +205,7 @@ const AdminLayout = () => {
         </div>
       </main>
     </div>
+    </EditHistoryProvider>
   );
 };
 

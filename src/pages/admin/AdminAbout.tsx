@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { useUndoRedo } from "@/hooks/useEditHistory";
+import { ADMIN_QUERY } from "@/lib/adminQueries";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchAboutContent } from "@/lib/api";
 import { updateAboutContent } from "@/lib/adminApi";
@@ -27,19 +29,22 @@ const AdminAbout = () => {
   const queryClient = useQueryClient();
   const initialFormRef = useRef("");
   const [form, setForm] = useState<AboutContent>(defaultAbout);
+  const { reset: resetHistory } = useUndoRedo(form, setForm);
 
   const { data } = useQuery({
     queryKey: ["aboutContent"],
     queryFn: fetchAboutContent,
+    ...ADMIN_QUERY,
   });
 
   useEffect(() => {
     if (data?.content) {
       const next = { ...defaultAbout, ...data.content };
       setForm(next);
+      resetHistory(next);
       initialFormRef.current = JSON.stringify(next);
     }
-  }, [data]);
+  }, [data, resetHistory]);
 
   const isDirty = initialFormRef.current !== JSON.stringify(form);
   useUnsavedChanges(isDirty);

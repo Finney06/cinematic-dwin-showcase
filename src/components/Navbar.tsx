@@ -176,7 +176,12 @@ const Navbar = ({ enterDelay = 0 }: NavbarProps) => {
                 exit="exit"
               >
                 {menuItems.map((item, i) => {
-                  const isActive = location.pathname === item.path;
+                  // A menu item may carry a query string — Work's discipline
+                  // filters live at /work?category=film — so match on both.
+                  const [itemPath, itemQuery] = item.path.split("?");
+                  const isActive =
+                    location.pathname === itemPath &&
+                    (!itemQuery || location.search.replace(/^\?/, "") === itemQuery);
                   return (
                     <motion.div key={item.id} variants={menuItemVariant}>
                       <Link

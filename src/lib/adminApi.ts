@@ -1,4 +1,16 @@
-import type { ProjectData, HeroContent, AboutContent, SiteSettings, MenuItem } from "./api";
+import type {
+  Article,
+  CategoryData,
+  ContactMessage,
+  HeroContent,
+  AboutContent,
+  MenuItem,
+  PageContent,
+  ProjectData,
+  Service,
+  SiteSettings,
+  TeamMember,
+} from "./api";
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || "/api").replace(/\/$/, "");
 
@@ -63,6 +75,17 @@ export function changePassword(currentPassword: string, newPassword: string) {
 }
 
 // ─── Projects ────────────────────────────────────────────────
+/** The admin list includes unpublished work; the public one never does. */
+export function fetchAdminProjects(category?: string) {
+  const params = new URLSearchParams({ all: "true" });
+  if (category) params.set("category", category);
+  return adminRequest<ProjectData[]>(`/admin/projects?${params}`);
+}
+
+export function fetchAdminProject(id: string) {
+  return adminRequest<ProjectData>(`/admin/projects/${encodeURIComponent(id)}?draft=true`);
+}
+
 export function createProject(data: Partial<ProjectData>) {
   return adminRequest<ProjectData>("/admin/projects", {
     method: "POST",
@@ -112,11 +135,117 @@ export function updateSettings(settings: Partial<SiteSettings>) {
   });
 }
 
-export function updatePageContent(slug: string, data: { title?: string; content?: Record<string, unknown> }) {
-  return adminRequest<{ message: string }>(`/admin/content/page/${slug}`, {
+export function updatePageContent(
+  slug: string,
+  data: Partial<Omit<PageContent, "page_slug" | "published" | "is_system" | "updated_at">> & {
+    published?: boolean | number;
+  }
+) {
+  return adminRequest<PageContent>(`/admin/content/page/${encodeURIComponent(slug)}`, {
     method: "PUT",
     body: JSON.stringify(data),
   });
+}
+
+// ─── Pages ───────────────────────────────────────────────────
+export function fetchAdminPages() {
+  return adminRequest<PageContent[]>("/admin/content/pages?all=true");
+}
+
+export function fetchAdminPage(slug: string) {
+  return adminRequest<PageContent>(`/admin/content/page/${encodeURIComponent(slug)}?draft=true`);
+}
+
+export function createPage(data: {
+  title: string;
+  slug: string;
+  published?: boolean;
+  addToMenu?: boolean;
+  content?: Record<string, unknown>;
+}) {
+  return adminRequest<PageContent>("/admin/content/pages", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export function deletePage(slug: string) {
+  return adminRequest<{ message: string }>(`/admin/content/page/${encodeURIComponent(slug)}`, {
+    method: "DELETE",
+  });
+}
+
+// ─── Categories ──────────────────────────────────────────────
+export function fetchAdminCategories() {
+  return adminRequest<CategoryData[]>("/admin/categories?all=true");
+}
+
+export function createCategory(data: Partial<CategoryData>) {
+  return adminRequest<CategoryData>("/admin/categories", { method: "POST", body: JSON.stringify(data) });
+}
+
+export function updateCategory(id: number, data: Partial<CategoryData>) {
+  return adminRequest<CategoryData>(`/admin/categories/${id}`, { method: "PUT", body: JSON.stringify(data) });
+}
+
+export function deleteCategory(id: number) {
+  return adminRequest<{ message: string }>(`/admin/categories/${id}`, { method: "DELETE" });
+}
+
+export function reorderCategories(items: { id: number; sort_order: number }[]) {
+  return adminRequest<{ message: string }>("/admin/categories/reorder", {
+    method: "PUT",
+    body: JSON.stringify({ items }),
+  });
+}
+
+/**
+ * Journal, Services and Team share one server implementation, so they share
+ * one client too — `collection` is the API path segment.
+ */
+type CollectionName = "journal" | "services" | "team";
+
+export function fetchCollection<T>(collection: CollectionName) {
+  return adminRequest<T[]>(`/admin/${collection}?all=true`);
+}
+
+export function createCollectionItem<T>(collection: CollectionName, data: Partial<T>) {
+  return adminRequest<T>(`/admin/${collection}`, { method: "POST", body: JSON.stringify(data) });
+}
+
+export function updateCollectionItem<T>(collection: CollectionName, id: number, data: Partial<T>) {
+  return adminRequest<T>(`/admin/${collection}/${id}`, { method: "PUT", body: JSON.stringify(data) });
+}
+
+export function deleteCollectionItem(collection: CollectionName, id: number) {
+  return adminRequest<{ message: string }>(`/admin/${collection}/${id}`, { method: "DELETE" });
+}
+
+export function reorderCollection(collection: CollectionName, items: { id: number; sort_order: number }[]) {
+  return adminRequest<{ message: string }>(`/admin/${collection}/reorder`, {
+    method: "PUT",
+    body: JSON.stringify({ items }),
+  });
+}
+
+export const fetchAdminArticles = () => fetchCollection<Article>("journal");
+export const fetchAdminServices = () => fetchCollection<Service>("services");
+export const fetchAdminTeam = () => fetchCollection<TeamMember>("team");
+
+// ─── Messages ────────────────────────────────────────────────
+export function fetchMessages() {
+  return adminRequest<{ messages: ContactMessage[]; unread: number }>("/admin/contact");
+}
+
+export function updateMessageStatus(id: number, status: ContactMessage["status"]) {
+  return adminRequest<ContactMessage>(`/admin/contact/${id}`, {
+    method: "PUT",
+    body: JSON.stringify({ status }),
+  });
+}
+
+export function deleteMessage(id: number) {
+  return adminRequest<{ message: string }>(`/admin/contact/${id}`, { method: "DELETE" });
 }
 
 // ─── Menu ────────────────────────────────────────────────────

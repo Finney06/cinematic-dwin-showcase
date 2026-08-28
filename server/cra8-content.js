@@ -174,8 +174,161 @@ export const CRA8_HERO = {
 
 export const CRA8_MENU_ITEMS = [
   { label: "Work", path: "/work", page_type: "page", sort_order: 1, visible: 1 },
-  { label: "About", path: "/about", page_type: "page", sort_order: 2, visible: 1 },
-  { label: "News", path: "/news", page_type: "page", sort_order: 3, visible: 1 },
+  { label: "Services", path: "/services", page_type: "page", sort_order: 2, visible: 1 },
+  { label: "Journal", path: "/journal", page_type: "page", sort_order: 3, visible: 1 },
+  { label: "About", path: "/about", page_type: "page", sort_order: 4, visible: 1 },
+  { label: "Contact", path: "/contact", page_type: "page", sort_order: 5, visible: 1 },
+];
+
+/**
+ * The slate's sections. Only Film is published at launch because it's the only
+ * one with work in it — the rest are ready to switch on in Admin → Categories
+ * the day CRA8 has a title to put in them, no code change needed.
+ */
+export const CRA8_CATEGORIES = [
+  { slug: "film", label: "Film", description: "Feature and short-form spiritual drama.", published: 1 },
+  { slug: "television", label: "Television", description: "", published: 0 },
+  { slug: "nonfiction", label: "Nonfiction", description: "", published: 0 },
+  { slug: "music", label: "Music", description: "", published: 0 },
+  { slug: "commercials", label: "Commercials", description: "", published: 0 },
+  { slug: "audio", label: "Audio", description: "", published: 0 },
+];
+
+/**
+ * What CRA8 actually delivers, in the roles credited across the real slate.
+ * Every line here is editable in Admin → Services; nothing is invented beyond
+ * the crafts DWINDIK is genuinely credited for.
+ */
+export const CRA8_SERVICES = [
+  {
+    slug: "cinematography",
+    title: "Cinematography",
+    summary: "Camera and lighting built around the story, not around the kit.",
+    description:
+      "Director of photography and gaffer work across CRA8's slate — colour temperature used as an emotional tool, close-ups held against clean, wide establishing frames.",
+    capabilities: ["Director of Photography", "Lighting design", "Gaffer", "Camera operation"],
+  },
+  {
+    slug: "editing",
+    title: "Editing",
+    summary: "Pacing a film the way a trailer is cut — one beat at a time.",
+    description:
+      "Chief editor on features and shorts, from assembly through final picture lock.",
+    capabilities: ["Chief editor", "Assembly & rough cut", "Picture lock", "Trailer cutting"],
+  },
+  {
+    slug: "visual-effects",
+    title: "Visual Effects",
+    summary: "Effects that stay inside the world of the film.",
+    description:
+      "Spiritual drama asks for effects that read as real. Compositing, clean-up and set extension built to disappear.",
+    capabilities: ["Compositing", "Clean-up & rig removal", "Set extension", "Colour grading"],
+  },
+  {
+    slug: "sound-design",
+    title: "Sound Design",
+    summary: "The half of the image you hear.",
+    description: "Sound design and post audio, credited across the studio's feature work.",
+    capabilities: ["Sound design", "Dialogue edit", "Post mix"],
+  },
+  {
+    slug: "production",
+    title: "Production",
+    summary: "Getting a shoot from a schedule to a delivered film.",
+    description: "Production and project management on multi-week feature shoots.",
+    capabilities: ["Production management", "Scheduling", "On-set supervision"],
+  },
+];
+
+/**
+ * The Journal's opening entry.
+ *
+ * Every fact here comes from CRA8's own record — the slate in this file and
+ * docs/CRA8-Creative-Direction-Final.md — because the Journal is CRA8's voice,
+ * and inventing behind-the-scenes stories on the studio's behalf would put
+ * words in DWINDIK's mouth. It exists so the page launches with something real
+ * on it and so the shape of an entry is obvious; edit it or delete it freely.
+ */
+export const CRA8_JOURNAL = [
+  {
+    slug: "the-slate-so-far",
+    title: "The slate so far",
+    kicker: "CR8 News",
+    excerpt:
+      "Ten films, three years, and the crafts CRA8 was credited for on each one — the body of work this studio is built on.",
+    author: "CRA8",
+    published: 1,
+    featured: 1,
+    seo_description:
+      "The ten films on CRA8's founding slate, and the crafts the studio was credited for on each.",
+    blocks: [
+      {
+        type: "text",
+        text: "CRA8 is a film studio working in spiritual drama and thriller. Faith, temptation and consequence — told with real craft, shot and finished in Nigeria.\n\nThe studio's founding slate runs to ten titles made between 2023 and 2026, most of them produced under The Winlos Media Ministry. On every one of them CRA8 is credited for the craft it actually delivered, never for producing the film: director of photography, chief editor, VFX artist, gaffer, sound design, production management.",
+      },
+      {
+        type: "quote",
+        text: "Colour temperature is used as an emotional tool, not one flat look.",
+      },
+      {
+        type: "text",
+        text: "That is the thread through the whole slate. Cool blue rim-light on the close-ups, warm amber through the dialogue, full monochrome on the inserts — the lighting carries the scene before a line is spoken.\n\nEvery title, with its full credits, is on the Work page.",
+      },
+      { type: "button", label: "See the slate", url: "/work" },
+    ],
+  },
+];
+
+/**
+ * Opening copy for the pages the site renders with its own layout. Each is a
+ * `page_content` row, so all of it is editable in Admin → Pages — these are
+ * only the words the site launches with.
+ */
+export const CRA8_SYSTEM_PAGES = [
+  {
+    slug: "work",
+    title: "Work",
+    seo_description: "The CRA8 slate — every film, with craft credits.",
+    content: {
+      blocks: [
+        {
+          type: "text",
+          text: "Spiritual drama and thriller, shot, cut and finished in Nigeria. Each title lists the craft CRA8 delivered on it.",
+        },
+      ],
+    },
+  },
+  {
+    slug: "services",
+    title: "Services",
+    seo_description: "Cinematography, editing, visual effects, sound design and production from CRA8.",
+    content: {
+      intro:
+        "The crafts CRA8 is credited for across its own slate, available to other productions. Whole projects or a single department.",
+      blocks: [],
+    },
+  },
+  {
+    slug: "journal",
+    title: "Journal",
+    seo_description: "Behind the scenes, director stories, creative process and studio news from CRA8.",
+    content: {
+      intro:
+        "Behind the scenes, director stories, creative process and studio news — written from inside the work.",
+      blocks: [],
+    },
+  },
+  {
+    slug: "contact",
+    title: "Contact",
+    seo_description: "Get in touch with CRA8 about a production, press, or an internship.",
+    content: {
+      intro: "For production enquiries, press, or an internship — write to us.",
+      formEnabled: true,
+      topics: ["General", "Work with us", "Press", "Internship"],
+      blocks: [],
+    },
+  },
 ];
 
 /**

@@ -1,283 +1,197 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchProjects, fetchMenuItems, fetchAuditLogs } from "@/lib/api";
 import { Link } from "react-router-dom";
+import { FileText, FolderKanban, Newspaper } from "lucide-react";
+import { AdminHeader } from "@/components/admin/FormFields";
+import { ADMIN_QUERY } from "@/lib/adminQueries";
+import { fetchAdminArticles, fetchAdminProjects, fetchMessages } from "@/lib/adminApi";
 
-const actionLabels: Record<string, string> = {
-  "project.create": "created a project",
-  "project.update": "updated a project",
-  "project.delete": "deleted a project",
-  "project.reorder": "reordered projects",
-  "menu.create": "added a menu item",
-  "menu.update": "updated a menu item",
-  "menu.delete": "removed a menu item",
-  "menu.reorder": "reordered the menu",
-  "content.about.update": "updated the About page",
-  "content.hero.update": "updated the Hero section",
-  "content.settings.update": "updated site settings",
-  "content.page.update": "updated a page",
-  "upload.single": "uploaded a file",
-  "upload.multiple": "uploaded multiple files",
-  "auth.password.change": "changed password",
-};
+/** The three things Dwindik actually starts a session to do. */
+const ACTIONS = [
+  {
+    label: "Add a project",
+    hint: "A new film or music video for the slate",
+    to: "/admin/projects/new",
+    icon: FolderKanban,
+  },
+  {
+    label: "Write a journal entry",
+    hint: "Behind the scenes, studio news, process",
+    to: "/admin/journal",
+    icon: Newspaper,
+  },
+  {
+    label: "Edit a page",
+    hint: "Headings, copy and images on any page",
+    to: "/admin/pages",
+    icon: FileText,
+  },
+];
 
-const entityLabels: Record<string, string> = {
-  project: "Project",
-  menu: "Menu",
-  content: "Content",
-  page: "Page",
-  upload: "Upload",
-  user: "User",
-};
-
-function getFriendlyAction(action: string) {
-  return actionLabels[action] || action.replace(/[._]/g, " ");
-}
-
-function getFriendlyTarget(log: {
-  entity_type: string;
-  entity_id: string;
-  details?: Record<string, unknown>;
-}) {
-  const details = log.details || {};
-  const title = (details.title as string) || (details.label as string) || (details.pageSlug as string);
-  if (title) return title;
-
-  if (log.entity_id && log.entity_id !== "bulk" && log.entity_id !== "batch") {
-    const entity = entityLabels[log.entity_type] || "Item";
-    return `${entity}: ${log.entity_id}`;
-  }
-
-  if (typeof details.count === "number") {
-    return `${details.count} items`;
-  }
-
-  return entityLabels[log.entity_type] || "System";
-}
-
+/**
+ * The dashboard answers two questions and stops: is anything waiting for me,
+ * and what do I want to do?
+ *
+ * It deliberately doesn't tally every table or log every keystroke. Counts that
+ * nobody acts on are noise, and a change log is only ever read after something
+ * has gone wrong — which the two-step deletes and draft states are there to
+ * prevent in the first place.
+ */
 const AdminDashboard = () => {
-  const { data: projects = [], isLoading: projectsLoading } = useQuery({
-    queryKey: ["admin-projects"],
-    queryFn: () => fetchProjects(),
+  const messages = useQuery({ queryKey: ["adminMessages"], queryFn: fetchMessages, ...ADMIN_QUERY });
+  const projects = useQuery({
+    queryKey: ["adminProjects", ""],
+    queryFn: () => fetchAdminProjects(),
+    ...ADMIN_QUERY,
+  });
+  const articles = useQuery({
+    queryKey: ["adminCollection", "journal"],
+    queryFn: fetchAdminArticles,
+    ...ADMIN_QUERY,
   });
 
-  const { data: menuItems = [], isLoading: menuLoading } = useQuery({
-    queryKey: ["admin-menu"],
-    queryFn: () => fetchMenuItems(true),
-  });
-
-  const { data: auditLogs = [], isLoading: auditLoading } = useQuery({
-    queryKey: ["admin-audit"],
-    queryFn: () => fetchAuditLogs(12),
-  });
-
-  // Stats
-  const categories = [...new Set(projects.map((p) => p.category))];
-  const recentProjects = [...projects]
-    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-    .slice(0, 5);
-
-  const stats = [
-    { label: "Total Projects", value: projects.length, icon: "▸" },
-    { label: "Categories", value: categories.length, icon: "◎" },
-    { label: "Menu Items", value: menuItems.length, icon: "≡" },
-    { label: "Visible Pages", value: menuItems.filter((m) => m.visible).length, icon: "◇" },
+  const unread = messages.data?.unread || 0;
+  const drafts = [
+    ...(projects.data || [])
+      .filter((project) => !project.published)
+      .map((project) => ({
+        key: `project-${project.id}`,
+        title: project.title,
+        note: project.category_label,
+        to: `/admin/projects/${project.id}/edit`,
+      })),
+    ...(articles.data || [])
+      .filter((article) => !article.published)
+      .map((article) => ({
+        key: `article-${article.id}`,
+        title: article.title || "Untitled entry",
+        note: article.kicker || "Journal",
+        to: "/admin/journal",
+      })),
   ];
+
+  const recent = [...(projects.data || [])]
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+    .slice(0, 4);
 
   return (
     <div>
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-xl tracking-[0.06em] text-white/80 font-light">
-          Dashboard
-        </h1>
-        <p className="text-xs text-white/25 tracking-wide mt-1">
-          Overview of your portfolio content
-        </p>
-      </div>
+      <AdminHeader title="CRA8" description="Everything on the site is managed from here." />
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-        {projectsLoading || menuLoading
-          ? Array.from({ length: 4 }).map((_, index) => (
-              <div
-                key={index}
-                className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-5 animate-pulse"
+      {/* ─── Waiting on you ─── */}
+      {unread > 0 && (
+        <Link
+          to="/admin/messages"
+          className="flex items-center justify-between gap-4 mb-4 bg-emerald-400/[0.06] border border-emerald-400/20 rounded-xl px-5 py-4 hover:bg-emerald-400/[0.1] transition-colors"
+        >
+          <p className="text-sm text-emerald-200/80">
+            {unread} unread {unread === 1 ? "enquiry" : "enquiries"} from the Contact page
+          </p>
+          <span className="text-[10px] tracking-[0.2em] uppercase text-emerald-200/50 shrink-0">Read →</span>
+        </Link>
+      )}
+
+      {drafts.length > 0 && (
+        <div className="mb-10 bg-white/[0.02] border border-white/[0.06] rounded-xl overflow-hidden">
+          <p className="px-5 pt-4 pb-3 text-[10px] tracking-[0.2em] uppercase text-white/30">
+            {drafts.length} unfinished {drafts.length === 1 ? "draft" : "drafts"} — not visible on the site
+          </p>
+          <div className="divide-y divide-white/[0.04]">
+            {drafts.slice(0, 4).map((draft) => (
+              <Link
+                key={draft.key}
+                to={draft.to}
+                className="flex items-center justify-between gap-4 px-5 py-3 hover:bg-white/[0.02] transition-colors group"
               >
-                <div className="h-3 w-24 bg-white/[0.06] rounded mb-3" />
-                <div className="h-7 w-12 bg-white/[0.08] rounded" />
-              </div>
-            ))
-          : stats.map((stat) => (
-              <div
-                key={stat.label}
-                className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-5 hover:border-white/[0.1] transition-colors"
-              >
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-white/15 text-sm">{stat.icon}</span>
-                  <span className="text-[10px] tracking-[0.15em] uppercase text-white/25">
-                    {stat.label}
-                  </span>
-                </div>
-                <p className="text-2xl text-white/70 font-light">{stat.value}</p>
-              </div>
+                <span className="text-sm text-white/60 group-hover:text-white/85 transition-colors truncate">
+                  {draft.title}
+                </span>
+                <span className="text-[10px] tracking-wider uppercase text-white/20 shrink-0">
+                  {draft.note}
+                </span>
+              </Link>
             ))}
-      </div>
-
-      {/* Quick Actions */}
-      <div className="mb-10">
-        <h2 className="text-xs tracking-[0.15em] uppercase text-white/25 font-medium mb-4">
-          Quick Actions
-        </h2>
-        <div className="flex flex-wrap gap-3">
-          <Link
-            to="/admin/projects/new"
-            className="inline-flex items-center gap-2 bg-white/90 text-black px-4 py-2.5 rounded-lg text-xs tracking-[0.1em] uppercase font-medium hover:bg-white transition-colors"
-          >
-            <span>+</span> New Project
-          </Link>
-          <Link
-            to="/admin/about"
-            className="inline-flex items-center gap-2 bg-white/[0.06] text-white/50 px-4 py-2.5 rounded-lg text-xs tracking-[0.1em] uppercase hover:bg-white/[0.1] hover:text-white/70 transition-colors"
-          >
-            Edit About Page
-          </Link>
-          <Link
-            to="/admin/hero"
-            className="inline-flex items-center gap-2 bg-white/[0.06] text-white/50 px-4 py-2.5 rounded-lg text-xs tracking-[0.1em] uppercase hover:bg-white/[0.1] hover:text-white/70 transition-colors"
-          >
-            Edit Hero
-          </Link>
-          <Link
-            to="/admin/menu"
-            className="inline-flex items-center gap-2 bg-white/[0.06] text-white/50 px-4 py-2.5 rounded-lg text-xs tracking-[0.1em] uppercase hover:bg-white/[0.1] hover:text-white/70 transition-colors"
-          >
-            Manage Menu
-          </Link>
+          </div>
         </div>
+      )}
+
+      {/* ─── Start something ─── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+        {ACTIONS.map((action) => {
+          const Icon = action.icon;
+          return (
+            <Link
+              key={action.to}
+              to={action.to}
+              className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-5 hover:border-white/[0.14] hover:bg-white/[0.04] transition-colors group"
+            >
+              <Icon className="h-4 w-4 text-white/30 group-hover:text-white/60 transition-colors" />
+              <p className="mt-4 text-[15px] text-white/75 group-hover:text-white/95 transition-colors">
+                {action.label}
+              </p>
+              <p className="mt-1 text-[11px] text-white/25 leading-relaxed">{action.hint}</p>
+            </Link>
+          );
+        })}
       </div>
 
-      {/* Recent Projects */}
+      {/* ─── Pick up where you left off ─── */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xs tracking-[0.15em] uppercase text-white/25 font-medium">
-            Recent Projects
-          </h2>
+          <h2 className="text-xs tracking-[0.15em] uppercase text-white/25 font-medium">Recently edited</h2>
           <Link
             to="/admin/projects"
             className="text-[10px] tracking-[0.15em] uppercase text-white/20 hover:text-white/50 transition-colors"
           >
-            View All →
+            All projects →
           </Link>
         </div>
         <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl overflow-hidden">
-          {projectsLoading ? (
+          {projects.isLoading ? (
             <div className="px-5 py-8 space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-12 bg-white/[0.03] rounded animate-pulse" />
+                <div key={i} className="h-11 bg-white/[0.03] rounded animate-pulse" />
               ))}
             </div>
-          ) : recentProjects.length === 0 ? (
+          ) : recent.length === 0 ? (
             <div className="px-5 py-10 text-center">
-              <p className="text-xs text-white/20">No projects yet</p>
+              <p className="text-xs text-white/20">Nothing on the slate yet</p>
               <Link
                 to="/admin/projects/new"
                 className="inline-block mt-3 text-[10px] tracking-[0.18em] uppercase text-white/35 hover:text-white/55"
               >
-                Create first project →
+                Add the first project →
               </Link>
             </div>
           ) : (
             <div className="divide-y divide-white/[0.04]">
-              {recentProjects.map((project) => (
+              {recent.map((project) => (
                 <Link
                   key={project.id}
                   to={`/admin/projects/${project.id}/edit`}
                   className="flex items-center gap-4 px-5 py-3.5 hover:bg-white/[0.02] transition-colors group"
                 >
-                  <img
-                    src={project.thumbnail}
-                    alt={project.title}
-                    className="w-12 h-8 rounded object-cover bg-white/5"
-                  />
+                  {project.thumbnail ? (
+                    <img src={project.thumbnail} alt="" className="w-12 h-8 rounded object-cover bg-white/5" />
+                  ) : (
+                    <div className="w-12 h-8 rounded bg-white/[0.04]" />
+                  )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white/60 truncate group-hover:text-white/80 transition-colors">
+                    <p className="text-sm text-white/60 truncate group-hover:text-white/85 transition-colors">
+                      {project.featured ? <span className="text-amber-300/70 mr-1.5">★</span> : null}
                       {project.title}
                     </p>
                     <p className="text-[10px] text-white/20 mt-0.5">
                       {project.category_label} · {project.year}
                     </p>
                   </div>
-                  <span className="text-[10px] tracking-wider uppercase text-white/15">
-                    {project.status || "Draft"}
+                  <span
+                    className={`text-[10px] tracking-wider uppercase shrink-0 ${
+                      project.published ? "text-emerald-300/40" : "text-white/20"
+                    }`}
+                  >
+                    {project.published ? "Live" : "Draft"}
                   </span>
                 </Link>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Category Breakdown */}
-      <div className="mt-10">
-        <h2 className="text-xs tracking-[0.15em] uppercase text-white/25 font-medium mb-4">
-          By Category
-        </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {!categories.length && !projectsLoading && (
-            <div className="col-span-full bg-white/[0.02] border border-white/[0.06] rounded-lg px-4 py-8 text-center text-xs text-white/25">
-              Categories will appear once projects are added.
-            </div>
-          )}
-          {categories.map((cat) => {
-            const count = projects.filter((p) => p.category === cat).length;
-            return (
-              <Link
-                key={cat}
-                to={`/admin/projects?category=${cat}`}
-                className="bg-white/[0.02] border border-white/[0.06] rounded-lg px-4 py-3 hover:border-white/[0.1] transition-colors group"
-              >
-                <p className="text-xs text-white/40 capitalize group-hover:text-white/60 transition-colors">
-                  {cat}
-                </p>
-                <p className="text-lg text-white/50 font-light mt-1">{count}</p>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="mt-10">
-        <h2 className="text-xs tracking-[0.15em] uppercase text-white/25 font-medium mb-4">
-          Recent Activity
-        </h2>
-        <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl overflow-hidden">
-          {auditLoading ? (
-            <div className="px-5 py-8 space-y-3">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-10 bg-white/[0.03] rounded animate-pulse" />
-              ))}
-            </div>
-          ) : auditLogs.length === 0 ? (
-            <div className="px-5 py-10 text-center text-xs text-white/25">
-              No activity logged yet.
-            </div>
-          ) : (
-            <div className="divide-y divide-white/[0.04]">
-              {auditLogs.map((log) => (
-                <div key={log.id} className="px-5 py-3.5 flex items-center justify-between gap-4">
-                  <div className="min-w-0">
-                    <p className="text-xs text-white/60 truncate">
-                      <span className="text-white/35">{log.username}</span> {getFriendlyAction(log.action)}
-                    </p>
-                    <p className="text-[10px] text-white/25 mt-0.5 truncate">
-                      {getFriendlyTarget(log)}
-                    </p>
-                  </div>
-                  <span className="text-[10px] text-white/20 whitespace-nowrap">
-                    {new Date(log.created_at).toLocaleString()}
-                  </span>
-                </div>
               ))}
             </div>
           )}

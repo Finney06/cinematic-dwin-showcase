@@ -55,9 +55,11 @@ const ImageUpload = ({
 
   return (
     <div className="space-y-2">
-      <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium">
-        {label}
-      </label>
+      {label && (
+        <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium">
+          {label}
+        </label>
+      )}
       <div
         className={`relative border-2 border-dashed rounded-lg p-4 text-center transition-colors cursor-pointer ${
           dragOver

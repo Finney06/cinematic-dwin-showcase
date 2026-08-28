@@ -1,29 +1,34 @@
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import PageTransition from "@/components/PageTransition";
-import { useAboutContent, useSiteSettings } from "@/hooks/useContent";
+import PageShell from "@/components/site/PageShell";
+import Reveal from "@/components/site/Reveal";
+import MediaFrame from "@/components/site/MediaFrame";
+import PageBlocks from "@/components/PageBlocks";
+import { useAboutContent, useSiteSettings, useTeam } from "@/hooks/useContent";
+import { readBlocks } from "@/lib/pageBlocks";
 import { BRAND, orEmpty } from "@/lib/brand";
 
+/**
+ * The studio page. Every field comes from Admin → About and falls back to a
+ * CRA8 default only when the CMS field is genuinely empty — whatever's saved
+ * is trusted verbatim. Imagery defaults to real photos of DWINDIK, never the
+ * slate's movie-poster thumbnails: those belong on /work.
+ *
+ * The team grid is its own collection (Admin → Team) and simply doesn't render
+ * while it's empty, so the page never shows placeholder seats.
+ */
 const About = () => {
   const { data: aboutData } = useAboutContent();
   const { data: settings } = useSiteSettings();
+  const { data: team = [] } = useTeam();
 
-  /**
-   * Every field below falls back to a CRA8 default only when the CMS field is
-   * genuinely empty — whatever's actually saved in Admin → About is trusted verbatim.
-   * Imagery defaults to real photos of DWINDIK, never the slate's movie-poster
-   * thumbnails — those belong on /work, not stacked repeatedly on a founder page.
-   */
   const content = aboutData?.content;
 
   const heroImage = content?.heroImage || "/dwindik/4.jpeg";
   const title = content?.title || BRAND.name;
   const subtitle = content?.subtitle || "Film Studio · Nigeria";
   const bioIntro = content?.bioIntro || "A film studio working in spiritual drama and thriller.";
-  const bioParagraphs = content?.bioParagraphs?.length ? content.bioParagraphs : [];
-  const galleryImages = content?.galleryImages?.length ? content.galleryImages : [];
+  const bioParagraphs = content?.bioParagraphs?.filter(Boolean) || [];
+  const galleryImages = content?.galleryImages?.filter(Boolean) || [];
   const fullWidthImage = content?.fullWidthImage || "";
   /** This block credits CRA8's founder — reuses the `productionCompany` fields from Admin → About. */
   const founderName = content?.productionCompany?.name || "DWINDIK";
@@ -33,243 +38,226 @@ const About = () => {
   const founderRole =
     content?.productionCompany?.collaborator || `In collaboration with ${BRAND.collaborator}`;
   const founderImage = content?.portraitImage || "/dwindik/5.jpeg";
-  const extraSections = content?.sections?.length ? content.sections : [];
+  const extraSections = content?.sections?.filter((section) => section?.heading || section?.body) || [];
+  const blocks = readBlocks(content);
   const ctaLabel = content?.cta?.label || "";
   const ctaUrl = content?.cta?.url || "";
   const contactEmail = orEmpty(settings?.contact_email);
 
   return (
-    <PageTransition>
-      <Navbar />
-      <main className="bg-background min-h-screen">
-        {/* ═══ HERO — Full-bleed still ═══ */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.4 }}
-          className="relative w-full h-[70vh] sm:h-[80vh] overflow-hidden bg-secondary"
-        >
-          {heroImage && (
-            <img
-              src={heroImage}
-              alt={`${title} — from the slate`}
-              className="w-full h-full object-cover"
-            />
-          )}
-          <div className="film-grain absolute inset-0 z-10 pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 px-5 sm:px-8 md:px-12 pb-10 sm:pb-14">
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="font-display text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-light text-foreground tracking-[0.04em] uppercase leading-[0.85]"
-            >
-              {title}
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-              className="mt-3 sm:mt-4 font-body text-[10px] sm:text-xs tracking-[0.3em] uppercase text-foreground/35"
-            >
+    <PageShell
+      title={aboutData?.seo_title || title}
+      description={aboutData?.seo_description || bioIntro}
+      image={aboutData?.seo_image || heroImage}
+      bleed
+    >
+      {/* ═══ HERO — Full-bleed still ═══ */}
+      <div className="relative w-full h-[70vh] sm:h-[80vh] overflow-hidden bg-secondary">
+        {heroImage && (
+          <img src={heroImage} alt={`${title} — from the slate`} className="w-full h-full object-cover" />
+        )}
+        <div className="film-grain absolute inset-0 z-10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 px-5 sm:px-8 md:px-12 pb-10 sm:pb-14">
+          <h1 className="font-display text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-light text-foreground tracking-[0.04em] uppercase leading-[0.85]">
+            {title}
+          </h1>
+          {subtitle && (
+            <p className="mt-3 sm:mt-4 font-body text-[10px] sm:text-xs tracking-[0.3em] uppercase text-foreground/35">
               {subtitle}
-            </motion.p>
-          </div>
-        </motion.div>
+            </p>
+          )}
+        </div>
+      </div>
 
-        {/* ═══ STUDIO STATEMENT ═══ */}
-        <section className="px-5 sm:px-8 md:px-12 pt-16 sm:pt-24">
-          <div className="max-w-3xl">
-            <motion.p
-              initial={{ opacity: 0, y: 25 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.8 }}
-              className="font-display text-2xl sm:text-3xl md:text-4xl font-light text-foreground/85 leading-[1.4] tracking-[0.01em]"
-            >
+      {/* ═══ STUDIO STATEMENT ═══ */}
+      <section className="px-5 sm:px-8 md:px-12 pt-16 sm:pt-24">
+        <div className="max-w-3xl">
+          <Reveal>
+            <p className="font-display text-2xl sm:text-3xl md:text-4xl font-light text-foreground/85 leading-[1.4] tracking-[0.01em]">
               {bioIntro}
-            </motion.p>
+            </p>
+          </Reveal>
 
-            {bioParagraphs.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 25 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.8, delay: 0.15 }}
-                className="mt-10 sm:mt-14 space-y-6 font-body text-sm sm:text-base leading-[1.9] text-foreground/50"
-              >
+          {bioParagraphs.length > 0 && (
+            <Reveal delay={0.15}>
+              <div className="mt-10 sm:mt-14 space-y-6 font-body text-sm sm:text-base leading-[1.9] text-foreground/50">
                 {bioParagraphs.map((paragraph, index) => (
                   <p key={`${index}-${paragraph.slice(0, 16)}`}>{paragraph}</p>
                 ))}
-              </motion.div>
-            )}
+              </div>
+            </Reveal>
+          )}
+        </div>
+      </section>
+
+      {/* ═══ IMAGE BREAK — Two-column ═══ */}
+      {galleryImages.length > 0 && (
+        <section className="px-5 sm:px-8 md:px-12 pt-16 sm:pt-24">
+          <div className="grid grid-cols-2 gap-3 sm:gap-5">
+            {[galleryImages[0], galleryImages[1] || galleryImages[0]].map((image, index) => (
+              <Reveal key={`${index}-${image}`} index={index}>
+                <MediaFrame src={image} alt={`${title} — from the slate`} aspect="aspect-[3/4]" />
+              </Reveal>
+            ))}
           </div>
         </section>
+      )}
 
-        {/* ═══ IMAGE BREAK — Two-column ═══ */}
-        {galleryImages.filter(Boolean).length > 0 && (
-          <section className="px-5 sm:px-8 md:px-12 pt-16 sm:pt-24">
-            <div className="grid grid-cols-2 gap-3 sm:gap-5">
-              {[galleryImages[0], galleryImages[1] || galleryImages[0]].map((image, index) => (
-                <motion.div
-                  key={`${index}-${image}`}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-60px" }}
-                  transition={{ duration: 0.8, delay: index * 0.1 }}
-                  className="relative aspect-[3/4] overflow-hidden bg-secondary"
-                >
-                  <img
-                    src={image}
-                    alt={`${title} — from the slate`}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="film-grain absolute inset-0 pointer-events-none" />
-                </motion.div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* ═══ ADMIN-ADDED SECTIONS ═══ */}
-        {extraSections.length > 0 && (
-          <section className="px-5 sm:px-8 md:px-12 pt-16 sm:pt-24">
-            <div className="max-w-3xl space-y-10">
-              {extraSections.map((section, index) => (
-                <motion.div
-                  key={`${section.heading}-${index}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-60px" }}
-                  transition={{ duration: 0.8 }}
-                >
-                  {section.heading && (
-                    <h2 className="font-body text-[9px] sm:text-[10px] tracking-[0.3em] uppercase text-foreground/25">
-                      {section.heading}
-                    </h2>
-                  )}
-                  {section.body && (
-                    <p className="mt-4 font-body text-sm sm:text-base leading-[1.9] text-foreground/50 whitespace-pre-wrap">
-                      {section.body}
-                    </p>
-                  )}
-                </motion.div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* ═══ FULL-WIDTH STILL ═══ */}
-        {fullWidthImage && (
-          <section className="px-5 sm:px-8 md:px-12 pt-16 sm:pt-24">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 1 }}
-              className="relative w-full aspect-[21/9] sm:aspect-[2.5/1] overflow-hidden bg-secondary"
-            >
-              <img
-                src={fullWidthImage}
-                alt={`${title} — from the slate`}
-                className="w-full h-full object-cover"
-              />
-              <div className="film-grain absolute inset-0 pointer-events-none" />
-            </motion.div>
-          </section>
-        )}
-
-        {/* ═══ FOUNDER & CONTACT ═══ */}
-        <section className="px-5 sm:px-8 md:px-12 pt-16 sm:pt-24 pb-8">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.8 }}
-            className="border-t border-foreground/[0.06] pt-10 sm:pt-14"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20">
-              {/* Left — founder credit */}
-              <div>
-                <span className="font-body text-[9px] sm:text-[10px] tracking-[0.3em] uppercase text-foreground/20 block mb-4">
-                  Founder
-                </span>
-                <p className="font-display text-3xl sm:text-4xl font-light text-foreground/80 tracking-[0.06em] uppercase">
-                  {founderName}
-                </p>
-                <p className="mt-4 font-body text-sm leading-[1.8] text-foreground/40">
-                  {founderBio}
-                </p>
-                <p className="mt-3 font-body text-[10px] tracking-[0.2em] uppercase text-foreground/25">
-                  {founderRole}
-                </p>
-                {ctaLabel && ctaUrl && (
-                  <a
-                    href={ctaUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 mt-6 text-[10px] tracking-[0.3em] uppercase text-foreground/40 hover:text-foreground/70 transition-colors"
-                  >
-                    {ctaLabel} →
-                  </a>
+      {/* ═══ ADMIN-ADDED SECTIONS ═══ */}
+      {extraSections.length > 0 && (
+        <section className="px-5 sm:px-8 md:px-12 pt-16 sm:pt-24">
+          <div className="max-w-3xl space-y-10">
+            {extraSections.map((section, index) => (
+              <Reveal key={`${section.heading}-${index}`} index={index}>
+                {section.heading && (
+                  <h2 className="font-body text-[9px] sm:text-[10px] tracking-[0.3em] uppercase text-foreground/25">
+                    {section.heading}
+                  </h2>
                 )}
-              </div>
+                {section.body && (
+                  <p className="mt-4 font-body text-sm sm:text-base leading-[1.9] text-foreground/50 whitespace-pre-wrap">
+                    {section.body}
+                  </p>
+                )}
+              </Reveal>
+            ))}
+          </div>
+        </section>
+      )}
 
-              {/* Right — founder portrait */}
-              {founderImage && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-60px" }}
-                  transition={{ duration: 0.8, delay: 0.1 }}
-                  className="relative aspect-[4/5] overflow-hidden bg-secondary"
+      {/* ═══ FREEFORM BLOCKS ═══ */}
+      {blocks.length > 0 && (
+        <section className="px-5 sm:px-8 md:px-12 pt-16 sm:pt-24">
+          <PageBlocks blocks={blocks} className="max-w-3xl" />
+        </section>
+      )}
+
+      {/* ═══ FULL-WIDTH STILL ═══ */}
+      {fullWidthImage && (
+        <section className="px-5 sm:px-8 md:px-12 pt-16 sm:pt-24">
+          <Reveal>
+            <MediaFrame
+              src={fullWidthImage}
+              alt={`${title} — from the slate`}
+              aspect="aspect-[21/9] sm:aspect-[2.5/1]"
+            />
+          </Reveal>
+        </section>
+      )}
+
+      {/* ═══ FOUNDER ═══ */}
+      <section className="px-5 sm:px-8 md:px-12 pt-16 sm:pt-24">
+        <Reveal className="border-t border-foreground/[0.06] pt-10 sm:pt-14">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20">
+            <div>
+              <span className="font-body text-[9px] sm:text-[10px] tracking-[0.3em] uppercase text-foreground/20 block mb-4">
+                Founder
+              </span>
+              <p className="font-display text-3xl sm:text-4xl font-light text-foreground/80 tracking-[0.06em] uppercase">
+                {founderName}
+              </p>
+              <p className="mt-4 font-body text-sm leading-[1.8] text-foreground/40">{founderBio}</p>
+              <p className="mt-3 font-body text-[10px] tracking-[0.2em] uppercase text-foreground/25">
+                {founderRole}
+              </p>
+              {ctaLabel && ctaUrl && (
+                <a
+                  href={ctaUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 mt-6 text-[10px] tracking-[0.3em] uppercase text-foreground/40 hover:text-foreground/70 transition-colors"
                 >
-                  <img
-                    src={founderImage}
-                    alt={founderName}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="film-grain absolute inset-0 pointer-events-none" />
-                </motion.div>
+                  {ctaLabel} →
+                </a>
               )}
             </div>
-          </motion.div>
 
-          {/* Contact CTA */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="border-t border-foreground/[0.06] pt-8 sm:pt-10 mt-14 sm:mt-20 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-          >
-            {contactEmail ? (
-              <div>
-                <span className="font-body text-[9px] sm:text-[10px] tracking-[0.3em] uppercase text-foreground/20 block mb-2">
-                  Get in Touch
-                </span>
-                <a
-                  href={`mailto:${contactEmail}`}
-                  className="font-body text-sm text-foreground/45 hover:text-foreground/75 transition-colors duration-500"
-                >
-                  {contactEmail}
-                </a>
-              </div>
-            ) : (
-              <span />
+            {founderImage && (
+              <MediaFrame src={founderImage} alt={founderName} aspect="aspect-[4/5]" />
             )}
+          </div>
+        </Reveal>
+      </section>
+
+      {/* ═══ TEAM — only once there is a team ═══ */}
+      {team.length > 0 && (
+        <section className="px-5 sm:px-8 md:px-12 pt-16 sm:pt-24">
+          <div className="border-t border-foreground/[0.06] pt-10 sm:pt-14">
+            <span className="font-body text-[9px] sm:text-[10px] tracking-[0.3em] uppercase text-foreground/20 block mb-8 sm:mb-12">
+              The Studio
+            </span>
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-10">
+              {team.map((member, index) => (
+                <Reveal key={member.id} index={index}>
+                  {member.image && <MediaFrame src={member.image} alt={member.name} aspect="aspect-[4/5]" />}
+                  <h3 className="mt-4 font-display text-lg sm:text-xl font-light text-foreground/80 tracking-[0.04em] uppercase">
+                    {member.name}
+                  </h3>
+                  {member.role && (
+                    <p className="mt-1 font-body text-[10px] tracking-[0.2em] uppercase text-foreground/30">
+                      {member.role}
+                    </p>
+                  )}
+                  {member.bio && (
+                    <p className="mt-3 font-body text-sm leading-[1.8] text-foreground/45">{member.bio}</p>
+                  )}
+                  {member.links?.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-4">
+                      {member.links
+                        .filter((link) => link?.label && link?.url)
+                        .map((link) => (
+                          <a
+                            key={link.url}
+                            href={link.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-body text-[10px] tracking-[0.2em] uppercase text-foreground/30 hover:text-foreground/70 transition-colors"
+                          >
+                            {link.label}
+                          </a>
+                        ))}
+                    </div>
+                  )}
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ═══ CONTACT CTA ═══ */}
+      <section className="px-5 sm:px-8 md:px-12 pt-16 sm:pt-24 pb-8">
+        <Reveal className="border-t border-foreground/[0.06] pt-8 sm:pt-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          {contactEmail ? (
+            <div>
+              <span className="font-body text-[9px] sm:text-[10px] tracking-[0.3em] uppercase text-foreground/20 block mb-2">
+                Get in Touch
+              </span>
+              <a
+                href={`mailto:${contactEmail}`}
+                className="font-body text-sm text-foreground/45 hover:text-foreground/75 transition-colors duration-500"
+              >
+                {contactEmail}
+              </a>
+            </div>
+          ) : (
             <Link
-              to="/work"
+              to="/contact"
               className="font-body text-[11px] tracking-[0.2em] uppercase text-foreground/25 hover:text-foreground/60 transition-colors duration-500 border-b border-foreground/10 pb-1 inline-block"
             >
-              View Work →
+              Contact CRA8 →
             </Link>
-          </motion.div>
-        </section>
-      </main>
-      <Footer />
-    </PageTransition>
+          )}
+          <Link
+            to="/work"
+            className="font-body text-[11px] tracking-[0.2em] uppercase text-foreground/25 hover:text-foreground/60 transition-colors duration-500 border-b border-foreground/10 pb-1 inline-block"
+          >
+            View Work →
+          </Link>
+        </Reveal>
+      </section>
+    </PageShell>
   );
 };
 

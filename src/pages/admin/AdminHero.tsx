@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { useUndoRedo } from "@/hooks/useEditHistory";
+import { ADMIN_QUERY } from "@/lib/adminQueries";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchHeroContent } from "@/lib/api";
 import { updateHeroContent } from "@/lib/adminApi";
@@ -16,10 +18,12 @@ const AdminHero = () => {
     hero_image: "",
     hero_link: "",
   });
+  const { reset: resetHistory } = useUndoRedo(form, setForm);
 
   const { data } = useQuery({
     queryKey: ["heroContent"],
     queryFn: fetchHeroContent,
+    ...ADMIN_QUERY,
   });
 
   useEffect(() => {
@@ -32,9 +36,10 @@ const AdminHero = () => {
         hero_link: data.hero_link || "",
       };
       setForm(next);
+      resetHistory(next);
       initialFormRef.current = JSON.stringify(next);
     }
-  }, [data]);
+  }, [data, resetHistory]);
 
   const isDirty = initialFormRef.current !== JSON.stringify(form);
   useUnsavedChanges(isDirty);
