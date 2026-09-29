@@ -34,3 +34,6 @@ server/cms.db
 *.sln
 *.sw?
 .vercel
+
+# brag launch video output
+brag-output/

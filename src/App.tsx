@@ -18,6 +18,7 @@ import SlugPage from "./pages/SlugPage";
 import NotFound from "./pages/NotFound";
 // Admin
 import AdminLogin from "./pages/admin/AdminLogin";
+import AdminRecovery from "./pages/admin/AdminRecovery";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProjects from "./pages/admin/AdminProjects";
@@ -32,6 +33,7 @@ import AdminJournal from "./pages/admin/AdminJournal";
 import AdminServices from "./pages/admin/AdminServices";
 import AdminTeam from "./pages/admin/AdminTeam";
 import AdminMessages from "./pages/admin/AdminMessages";
+import AdminGuide from "./pages/admin/AdminGuide";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 
 const queryClient = new QueryClient({
@@ -69,6 +71,7 @@ const AdminSeo = () => {
       "/admin/hero": "Hero",
       "/admin/menu": "Menu",
       "/admin/settings": "Settings",
+      "/admin/guide": "User Guide",
     };
 
     const match =
@@ -160,6 +163,8 @@ const AppRoutes = () => {
 
         {/* ─── Admin ─── */}
         <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/forgot-password" element={<AdminRecovery />} />
+        <Route path="/admin/reset-password" element={<AdminRecovery reset />} />
         <Route
           path="/admin"
           element={
@@ -182,6 +187,7 @@ const AppRoutes = () => {
           <Route path="hero" element={<AdminHero />} />
           <Route path="menu" element={<AdminMenu />} />
           <Route path="settings" element={<AdminSettings />} />
+          <Route path="guide" element={<AdminGuide />} />
         </Route>
 
         {/* Categories and pages created in the admin, e.g. /film or /press-kit */}

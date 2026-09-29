@@ -15,6 +15,7 @@ import {
   Settings as SettingsIcon,
   ExternalLink,
   LogOut,
+  BookOpen,
   X,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -57,6 +58,7 @@ const navSections = [
     items: [
       { label: "Messages", path: "/admin/messages", icon: Inbox, badge: "messages" },
       { label: "Settings", path: "/admin/settings", icon: SettingsIcon },
+      { label: "User Guide", path: "/admin/guide", icon: BookOpen },
     ],
   },
 ];

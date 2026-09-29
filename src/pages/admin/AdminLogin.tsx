@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { login, setToken } from "@/lib/adminApi";
 
 const AdminLogin = () => {
@@ -65,10 +65,12 @@ const AdminLogin = () => {
               <p className="text-xs text-red-400/80">{error}</p>
             </div>
           )}
-          {!error && reason === "session-expired" && (
+          {!error && (reason === "session-expired" || reason === "password-changed") && (
             <div className="mb-6 px-3 py-2.5 bg-amber-500/10 border border-amber-500/20 rounded-lg">
               <p className="text-xs text-amber-300/80">
-                Your session expired. Please sign in again to continue.
+                {reason === "password-changed"
+                  ? "Password changed. All devices are signed out. Sign in with your new password."
+                  : "Your session expired. Please sign in again to continue."}
               </p>
             </div>
           )}
@@ -118,6 +120,9 @@ const AdminLogin = () => {
               "Sign In"
             )}
           </button>
+          <Link to="/admin/forgot-password" className="block mt-5 text-center text-sm text-white/70 underline underline-offset-4 hover:text-white">
+            Forgot password?
+          </Link>
         </form>
 
         <p className="text-center mt-6 text-[10px] text-white/10 tracking-wide">

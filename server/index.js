@@ -5,6 +5,8 @@ import helmet from "helmet";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
+import pool, { initPromise } from "./db.js";
+import { bootstrapAdmin } from "./utils/bootstrapAdmin.js";
 
 import authRoutes from "./routes/auth.js";
 import projectRoutes from "./routes/projects.js";
@@ -149,6 +151,8 @@ app.use((err, req, res, next) => {
 });
 
 // ─── Start ───────────────────────────────────────────────────
+await initPromise;
+await bootstrapAdmin(pool);
 app.listen(PORT, () => {
   console.log(`\n  🎬 CRA8 CMS Server running on http://localhost:${PORT}\n`);
 });

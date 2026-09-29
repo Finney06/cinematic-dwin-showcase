@@ -1,5 +1,5 @@
 import "dotenv/config";
-import bcrypt from "bcryptjs";
+import { bootstrapAdmin } from "./utils/bootstrapAdmin.js";
 import pool, { initPromise } from "./db.js";
 import {
   CRA8_ABOUT_CONTENT,
@@ -19,8 +19,6 @@ await initPromise;
 console.log("🌱  Seeding CRA8 CMS database...\n");
 
 // ─── 1. Admin User ──────────────────────────────────────────
-const username = process.env.ADMIN_USERNAME || "cra8";
-const password = process.env.ADMIN_PASSWORD || "admin123";
 const isProduction = process.env.NODE_ENV === "production";
 const allowProdSeed = process.env.ALLOW_PROD_SEED === "true";
 
@@ -30,24 +28,7 @@ if (isProduction && !allowProdSeed) {
   );
 }
 
-if (isProduction && (!process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD === "admin123")) {
-  throw new Error("ADMIN_PASSWORD must be set to a strong value in production before running seed.");
-}
-
-if (password.length < 12) {
-  console.warn("⚠️  ADMIN_PASSWORD is shorter than 12 characters. Use a stronger password.");
-}
-
-const res = await pool.query("SELECT * FROM admin_users WHERE username = $1", [username]);
-const existingUser = res.rows[0];
-
-if (!existingUser) {
-  const hash = bcrypt.hashSync(password, 10);
-  await pool.query("INSERT INTO admin_users (username, password_hash) VALUES ($1, $2)", [username, hash]);
-  console.log(`  ✓ Admin user created: ${username}`);
-} else {
-  console.log(`  ○ Admin user already exists: ${username}`);
-}
+await bootstrapAdmin(pool);
 
 // ─── 2. Projects — the CRA8 slate ────────────────────────────
 const insertProjectQuery = `
@@ -217,8 +198,6 @@ for (const [index, member] of CRA8_TEAM.entries()) {
 console.log(`  ✓ Seeded ${CRA8_TEAM.length} placeholder team members`);
 
 console.log("\n  ✅ Database seeded successfully!\n");
-console.log(`  Login credentials:`);
-console.log(`    Username: ${username}`);
-console.log(`    Password: ${password}\n`);
+console.log("  Sign in using your configured admin account.");
 console.log("  Note: CRA8's contact email and social links are intentionally blank —");
 console.log("  set them in Admin → Settings once confirmed.\n");

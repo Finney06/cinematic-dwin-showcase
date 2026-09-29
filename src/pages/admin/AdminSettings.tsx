@@ -3,7 +3,7 @@ import { useUndoRedo } from "@/hooks/useEditHistory";
 import { ADMIN_QUERY } from "@/lib/adminQueries";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchSiteSettings } from "@/lib/api";
-import { updateSettings, changePassword } from "@/lib/adminApi";
+import { updateSettings, changePassword, clearToken } from "@/lib/adminApi";
 import { toast } from "sonner";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import ImageUpload from "@/components/admin/ImageUpload";
@@ -244,7 +244,9 @@ const AdminSettings = () => {
   const passwordMutation = useMutation({
     mutationFn: () => changePassword(passwordForm.currentPassword, passwordForm.newPassword),
     onSuccess: () => {
-      toast.success("Password changed!");
+      toast.success("Password changed. All devices have been signed out.");
+      clearToken();
+      window.location.assign("/admin/login?reason=password-changed");
       setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
     },
     onError: (err: Error) => toast.error(err.message),
@@ -261,8 +263,8 @@ const AdminSettings = () => {
       toast.error("Passwords don't match");
       return;
     }
-    if (passwordForm.newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters");
+    if (passwordForm.newPassword.length < 12 || new TextEncoder().encode(passwordForm.newPassword).length > 72 || !/[A-Z]/.test(passwordForm.newPassword) || !/[a-z]/.test(passwordForm.newPassword) || !/\d/.test(passwordForm.newPassword) || !/[^A-Za-z0-9]/.test(passwordForm.newPassword)) {
+      toast.error("Use at least 12 characters with uppercase, lowercase, a number and a symbol (maximum 72 UTF-8 bytes).");
       return;
     }
     passwordMutation.mutate();
@@ -697,6 +699,7 @@ const AdminSettings = () => {
             <h2 className="text-xs tracking-[0.15em] uppercase text-white/30 font-medium mb-5">
               Change Password
             </h2>
+            <p className="text-sm text-white/50 mb-5">Use at least 12 characters with uppercase, lowercase, a number and a symbol (maximum 72 UTF-8 bytes). Changing your password signs out every device, including this one.</p>
             <div className="space-y-5">
               <div>
                 <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
@@ -704,6 +707,7 @@ const AdminSettings = () => {
                 </label>
                 <input
                   type="password"
+                  autoComplete="current-password"
                   value={passwordForm.currentPassword}
                   onChange={(e) => setPasswordForm((p) => ({ ...p, currentPassword: e.target.value }))}
                   className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
@@ -717,11 +721,12 @@ const AdminSettings = () => {
                   </label>
                   <input
                     type="password"
+                    autoComplete="new-password"
                     value={passwordForm.newPassword}
                     onChange={(e) => setPasswordForm((p) => ({ ...p, newPassword: e.target.value }))}
                     className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
                     required
-                    minLength={6}
+                    minLength={12}
                   />
                 </div>
                 <div>
@@ -730,11 +735,12 @@ const AdminSettings = () => {
                   </label>
                   <input
                     type="password"
+                    autoComplete="new-password"
                     value={passwordForm.confirmPassword}
                     onChange={(e) => setPasswordForm((p) => ({ ...p, confirmPassword: e.target.value }))}
                     className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white/80 placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
                     required
-                    minLength={6}
+                    minLength={12}
                   />
                 </div>
               </div>

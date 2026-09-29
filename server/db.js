@@ -181,6 +181,9 @@ const CREATE_TABLES = `
  * line above it.
  */
 const ADD_COLUMNS = [
+  `ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS reset_token_hash TEXT`,
+  `ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS reset_token_expires_at TIMESTAMPTZ`,
+  `ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS session_version INTEGER NOT NULL DEFAULT 0`,
   // Pages gained publishing + SEO of their own.
   `ALTER TABLE page_content ADD COLUMN IF NOT EXISTS published INTEGER DEFAULT 1`,
   `ALTER TABLE page_content ADD COLUMN IF NOT EXISTS is_system INTEGER DEFAULT 0`,
@@ -275,7 +278,7 @@ const backfill = async () => {
 const initDB = async () => {
   if (!process.env.DATABASE_URL) {
     console.error("❌ DATABASE_URL is not set.");
-    return;
+    throw new Error("DATABASE_URL is required");
   }
 
   try {
@@ -287,6 +290,7 @@ const initDB = async () => {
     console.log("✅ Database initialized successfully");
   } catch (error) {
     console.error("❌ Error initializing database:", error);
+    throw error;
   }
 };
 

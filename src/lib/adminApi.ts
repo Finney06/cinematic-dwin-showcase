@@ -41,7 +41,7 @@ async function adminRequest<T>(endpoint: string, options?: RequestInit): Promise
 
   const res = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
 
-  if (res.status === 401) {
+  if (res.status === 401 && endpoint !== "/auth/login") {
     clearToken();
     window.location.href = "/admin/login?reason=session-expired";
     throw new Error("Session expired");

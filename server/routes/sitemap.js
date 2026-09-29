@@ -6,7 +6,7 @@ import pool from "../db.js";
  * discoverable by search engines without anyone regenerating anything.
  *
  * Set SITE_URL on the backend to the site's public origin (e.g.
- * https://cra8.studio) — the sitemap needs absolute URLs and the API has no
+ * https://cra8limited.com) — the sitemap needs absolute URLs and the API has no
  * other way to know where the frontend is served from.
  */
 const router = Router();

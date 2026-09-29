@@ -28,6 +28,35 @@ The project includes an Express + Postgres CMS backend in [server](server).
 
 ### Run locally
 
+Set `DATABASE_URL`, a random `JWT_SECRET`, `ADMIN_USERNAME` and `ADMIN_PASSWORD`
+in `server/.env` before starting. The initial password must have at least 12
+characters, including uppercase, lowercase, a number and a symbol, and fit in
+72 UTF-8 bytes. Keep these secrets on the server; never use `VITE_` variables.
+The server creates the admin account automatically on first startup if no admin
+exists. Seeding content is optional. Existing accounts are always preserved,
+even if the environment credentials change or the seed command is rerun.
+
+To change the password, open **Admin → Settings → Change Password**, enter the
+current password and confirm the new password. The database stores only a bcrypt
+hash. A successful change invalidates every existing login token and requires
+signing in again. The original environment password does not remain a fallback.
+Keep PostgreSQL persistent so changes survive deployments. Deploy this update
+with a backend restart; its schema migration runs automatically and existing
+sessions must sign in again. Serve the production frontend and API over HTTPS.
+
+Authentication regression tests: `npx vitest run --config server/vitest.config.js`
+from the repository root (after installing frontend and server dependencies).
+
+Forgotten passwords: the login page links to `/admin/forgot-password`. Configure
+`ADMIN_RECOVERY_EMAIL` to an inbox you control, `ADMIN_USERNAME` to the existing
+account's exact username, the SMTP variables, and `SITE_URL` to the frontend
+origin (HTTPS in production; `http://127.0.0.1:8080` locally). No recovery email
+is accepted from the requester. Links expire after 15 minutes, are single use,
+and only their hashes are stored. Resetting revokes all sessions; changing a
+password also cancels pending reset links. Restart the backend for migrations.
+Email delivery requires working SMTP credentials; without configuration the
+recovery form clearly reports that recovery is unavailable.
+
 ```bash
 cd server
 npm install

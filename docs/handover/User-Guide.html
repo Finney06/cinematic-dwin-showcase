@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CRA8 Website Guide</title>
+<!--
+  EDIT THESE, then re-export the PDF (see bottom of this file).
+-->
+<script>
+  const DETAILS = {
+    website: "https://cra8limited.com",         // live website address
+    developer: "Finney Osajere",                // your name
+    devEmail: "osajerefinney@gmail.com",
+    devPhone: "__________",
+    // Where contact form messages are emailed. Leave "" until SMTP is set up on
+    // the backend; then set it (e.g. "cra8.academy@gmail.com") and re-export.
+    inbox: "",
+    updated: "16 September 2026",
+  };
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 20mm 20mm 20mm 20mm; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #fff; color: #1d1d1f;
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    font-size: 10.5pt; line-height: 1.65; overflow-wrap: anywhere;
+  }
+  .logo { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; display: block; }
+  h1 {
+    font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600;
+    font-size: 34pt; line-height: 1.1; margin: 22px 0 8px;
+  }
+  .lead { color: #6e6e73; font-size: 12.5pt; margin: 0 0 18px; }
+  .meta { font-size: 9.5pt; color: #6e6e73; line-height: 1.7; }
+  .meta a { color: #1d1d1f; }
+  .toc {
+    columns: 2; column-gap: 40px; list-style: none; padding: 0;
+    margin: 24px 0 8px; font-size: 10.5pt; line-height: 2;
+  }
+  .toc span { color: #9a9aa0; display: inline-block; width: 24px; }
+  section { border-top: 1px solid #e5e5ea; padding-top: 18px; margin-top: 26px; break-inside: avoid; }
+  h2 {
+    font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600;
+    font-size: 19pt; margin: 0 0 8px; line-height: 1.2;
+  }
+  h2 .n { font-family: Inter, Arial, sans-serif; font-size: 13pt; font-weight: 400; color: #9a9aa0; margin-right: 8px; vertical-align: 2px; }
+  p { margin: 0 0 8px; }
+  ul, ol { margin: 0 0 8px; padding-left: 20px; }
+  li { margin-bottom: 5px; padding-left: 2px; }
+  b { font-weight: 600; }
+  a { color: inherit; font-weight: 600; text-decoration: underline; text-decoration-color: #c7c7cc; text-underline-offset: 2px; }
+  .note {
+    background: #f3f3f5; border-radius: 8px; padding: 12px 16px; margin: 12px 0 4px;
+  }
+  .note.warn { background: #fdf3e7; }
+  table { width: 100%; border-collapse: collapse; margin: 6px 0 8px; font-size: 10pt; }
+  td { padding: 8px 4px; border-bottom: 1px solid #e5e5ea; vertical-align: top; }
+  td:first-child { width: 36%; font-weight: 600; }
+  .end { margin-top: 30px; font-size: 9pt; color: #9a9aa0; }
+  /* On screen (the admin's User Guide page) there are no print margins. */
+  @media screen {
+    body { max-width: 760px; margin: 0 auto; padding: 40px 24px 56px; }
+  }
+  @media screen and (max-width: 600px) {
+    body { padding: 28px 18px 40px; }
+    h1 { font-size: 28pt; }
+    .toc { columns: 1; }
+  }
+</style>
+</head>
+<body>
+
+<img class="logo" src="../../public/cra8-2.png" alt="CRA8">
+<h1>How your website works</h1>
+<p class="lead">A plain guide to the CRA8 website: what visitors see, and how you update it from the admin.</p>
+<div class="meta">
+  Website: <a data-f="website"></a><br>
+  Admin: <a data-f="admin"></a><br>
+  Last updated <span data-f="updated"></span>
+</div>
+
+<ol class="toc">
+  <li><span>1.</span>What visitors see</li>
+  <li><span>2.</span>Getting into the admin</li>
+  <li><span>3.</span>Dashboard</li>
+  <li><span>4.</span>Projects</li>
+  <li><span>5.</span>Home page</li>
+  <li><span>6.</span>About &amp; Team</li>
+  <li><span>7.</span>Journal</li>
+  <li><span>8.</span>Services</li>
+  <li><span>9.</span>Categories</li>
+  <li><span>10.</span>Pages &amp; Menu</li>
+  <li><span>11.</span>Messages</li>
+  <li><span>12.</span>Settings</li>
+  <li><span>13.</span>Photos &amp; videos</li>
+  <li><span>14.</span>Good to know</li>
+</ol>
+
+<section>
+  <h2><span class="n">1.</span>What visitors see</h2>
+  <ul>
+    <li><b>Home</b>: a short silent video, then the CRA8 circle and tagline. Tapping the circle opens Work.</li>
+    <li><b>Work</b>: all your projects, with filters such as Film, Television and Commercials. Each project has its own page with the video, stills and credits.</li>
+    <li><b>Services</b>, <b>Journal</b> and <b>About</b>: what the studio offers, your stories, and the studio and team.</li>
+    <li><b>Contact</b>: your contact details and a message form.</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="n">2.</span>Getting into the admin</h2>
+  <ul>
+    <li>Go to <a data-f="admin"></a> and bookmark it. Nothing on the website links to it.</li>
+    <li>Type your <b>Username</b> and <b>Password</b>, then tap <b>Sign In</b>.</li>
+    <li>On a phone, the menu is behind the button at the top.</li>
+    <li><b>View Site</b> opens your website in a new tab. <b>Logout</b> signs you out.</li>
+    <li>This guide is always in the admin under <b>User Guide</b>.</li>
+  </ul>
+  <div class="note">Forgot your password? On the sign-in page, click <b>Forgot password?</b> and enter your username. A reset link is emailed to the site's recovery inbox. It works once and expires after 15 minutes.</div>
+</section>
+
+<section>
+  <h2><span class="n">3.</span>Dashboard</h2>
+  <p>The first screen after you sign in.</p>
+  <ul>
+    <li>New messages waiting for you. Tap <b>Read →</b> to open them.</li>
+    <li>Shortcuts: <b>Add a project</b>, <b>Write a journal entry</b>, <b>Edit a page</b>.</li>
+    <li>Your unfinished drafts and recently edited projects.</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="n">4.</span>Projects</h2>
+  <ul>
+    <li><b>+ New Project</b>, or tap a project to change it.</li>
+    <li>Fill in <b>Title</b>, <b>Category</b> and <b>Year</b>. These are required.</li>
+    <li><b>Full film (YouTube)</b>: paste the YouTube link. <b>Trailer (YouTube)</b>: a short clip that plays silently behind the title.</li>
+    <li><b>Thumbnail</b> is the main picture. Add more pictures with <b>+ Still</b>.</li>
+    <li>Add <b>Director</b>, <b>Producers</b> and <b>Cast</b>. Use <b>+ Credit</b> for anyone else.</li>
+    <li><b>Feature this project</b> puts it first on Work.</li>
+    <li>Tap <b>Create project</b> or <b>Save changes</b> when you're done.</li>
+  </ul>
+  <p>In the project list:</p>
+  <ul>
+    <li>Drag the <b>≡</b> handle to change the order.</li>
+    <li><b>Unpublish</b> hides a project and <b>Publish</b> shows it again.</li>
+  </ul>
+  <div class="note">Hiding is better than deleting. A deleted project can't be brought back.</div>
+</section>
+
+<section>
+  <h2><span class="n">5.</span>Home page</h2>
+  <p>Open <b>Hero</b> in the admin.</p>
+  <ul>
+    <li><b>Tagline</b>: the short line under the circle.</li>
+    <li><b>Hero Video</b>: the short clip that plays first. Keep it 4–12 seconds.</li>
+    <li><b>Hero Circle Image</b>: the picture in the circle after the video. Leave it empty to show the CRA8 logo.</li>
+    <li><b>Circle Link URL</b>: where the circle goes when tapped. Leave it empty to open Work.</li>
+    <li><b>Hero Atmosphere</b> and <b>Glow Brightness</b> set the soft glow. <b>Off</b> removes it.</li>
+    <li>Tap <b>Save Changes</b>.</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="n">6.</span>About &amp; Team</h2>
+  <p><b>About</b> has everything on the About page: the heading, introduction, your story, two gallery photos and the founder. Tap <b>Save Changes</b> when you're done.</p>
+  <p><b>Team</b> is where you add the people shown on the About page:</p>
+  <ul>
+    <li><b>+ New Member</b>, then add a name, role, short bio and photo. Tap <b>Save</b>.</li>
+    <li>Drag <b>≡</b> to change the order.</li>
+  </ul>
+  <div class="note">The About page shows only the first two gallery photos.</div>
+</section>
+
+<section>
+  <h2><span class="n">7.</span>Journal</h2>
+  <p>Your news and behind-the-scenes stories.</p>
+  <ul>
+    <li><b>+ New Entry</b>, then add a <b>Title</b>, <b>Author</b>, <b>Date</b> and <b>Cover image</b>.</li>
+    <li><b>Standfirst</b>: one or two sentences that introduce the story.</li>
+    <li>Write the story under <b>The entry</b> (see "Adding text and pictures" below).</li>
+    <li>New entries start as <b>Draft</b>, so they don't show on the website. Switch to <b>Published</b> and tap <b>Save</b> when it's ready.</li>
+  </ul>
+  <div class="note"><b>Adding text and pictures.</b> Journal entries, pages and projects are built from blocks. Tap <b>+ Text</b>, <b>+ Heading</b>, <b>+ Image</b>, <b>+ Gallery</b>, <b>+ Video</b> or <b>+ Button</b> to add one. Use <b>↑ ↓</b> to move a block and <b>×</b> to remove it.</div>
+</section>
+
+<section>
+  <h2><span class="n">8.</span>Services</h2>
+  <ul>
+    <li><b>+ New Service</b>, or tap one to change it.</li>
+    <li>Add a name, a short <b>Summary</b>, a <b>Description</b> and a photo.</li>
+    <li>Use <b>+ Capability</b> for each thing the service includes.</li>
+    <li>Tap <b>Save</b>. Drag <b>≡</b> in the list to change the order.</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="n">9.</span>Categories</h2>
+  <p>The groups your projects sit in, such as Film or Commercials.</p>
+  <ul>
+    <li><b>+ New Category</b>, then add a <b>Label</b> and <b>Description</b>.</li>
+    <li>Drag <b>≡</b> to change the order of the filters on Work.</li>
+    <li>A category with no projects doesn't show on the website.</li>
+    <li>To delete a category, first move its projects to another category.</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="n">10.</span>Pages &amp; Menu</h2>
+  <p><b>Pages</b> changes the heading and text at the top of each page.</p>
+  <ul>
+    <li>Pick a page on the left, make your changes, then tap <b>Save changes</b>.</li>
+    <li>On <b>Contact</b>, you can turn the message form on or off.</li>
+    <li><b>+ New Page</b> makes a new page. Tick <b>Add to the menu</b> to link to it.</li>
+  </ul>
+  <p><b>Menu</b> changes the links at the top of the website.</p>
+  <ul>
+    <li><b>+ Add Item</b>, then type the name and the page address, for example <b>/contact</b>.</li>
+    <li>Drag <b>≡</b> to reorder. <b>Hide from the menu</b> removes a link without deleting the page.</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="n">11.</span>Messages</h2>
+  <p>Messages sent through the Contact form.</p>
+  <ul>
+    <li>Tap a message to open it.</li>
+    <li><b>Reply by email</b> opens your email app with the reply ready to write.</li>
+    <li><b>Archive</b> tidies it away and <b>Mark unread</b> keeps it as a reminder.</li>
+  </ul>
+  <div class="note" data-if="inbox">Every message is also emailed to <a data-f="inbox"></a>. Tap <b>Reply</b> in that email to answer the sender directly.</div>
+  <div class="note warn" data-unless="inbox">Messages are <b>not</b> sent to your email yet. Check <b>Messages</b> in the admin regularly.</div>
+</section>
+
+<section>
+  <h2><span class="n">12.</span>Settings</h2>
+  <ul>
+    <li>Your <b>Contact Email</b>, <b>Phone</b> and <b>Studio location</b>, as shown to visitors.</li>
+    <li><b>Social Links</b>: tap <b>+ Add social link</b>, then add a name and a link.</li>
+    <li>Fonts and animations: make one small change at a time and check the website afterwards.</li>
+    <li><b>Change Password</b>: type your current password, then the new one twice.</li>
+    <li>Tap <b>Save</b>.</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="n">13.</span>Photos &amp; videos</h2>
+  <table>
+    <tr><td>Project pictures</td><td>Wide, about 1920 × 1080</td></tr>
+    <tr><td>Portraits</td><td>Upright, about 800 × 1000</td></tr>
+    <tr><td>Home page circle</td><td>Square, about 1200 × 1200, subject in the middle</td></tr>
+    <tr><td>Home page video</td><td>MP4, 4–12 seconds</td></tr>
+    <tr><td>Full films</td><td>Upload to YouTube, then paste the link</td></tr>
+  </table>
+  <p>Photos are made smaller for you when you upload them. Keep your originals somewhere safe.</p>
+</section>
+
+<section>
+  <h2><span class="n">14.</span>Good to know</h2>
+  <ul>
+    <li><b>Always save</b> before you leave a screen. <b>Undo</b> only works on the screen you're on.</li>
+    <li>After saving, open <b>View Site</b> and refresh to check your change.</li>
+    <li>Hide things instead of deleting them. Deleting can't be undone.</li>
+    <li>Never share your password.</li>
+    <li>If something looks broken, take a screenshot and send it to your developer with what you were trying to do.</li>
+  </ul>
+  <div class="note">
+    <b>Your developer</b><br>
+    <span data-f="developer"></span><span data-f="devEmail" data-sep></span><span data-f="devPhone" data-sep></span>
+  </div>
+</section>
+
+<p class="end">End of guide · CRA8</p>
+
+<script>
+  DETAILS.admin = DETAILS.website.replace(/\/$/, "") + "/admin/login";
+  const isEmail = v => /^[^\s@]+@[^\s@]+$/.test(v);
+  const isPhone = v => /^\+?[\d\s()-]{7,}$/.test(v);
+  const hrefFor = v => isEmail(v) ? "mailto:" + v : isPhone(v) ? "tel:" + v.replace(/[^\d+]/g, "") : v;
+  // Notes that only apply when a detail is (or isn't) filled in.
+  const filled = key => DETAILS[key] && !/^_+$/.test(DETAILS[key]);
+  document.querySelectorAll("[data-if]").forEach(el => { if (!filled(el.dataset.if)) el.remove(); });
+  document.querySelectorAll("[data-unless]").forEach(el => { if (filled(el.dataset.unless)) el.remove(); });
+  document.querySelectorAll("[data-f]").forEach(el => {
+    const value = DETAILS[el.dataset.f];
+    // Blank details (still "____") are left out rather than printed.
+    if (!value || /^_+$/.test(value)) return el.remove();
+    // Emails, phone numbers and web addresses are links, so they work in the PDF too.
+    let target = el;
+    if (el.tagName !== "A" && (isEmail(value) || isPhone(value) || /^https?:/.test(value))) {
+      target = el.appendChild(document.createElement("a"));
+    }
+    target.textContent = value;
+    if (target.tagName === "A") {
+      target.href = hrefFor(value);
+      target.target = "_blank";
+      target.rel = "noopener";
+    }
+    if ("sep" in el.dataset) el.prepend(" · ");
+  });
+</script>
+<!--
+  Re-export the PDF (PowerShell, from the repo root):
+  & "C:\Program Files\Google\Chrome\Application\chrome.exe" --headless --disable-gpu --no-pdf-header-footer --print-to-pdf="docs\handover\User-Guide.pdf" "docs\handover\User-Guide.html"
+-->
+</body>
+</html>

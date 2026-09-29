@@ -3,11 +3,12 @@ import rateLimit from "express-rate-limit";
 import pool from "../db.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { logAudit } from "../utils/audit.js";
+import { sendContactNotification } from "../utils/mailer.js";
 
 /**
- * Contact enquiries. Submissions are stored and read in Admin → Messages, so
- * the form keeps working without an email provider, an API key, or anything
- * else that can silently expire years from now.
+ * Contact enquiries. Submissions are stored and read in Admin → Messages, and
+ * a copy is emailed to the studio when SMTP is configured. Storing comes
+ * first, so the form keeps working even if the email account lapses.
  */
 const router = Router();
 
@@ -48,6 +49,11 @@ router.post("/", submitLimiter, async (req, res) => {
     );
 
     res.status(201).json({ message: "Message sent" });
+
+    // After the response: the visitor never waits on, or sees, an email failure.
+    sendContactNotification({ name, email, topic, message }).catch((error) =>
+      console.error("Contact email failed (message is saved):", error.message)
+    );
   } catch (error) {
     console.error("POST /contact failed:", error);
     res.status(500).json({ error: "Could not send your message. Please email us directly." });

@@ -14,9 +14,8 @@ const FILTERS = [
 ] as const;
 
 /**
- * The Contact form's inbox. Messages are stored in the database rather than
- * emailed, so the form keeps working years from now without an email provider,
- * an API key, or a billing account that can lapse.
+ * The Contact form's inbox. Every message is stored here; a copy is also
+ * emailed to the studio when the server has SMTP configured.
  */
 const AdminMessages = () => {
   const queryClient = useQueryClient();
