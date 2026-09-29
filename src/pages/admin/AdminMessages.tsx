@@ -30,14 +30,31 @@ const AdminMessages = () => {
   });
 
   const messages = data?.messages || [];
-  const visible = filter === "all" ? messages : messages.filter((message) => message.status === filter);
+  // The open message stays in the list even after its status changes (opening
+  // an unread one marks it read), so it doesn't vanish mid-read. It leaves the
+  // tab once closed.
+  const visible =
+    filter === "all"
+      ? messages
+      : messages.filter((message) => message.status === filter || message.id === openId);
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: ContactMessage["status"] }) =>
       updateMessageStatus(id, status),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["adminMessages"] }),
+    // Show the new status straight away instead of waiting for the server.
+    onMutate: ({ id, status }) => {
+      queryClient.setQueryData<{ messages: ContactMessage[]; unread: number }>(["adminMessages"], (old) =>
+        old && { ...old, messages: old.messages.map((m) => (m.id === id ? { ...m, status } : m)) }
+      );
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["adminMessages"] }),
     onError: (error: Error) => toast.error(error.message),
   });
+
+  const changeFilter = (key: (typeof FILTERS)[number]["key"]) => {
+    setFilter(key);
+    setOpenId(null);
+  };
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteMessage(id),
@@ -72,7 +89,7 @@ const AdminMessages = () => {
           <button
             key={option.key}
             type="button"
-            onClick={() => setFilter(option.key)}
+            onClick={() => changeFilter(option.key)}
             className={`px-3 py-2 rounded-lg text-xs tracking-wide transition-colors cursor-pointer ${
               filter === option.key
                 ? "bg-white/[0.08] text-white/60"
@@ -148,12 +165,13 @@ const AdminMessages = () => {
                     </a>
                     <button
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
                         statusMutation.mutate({
                           id: message.id,
                           status: message.status === "archived" ? "read" : "archived",
-                        })
-                      }
+                        });
+                        setOpenId(null);
+                      }}
                       className="px-3 py-1.5 bg-white/[0.06] rounded-md text-[10px] tracking-wider uppercase text-white/40 hover:text-white/70 transition-colors cursor-pointer"
                     >
                       {message.status === "archived" ? "Unarchive" : "Archive"}
