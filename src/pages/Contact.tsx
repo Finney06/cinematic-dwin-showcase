@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import PageShell from "@/components/site/PageShell";
 import Masthead from "@/components/site/Masthead";
@@ -42,11 +42,21 @@ const Contact = () => {
   // come after every hook the component ever calls, on every render.
   const [form, setForm] = useState({ name: "", email: "", topic: topics[0], message: "", company: "" });
   const [error, setError] = useState("");
+  const [invalidField, setInvalidField] = useState<"name" | "email" | "message" | null>(null);
+  // The API sleeps when idle and can take up to a minute to wake: say so,
+  // rather than leaving a button that looks stuck.
+  const [slow, setSlow] = useState(false);
 
   const mutation = useMutation({
     mutationFn: () => submitContactMessage(form),
     onSuccess: () => setForm({ name: "", email: "", topic: topics[0], message: "", company: "" }),
   });
+
+  useEffect(() => {
+    if (!mutation.isPending) return setSlow(false);
+    const timer = window.setTimeout(() => setSlow(true), 5000);
+    return () => window.clearTimeout(timer);
+  }, [mutation.isPending]);
 
   if (!page.isLoading && page.isUnpublished) return <NotFound />;
 
@@ -70,18 +80,36 @@ const Contact = () => {
     ].filter(Boolean) as { label: string; url: string }[];
   })();
 
-  const setField = (key: keyof typeof form, value: string) =>
+  const setField = (key: keyof typeof form, value: string) => {
     setForm((previous) => ({ ...previous, [key]: value }));
+    if (key === invalidField) {
+      setInvalidField(null);
+      setError("");
+    }
+  };
+
+  const reject = (field: "name" | "email" | "message", message: string) => {
+    setInvalidField(field);
+    setError(message);
+    document.getElementById(`contact-${field}`)?.focus();
+  };
+
+  const messageLength = form.message.trim().length;
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!form.name.trim()) return setError("Please add your name.");
+    if (!form.name.trim()) return reject("name", "Please add your name.");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email.trim()))
-      return setError("Please check your email address — that's where we'll reply.");
-    if (form.message.trim().length < 10) return setError("Tell us a little more so we can reply properly.");
+      return reject("email", "Please check your email address — that's where we'll reply.");
+    if (messageLength < 10)
+      return reject("message", "Your message is too short. Please write at least 10 characters.");
     setError("");
+    setInvalidField(null);
     mutation.mutate();
   };
+
+  const fieldClass = (field: "name" | "email" | "message") =>
+    invalidField === field ? `${input} border-red-400/70 focus:border-red-400` : input;
 
   return (
     <PageShell title={page.seo.title} description={page.seo.description} image={page.seo.image}>
@@ -140,7 +168,8 @@ const Contact = () => {
                       autoComplete="name"
                       value={form.name}
                       onChange={(event) => setField("name", event.target.value)}
-                      className={input}
+                      aria-invalid={invalidField === "name"}
+                      className={fieldClass("name")}
                     />
                   </div>
                   <div>
@@ -154,7 +183,8 @@ const Contact = () => {
                       value={form.email}
                       onChange={(event) => setField("email", event.target.value)}
                       placeholder="you@example.com"
-                      className={input}
+                      aria-invalid={invalidField === "email"}
+                      className={fieldClass("email")}
                     />
                   </div>
                 </div>
@@ -187,12 +217,25 @@ const Contact = () => {
                     value={form.message}
                     onChange={(event) => setField("message", event.target.value)}
                     placeholder="What you're making, roughly when, and how we can help."
-                    className={`${input} resize-y`}
+                    aria-invalid={invalidField === "message"}
+                    aria-describedby="contact-message-hint"
+                    className={`${fieldClass("message")} resize-y`}
                   />
+                  <p
+                    id="contact-message-hint"
+                    className={`mt-2 font-body text-xs ${messageLength > 0 && messageLength < 10 ? "text-foreground/60" : "text-foreground/30"}`}
+                  >
+                    {messageLength > 0 && messageLength < 10
+                      ? `${10 - messageLength} more character${10 - messageLength === 1 ? "" : "s"} needed`
+                      : "At least 10 characters."}
+                  </p>
                 </div>
 
                 {(error || mutation.isError) && (
-                  <p role="alert" className="font-body text-sm text-foreground/70">
+                  <p
+                    role="alert"
+                    className="font-body text-sm text-red-300 bg-red-500/10 border border-red-400/30 rounded-sm px-4 py-3"
+                  >
                     {error || (mutation.error as Error)?.message}
                   </p>
                 )}
@@ -204,6 +247,11 @@ const Contact = () => {
                 >
                   {mutation.isPending ? "Sending…" : "Send message"}
                 </button>
+                {slow && (
+                  <p role="status" className="font-body text-xs text-foreground/45">
+                    Still sending — the server is waking up. This can take up to a minute; please keep this page open.
+                  </p>
+                )}
               </form>
             )}
           </Reveal>

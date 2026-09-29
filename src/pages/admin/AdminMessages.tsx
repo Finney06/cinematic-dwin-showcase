@@ -58,7 +58,7 @@ const AdminMessages = () => {
     <div>
       <AdminHeader
         title="Messages"
-        description="Enquiries sent through the Contact page. Nothing here is emailed out — this is the inbox."
+        description="Enquiries sent through the Contact page. Every message is saved here, and a copy is emailed to the studio."
       >
         {data?.unread ? (
           <span className="px-3 py-1.5 rounded-full bg-emerald-400/10 text-emerald-300/70 text-[10px] tracking-[0.15em] uppercase">

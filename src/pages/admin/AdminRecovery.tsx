@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { clearToken } from "@/lib/adminApi";
+import PasswordInput from "@/components/admin/PasswordInput";
 
 export default function AdminRecovery({ reset = false }: { reset?: boolean }) {
   const navigate = useNavigate();
@@ -43,8 +44,8 @@ export default function AdminRecovery({ reset = false }: { reset?: boolean }) {
           {message && <p role="status" className="text-sm text-green-300">{message}</p>}
           {reset ? <>
             {!token && <p role="alert" className="text-sm text-amber-300">This link is missing its reset token. Request a new link below.</p>}
-            <label className="block text-xs text-white/70">New password<input className={inputClass} type="password" autoComplete="new-password" required minLength={12} value={password} onChange={e => setPassword(e.target.value)} /></label>
-            <label className="block text-xs text-white/70">Confirm password<input className={inputClass} type="password" autoComplete="new-password" required minLength={12} value={confirm} onChange={e => setConfirm(e.target.value)} /></label>
+            <label className="block text-xs text-white/70">New password<PasswordInput className={inputClass} autoComplete="new-password" required minLength={12} value={password} onChange={e => setPassword(e.target.value)} /></label>
+            <label className="block text-xs text-white/70">Confirm password<PasswordInput className={inputClass} autoComplete="new-password" required minLength={12} value={confirm} onChange={e => setConfirm(e.target.value)} /></label>
           </> : <label className="block text-xs text-white/70">Username<input className={inputClass} autoComplete="username" required maxLength={255} value={username} onChange={e => setUsername(e.target.value)} /></label>}
           <button disabled={busy || (reset && !token)} className="w-full bg-white/90 text-black text-xs tracking-widest uppercase py-3.5 rounded-lg disabled:opacity-40">{busy ? "Please wait…" : reset ? "Reset password" : "Send reset link"}</button>
           {reset && <Link className="block text-sm text-white/70 underline text-center" to="/admin/forgot-password">Request a new reset link</Link>}

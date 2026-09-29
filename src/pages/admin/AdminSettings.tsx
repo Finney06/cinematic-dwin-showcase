@@ -7,6 +7,7 @@ import { updateSettings, changePassword, clearToken } from "@/lib/adminApi";
 import { toast } from "sonner";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import ImageUpload from "@/components/admin/ImageUpload";
+import PasswordInput from "@/components/admin/PasswordInput";
 
 type SocialLink = { label: string; url: string };
 
@@ -705,8 +706,7 @@ const AdminSettings = () => {
                 <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
                   Current Password
                 </label>
-                <input
-                  type="password"
+                <PasswordInput
                   autoComplete="current-password"
                   value={passwordForm.currentPassword}
                   onChange={(e) => setPasswordForm((p) => ({ ...p, currentPassword: e.target.value }))}
@@ -719,8 +719,7 @@ const AdminSettings = () => {
                   <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
                     New Password
                   </label>
-                  <input
-                    type="password"
+                  <PasswordInput
                     autoComplete="new-password"
                     value={passwordForm.newPassword}
                     onChange={(e) => setPasswordForm((p) => ({ ...p, newPassword: e.target.value }))}
@@ -733,8 +732,7 @@ const AdminSettings = () => {
                   <label className="block text-xs tracking-[0.15em] uppercase text-white/40 font-medium mb-2">
                     Confirm Password
                   </label>
-                  <input
-                    type="password"
+                  <PasswordInput
                     autoComplete="new-password"
                     value={passwordForm.confirmPassword}
                     onChange={(e) => setPasswordForm((p) => ({ ...p, confirmPassword: e.target.value }))}
