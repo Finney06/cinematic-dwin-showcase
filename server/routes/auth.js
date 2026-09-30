@@ -151,13 +151,15 @@ router.post("/forgot-password", recoveryLimiter, async (req, res) => {
       if (rows.length) {
         // Fragment keeps the token out of server access logs and Referer headers.
         link.hash = `token=${token}`;
-        try {
-          const email = passwordResetRequestEmail(link);
-          await sendRecoveryEmail(email.subject, email.text, email.html);
-        } catch {
-          await pool.query("UPDATE admin_users SET reset_token_hash = NULL, reset_token_expires_at = NULL WHERE id = $1 AND reset_token_hash = $2", [rows[0].id, hash]);
-          console.error("Admin password recovery email could not be delivered.");
-        }
+        const email = passwordResetRequestEmail(link);
+        // Sent after responding: the page never waits on the mail provider, and
+        // the response time can't reveal whether the username exists.
+        res.on("finish", () => {
+          Promise.resolve().then(() => sendRecoveryEmail(email.subject, email.text, email.html)).catch(async (error) => {
+            console.error("Admin password recovery email could not be delivered:", error.message);
+            await pool.query("UPDATE admin_users SET reset_token_hash = NULL, reset_token_expires_at = NULL WHERE id = $1 AND reset_token_hash = $2", [rows[0].id, hash]).catch(() => {});
+          });
+        });
       }
     }
     res.json({ message });
@@ -183,10 +185,12 @@ router.post("/reset-password", recoveryLimiter, async (req, res) => {
     if (!rows.length) return res.status(400).json({ error: "Invalid or expired reset link. Request a new link." });
     req.user = rows[0];
     await logAudit(req, "auth.password.reset", "user", String(req.user.id));
-    try {
-      const email = passwordResetDoneEmail();
-      await sendRecoveryEmail(email.subject, email.text, email.html);
-    } catch { console.error("Password reset notification could not be delivered."); }
+    const email = passwordResetDoneEmail();
+    res.on("finish", () => {
+      Promise.resolve().then(() => sendRecoveryEmail(email.subject, email.text, email.html)).catch((error) =>
+        console.error("Password reset notification could not be delivered:", error.message)
+      );
+    });
     res.json({ message: "Password reset. Sign in with your new password." });
   } catch {
     res.status(500).json({ error: "Unable to reset password. Try again later." });
